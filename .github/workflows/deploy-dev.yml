@@ -25,13 +25,6 @@ jobs:
           php_extensions: intl
           version: 2.x
 
-      - name: 🔨 Build vite
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - run: yarn install
-      - run: yarn build
-
       - name: 🌐 FTP sync changes
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
