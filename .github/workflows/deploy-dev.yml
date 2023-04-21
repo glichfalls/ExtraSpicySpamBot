@@ -1,12 +1,12 @@
-name: 🚀 Prod deployment
+name: 🚀 Dev Deployment
 
 on:
   push:
     branches:
-      - dev
+      - master
 
 jobs:
-  prod-deploy:
+  dev-deploy:
     name: 🚀 Dev Deploy
     runs-on: ubuntu-latest
     steps:
