@@ -1,0 +1,65 @@
+name: 🚀 Prod deployment
+
+on: workflow_dispatch
+
+jobs:
+  prod-deploy:
+    name: 🚀 Dev Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚧 Check out repository
+        uses: actions/checkout@v3
+
+      - name: 🔐 Create .env
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+
+      - name: 🔨 Setup php composer dependencies
+        uses: php-actions/composer@v6
+        with:
+          dev: no
+          php_version: 8.1
+          php_extensions: intl
+          version: 2.x
+
+      - name: 🔨 Build vite
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      - run: yarn install
+      - run: yarn build
+
+      - name: 🌐 FTP sync changes
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: 185.117.169.140
+          server-dir: ./subdomains/extra-spicy-spam-bot-dev/httpdocs/
+          port: 21
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            /var/**
+            .env.example
+            composer.*
+            package.*
+            tsconfig.json
+            vite.config.js
+            yarn.lock
+            .github/**
+            readme.md
+            **/assets/js/**
+            **/assets/scss/**
+
+      - name: 🧹 Clean up FTP
+        uses: StephanThierry/ftp-delete-action@v2.1
+        with:
+          host: 185.117.169.140
+          user: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          remoteFiles: '*.log;docker_tag;DOCKER_ENV'
+          remoteDirectories: 'var'
+          workingDir: './subdomains/extra-spicy-spam-bot-dev/httpdocs/'
+          ignoreSSL: 1
