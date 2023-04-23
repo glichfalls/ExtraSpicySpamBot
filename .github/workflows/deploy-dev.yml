@@ -15,7 +15,7 @@ jobs:
 
       - name: 🔐 Create .env
         run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
+          echo "${{ secrets.ENV_FILE }}" > .env.local
 
       - name: 🔨 Setup php composer dependencies
         uses: php-actions/composer@v6
