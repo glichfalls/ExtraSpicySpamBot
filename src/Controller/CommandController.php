@@ -33,7 +33,7 @@ class CommandController extends AbstractController
     #[Route('/friday')]
     public function friday(): Response
     {
-        $messages = $this->messageSender->video('https://extra-spicy-spam.portner.dev/assets/video/friday.mp4');
+        $messages = $this->messageSender->video('https://extra-spicy-spam.portner.dev/assets/video/friday-sailor.mp4');
         return new JsonResponse($messages);
     }
 
