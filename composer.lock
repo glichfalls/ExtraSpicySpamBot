@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b721ee866ff40bb33e33e14a77fe1030",
+    "content-hash": "ea7428e8c8843e9d7dcf8ce47a6891b8",
     "packages": [
         {
             "name": "boshurik/telegram-bot-bundle",
@@ -2467,16 +2467,16 @@
         },
         {
             "name": "telegram-bot/api",
-            "version": "v2.3.25",
+            "version": "v2.3.26",
             "source": {
                 "type": "git",
                 "url": "https://github.com/TelegramBot/Api.git",
-                "reference": "7a534219842ad59835eb89909ca58f8b8e3223a0"
+                "reference": "58897c23420a678ab2debef7a73834b54c14e796"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/TelegramBot/Api/zipball/7a534219842ad59835eb89909ca58f8b8e3223a0",
-                "reference": "7a534219842ad59835eb89909ca58f8b8e3223a0",
+                "url": "https://api.github.com/repos/TelegramBot/Api/zipball/58897c23420a678ab2debef7a73834b54c14e796",
+                "reference": "58897c23420a678ab2debef7a73834b54c14e796",
                 "shasum": ""
             },
             "require": {
@@ -2521,9 +2521,9 @@
             ],
             "support": {
                 "issues": "https://github.com/TelegramBot/Api/issues",
-                "source": "https://github.com/TelegramBot/Api/tree/v2.3.25"
+                "source": "https://github.com/TelegramBot/Api/tree/v2.3.26"
             },
-            "time": "2023-03-06T10:06:04+00:00"
+            "time": "2023-04-21T18:10:37+00:00"
         }
     ],
     "packages-dev": [],
@@ -2533,7 +2533,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.1",
+        "php": ">=8.0",
         "ext-ctype": "*",
         "ext-iconv": "*"
     },

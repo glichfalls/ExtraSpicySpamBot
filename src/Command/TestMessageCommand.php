@@ -13,7 +13,7 @@ use TelegramBot\Api\BotApi;
 class TestMessageCommand extends Command
 {
 
-    public function __construct(private readonly BotApi $bot)
+    public function __construct(private BotApi $bot)
     {
         parent::__construct();
     }

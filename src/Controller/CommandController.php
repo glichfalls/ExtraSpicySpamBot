@@ -20,8 +20,8 @@ class CommandController extends AbstractController
 {
 
     public function __construct(
-        private readonly KernelInterface $kernel,
-        private readonly LoggerInterface $logger,
+        private KernelInterface $kernel,
+        private LoggerInterface $logger,
     )
     {
     }
