@@ -37,9 +37,7 @@ jobs:
             **/.git*
             **/.git*/**
             var/**
-            composer.*
             package.*
-            symfony.lock
             .github/**
             readme.md
 
