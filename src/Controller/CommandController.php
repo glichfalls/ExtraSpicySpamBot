@@ -23,6 +23,20 @@ class CommandController extends AbstractController
         return new JsonResponse($message?->toJson(true));
     }
 
+    #[Route('/spam')]
+    public function spam(Request $request): Response
+    {
+        $message = $this->messageSender->spam($request->query->get('message'));
+        return new JsonResponse($message?->toJson(true));
+    }
+
+    #[Route('/friday')]
+    public function friday(): Response
+    {
+        $messages = $this->messageSender->video('https://extra-spicy-spam.portner.dev/assets/video/friday.mp4');
+        return new JsonResponse($messages);
+    }
+
     #[Route('/send/{chatId}')]
     public function send(string $chatId, Request $request): Response
     {
