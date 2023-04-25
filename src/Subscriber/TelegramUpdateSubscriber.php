@@ -28,7 +28,7 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
     {
         $chatId = $event->getUpdate()->getMessage()->getChat()->getId();
         $this->logger->debug('Chat ID: ' . $chatId);
-        $this->bot->sendMessage($chatId, 'Hello!');
+        $this->bot->sendMessage($chatId, $chatId);
     }
 
 }
