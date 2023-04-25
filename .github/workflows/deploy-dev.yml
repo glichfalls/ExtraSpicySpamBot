@@ -21,7 +21,7 @@ jobs:
         uses: php-actions/composer@v6
         with:
           dev: no
-          php_version: 8.1
+          php_version: 8.2
           php_extensions: intl
           version: 2.x
 
@@ -36,18 +36,11 @@ jobs:
           exclude: |
             **/.git*
             **/.git*/**
-            **/node_modules/**
             /var/**
-            .env.example
             composer.*
             package.*
-            tsconfig.json
-            vite.config.js
-            yarn.lock
             .github/**
             readme.md
-            **/assets/js/**
-            **/assets/scss/**
 
       - name: 🧹 Clean up FTP
         uses: StephanThierry/ftp-delete-action@v2.1
