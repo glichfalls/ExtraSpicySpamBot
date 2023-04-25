@@ -1,3 +1,3 @@
 # Extra Spicy Spam Bot
 
-[![🚀 Deployment](https://github.com/glichfalls/ExtraSpicySpamBot/actions/workflows/deployment.yml/badge.svg?branch=master)](https://github.com/glichfalls/ExtraSpicySpamBot/actions/workflows/deployment.yml)
+[![🚀 Deployment](https://github.com/glichfalls/ExtraSpicySpamBot/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/glichfalls/ExtraSpicySpamBot/actions/workflows/main.yml)
