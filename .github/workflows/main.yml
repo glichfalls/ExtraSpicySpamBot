@@ -48,7 +48,7 @@ jobs:
           host: 185.117.169.140
           user: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          remoteFiles: '*.log;docker_tag;DOCKER_ENV'
+          remoteFiles: '*.log;docker_tag;DOCKER_ENV;Dockerfile-php-build'
           remoteDirectories: 'var'
           workingDir: './subdomains/extra-spicy-spam/httpdocs/'
           ignoreSSL: 1
