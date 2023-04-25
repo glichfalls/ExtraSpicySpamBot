@@ -1,4 +1,4 @@
-name: 🚀 Dev Deployment
+name: 🚀 Deployment
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
       - master
 
 jobs:
-  dev-deploy:
-    name: 🚀 Dev Deploy
+  deploy:
+    name: 🚀 Deploy
     runs-on: ubuntu-latest
     steps:
       - name: 🚧 Check out repository
@@ -22,7 +22,6 @@ jobs:
         with:
           dev: no
           php_version: 8.2
-          php_extensions: intl
           version: 2.x
 
       - name: 🌐 FTP sync changes
