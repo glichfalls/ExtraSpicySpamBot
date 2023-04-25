@@ -16,8 +16,15 @@ class CommandController extends AbstractController
     {
     }
 
+    #[Route('/check')]
+    public function checkId(string $chatId): Response
+    {
+        $message = $this->messageSender->send($chatId, $chatId);
+        return new JsonResponse($message?->toJson(true));
+    }
+
     #[Route('/send/{chatId}')]
-    public function test(string $chatId, Request $request): Response
+    public function send(string $chatId, Request $request): Response
     {
         $message = $this->messageSender->send($chatId, $request->query->get('message'));
         return new JsonResponse($message?->toJson(true));
