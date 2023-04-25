@@ -9,6 +9,7 @@ jobs:
   deploy:
     name: 🚀 Deploy
     runs-on: ubuntu-latest
+    environment: Main
     steps:
       - name: 🚧 Check out repository
         uses: actions/checkout@v3
