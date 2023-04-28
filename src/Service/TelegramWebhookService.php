@@ -24,7 +24,9 @@ class TelegramWebhookService
         private HonorService $honorService,
     )
     {
-        $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
+        if ($_ENV['APP_ENV'] === 'dev') {
+            $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
+        }
         $this->chatRepository = $this->manager->getRepository(Chat::class);
         $this->userRepository = $this->manager->getRepository(User::class);
     }
@@ -40,7 +42,7 @@ class TelegramWebhookService
         $this->manager->persist($message);
         $this->manager->flush();
 
-        $this->honorService->handle($message);
+        $this->honorService->handle($update, $message);
 
     }
 

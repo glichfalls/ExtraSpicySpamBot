@@ -24,8 +24,9 @@ class TestMessageCommand extends Command
     public function __construct(private BotApi $bot, private EntityManagerInterface $manager)
     {
         parent::__construct();
-        // insecure but it doesn't work on localhost otherwise
-        $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
+        if ($_ENV['APP_ENV'] === 'dev') {
+            $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
+        }
         $this->chatRepository = $this->manager->getRepository(Chat::class);
     }
 

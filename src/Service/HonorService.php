@@ -46,7 +46,6 @@ class HonorService
 
             if ($user) {
                 $user->setHonor($user->getHonor() + $count);
-                $this->manager->persist($user);
                 $this->manager->flush();
                 $this->api->sendMessage($update->getMessage()->getChat()->getId(), "Ehre +{$count} für {$name}!");
             } else {
