@@ -5,11 +5,13 @@ namespace App\Entity\User;
 use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity]
 class User
 {
     use Id;
+    use TimestampableEntity;
 
     #[Column(type: 'integer')]
     private int $telegramUserId;

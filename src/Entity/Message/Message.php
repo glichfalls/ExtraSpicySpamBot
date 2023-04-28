@@ -8,11 +8,13 @@ use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity]
 class Message
 {
     use Id;
+    use TimestampableEntity;
 
     #[ManyToOne(targetEntity: Chat::class)]
     private Chat $chat;

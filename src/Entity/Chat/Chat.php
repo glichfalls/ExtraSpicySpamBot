@@ -5,11 +5,13 @@ namespace App\Entity\Chat;
 use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity]
 class Chat
 {
     use Id;
+    use TimestampableEntity;
 
     #[Column(unique: true)]
     private string $chatId;
