@@ -1,4 +1,6 @@
 {
+    "name": "glichfalls/extra-spicy-spam",
+    "description": "Extra Spicy Spam",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
