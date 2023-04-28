@@ -1,19 +1,21 @@
 name: 🚀 Deployment
 
 on:
+  push:
+    branches:
+      - master
   workflow_dispatch:
 
 env:
   APP_ENV: prod
 
 jobs:
-  deploy:
-    name: 🚀 Deploy
+  build:
+    name: 🛠️ Build
     runs-on: ubuntu-latest
     environment: Main
     steps:
-      - name: 🚧 Check out repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: 🔐 Create .env
         run: |
@@ -26,6 +28,12 @@ jobs:
           php_version: 8.0.2
           version: 2.x
 
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    environment: Main
+
+    steps:
       - name: 🌐 FTP sync changes
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
@@ -41,7 +49,6 @@ jobs:
             package.*
             .github/**
             readme.md
-
       - name: 🧹 Clean up FTP
         uses: StephanThierry/ftp-delete-action@v2.1
         with:

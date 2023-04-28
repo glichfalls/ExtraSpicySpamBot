@@ -4,9 +4,6 @@
 name: Build and deploy PHP app to Azure Web App - extra-spicy-spam
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
 
 env:
