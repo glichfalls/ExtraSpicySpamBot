@@ -8,6 +8,8 @@ use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use TelegramBot\Api\BotApi;
+use TelegramBot\Api\Exception;
+use TelegramBot\Api\InvalidArgumentException;
 use TelegramBot\Api\Types\Update;
 
 class HonorService
@@ -20,16 +22,16 @@ class HonorService
         $this->userRepository = $this->manager->getRepository(User::class);
     }
 
+    /**
+     * @throws Exception
+     * @throws InvalidArgumentException
+     */
     public function handle(Message $message): void
     {
 
         $text = $message->getMessage();
 
-        dump($text);
-
         if (preg_match('/^\+\s*(?<count>\d+)\s*ehre\s*@(?<name>.+)$/i', $text, $matches) === 1) {
-
-            dump($matches);
             $name = $matches['name'];
             $count = (int) $matches['count'];
 

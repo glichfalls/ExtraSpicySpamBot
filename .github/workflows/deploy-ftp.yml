@@ -28,24 +28,6 @@ jobs:
           php_version: 8.0.2
           version: 2.x
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v2
-        with:
-          name: extra-spicy-spam
-          path: .
-
-  deploy:
-    needs: build
-    name: 🚀 Deploy
-    runs-on: ubuntu-latest
-    environment: Main
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v2
-        with:
-          name: extra-spicy-spam
-
       - name: 🌐 FTP sync changes
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
@@ -61,6 +43,7 @@ jobs:
             package.*
             .github/**
             readme.md
+
       - name: 🧹 Clean up FTP
         uses: StephanThierry/ftp-delete-action@v2.1
         with:
