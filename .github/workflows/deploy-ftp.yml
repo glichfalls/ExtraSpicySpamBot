@@ -29,6 +29,7 @@ jobs:
           version: 2.x
 
   deploy:
+    needs: build
     name: 🚀 Deploy
     runs-on: ubuntu-latest
     environment: Main
