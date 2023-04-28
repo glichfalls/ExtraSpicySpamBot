@@ -4,6 +4,9 @@ namespace App\Service;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Chat\ChatFactory;
+use App\Entity\Message\Message;
+use App\Entity\User\User;
+use App\Entity\User\UserFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use TelegramBot\Api\BotApi;
@@ -13,16 +16,32 @@ class TelegramWebhookService
 {
 
     private EntityRepository $chatRepository;
+    private EntityRepository $userRepository;
 
-    public function __construct(private BotApi $bot, private EntityManagerInterface $manager)
+    public function __construct(
+        private BotApi $bot,
+        private EntityManagerInterface $manager,
+        private HonorService $honorService,
+    )
     {
+        $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
         $this->chatRepository = $this->manager->getRepository(Chat::class);
+        $this->userRepository = $this->manager->getRepository(User::class);
     }
 
     public function handle(Update $update): void
     {
         $chat = $this->createChatIfNotExist($update);
-        $this->bot->sendMessage($chat->getChatId(), 'Hello world!');
+        $sender = $this->createUserIfNotExist($update);
+        $message = new Message();
+        $message->setChat($chat);
+        $message->setUser($sender);
+        $message->setMessage($update->getMessage()->getText());
+        $this->manager->persist($message);
+        $this->manager->flush();
+
+        $this->honorService->handle($message);
+
     }
 
     private function createChatIfNotExist(Update $update): Chat
@@ -34,6 +53,17 @@ class TelegramWebhookService
             $this->manager->flush();
         }
         return $chat;
+    }
+
+    private function createUserIfNotExist(Update $update): User
+    {
+        $user = $this->userRepository->findOneBy(['telegramUserId' => $update->getMessage()->getFrom()->getId()]);
+        if (!$user) {
+            $user = UserFactory::createFromUpdate($update);
+            $this->manager->persist($user);
+            $this->manager->flush();
+        }
+        return $user;
     }
 
 }
