@@ -13,6 +13,11 @@ class ShowHonorCommand extends AbstractHonorCommand
         return 'show_honor';
     }
 
+    public function getAliases(): array
+    {
+        return ['showhonor', 'show_honor', '/showhonor', '/show_honor'];
+    }
+
     public function execute(BotApi $api, Update $update): void
     {
         $message = $this->telegramService->createMessageFromUpdate($update);
