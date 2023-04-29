@@ -112,15 +112,6 @@ class HonorService
                     return;
                 }
 
-                if ($this->isRateLimited($message->getUser(), $recipient, $message->getChat())) {
-                    $this->api->sendMessage(
-                        $update->getMessage()->getChat()->getId(),
-                        sprintf('You are rate limited, %s', $message->getUser()->getName()),
-                        replyToMessageId: $update->getMessage()->getMessageId(),
-                    );
-                    return;
-                }
-
                 $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $count);
                 $this->manager->persist($honor);
                 $this->manager->flush();
