@@ -42,7 +42,7 @@ class HonorService
             $count = (int) $matches['count'];
 
             /** @var User $user */
-            $user = $this->userRepository->findOneBy(['username' => $name]);
+            $user = $this->userRepository->findOneBy(['name' => $name]);
 
             if ($user) {
                 $user->setHonor($user->getHonor() + $count);
