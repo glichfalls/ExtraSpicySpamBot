@@ -26,7 +26,6 @@ class User
     #[Column(type: 'string', nullable: true)]
     private ?string $firstName = null;
 
-    #[Column]
     #[OneToMany(mappedBy: 'recipient', targetEntity: Honor::class)]
     private Collection $honor;
 
