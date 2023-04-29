@@ -65,4 +65,12 @@ class User
         $this->firstName = $firstName;
     }
 
+    /**
+     * @return Collection<Honor>
+     */
+    public function getHonor(): Collection
+    {
+        return $this->honor;
+    }
+
 }

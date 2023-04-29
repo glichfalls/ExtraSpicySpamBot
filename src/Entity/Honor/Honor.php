@@ -17,7 +17,7 @@ class Honor
     use TimestampableEntity;
 
     #[Column]
-    #[ManyToOne(targetEntity: User::class)]
+    #[ManyToOne(targetEntity: User::class, inversedBy: 'honor')]
     private User $sender;
 
     #[Column]

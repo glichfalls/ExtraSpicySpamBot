@@ -39,6 +39,8 @@ class HonorService
         $this->logger->info($text);
 
         if (preg_match('/^\+\s*(?<count>\d+)\s*ehre\s*@(?<name>.+)$/i', $text, $matches) === 1) {
+
+            $this->logger->info('matches');
             $name = $matches['name'];
             $count = (int) $matches['count'];
 

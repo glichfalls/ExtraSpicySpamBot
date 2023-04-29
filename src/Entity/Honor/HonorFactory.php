@@ -22,6 +22,7 @@ class HonorFactory
         $honor->setAmount($amount);
         $honor->setCreatedAt(new \DateTime());
         $honor->setUpdatedAt(new \DateTime());
+        $recipient->getHonor()->add($honor);
         return $honor;
     }
 

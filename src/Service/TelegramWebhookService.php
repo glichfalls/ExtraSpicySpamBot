@@ -35,31 +35,39 @@ class TelegramWebhookService
 
     public function handle(Update $update): void
     {
-        $chat = $this->createChatIfNotExist($update);
-        $sender = $this->createUserIfNotExist($update);
-        if (!$chat || !$sender) {
-            $this->logger->info('chat or sender not found');
+        try {
+            $chat = $this->createChatIfNotExist($update);
+            $sender = $this->createUserIfNotExist($update);
+            if (!$chat || !$sender) {
+                $this->logger->info('chat or sender not found');
+                $chatId = $update->getMessage()?->getChat()?->getId();
+                if ($chatId) {
+                    $this->bot->sendMessage($chatId, 'failed to process update');
+                }
+                return;
+            }
+            if ($update->getMessage() && $update->getMessage()->getText()) {
+                $message = new Message();
+                $message->setChat($chat);
+                $message->setUser($sender);
+                $message->setMessage($update->getMessage()->getText());
+                $message->setCreatedAt(new \DateTime());
+                $message->setUpdatedAt(new \DateTime());
+                $this->manager->persist($message);
+                $this->manager->flush();
+
+                $this->honorService->handle($update, $message);
+                $successMessage = sprintf('saved "%s"', $message->getMessage());
+                $this->bot->sendMessage($chat->getChatId(), $successMessage, replyToMessageId: $update->getMessage()->getMessageId());
+            } else {
+                $this->bot->sendMessage($chat->getChatId(), 'ok');
+            }
+        } catch (\Exception $exception) {
+            $this->logger->error($exception->getMessage());
             $chatId = $update->getMessage()?->getChat()?->getId();
             if ($chatId) {
-                $this->bot->sendMessage($chatId, 'failed to process update');
+                $this->bot->sendMessage($chatId, 'sadge');
             }
-            return;
-        }
-        if ($update->getMessage() && $update->getMessage()->getText()) {
-            $message = new Message();
-            $message->setChat($chat);
-            $message->setUser($sender);
-            $message->setMessage($update->getMessage()->getText());
-            $message->setCreatedAt(new \DateTime());
-            $message->setUpdatedAt(new \DateTime());
-            $this->manager->persist($message);
-            $this->manager->flush();
-
-            $this->honorService->handle($update, $message);
-            $successMessage = sprintf('saved "%s"', $message->getMessage());
-            $this->bot->sendMessage($chat->getChatId(), $successMessage, replyToMessageId: $update->getMessage()->getMessageId());
-        } else {
-            $this->bot->sendMessage($chat->getChatId(), 'ok');
         }
     }
 
