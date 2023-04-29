@@ -13,6 +13,11 @@ class AddHonorCommand extends AbstractHonorCommand
         return 'add_honor';
     }
 
+    public function getDescription(): string
+    {
+        return 'add or remove honor form a user';
+    }
+
     public function getAliases(): array
     {
         return ['addhonor', 'add_honor', '/addhonor', '/add_honor'];

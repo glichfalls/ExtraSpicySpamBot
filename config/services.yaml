@@ -13,6 +13,7 @@ services:
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
         bind:
+            string $botToken: '%env(TELEGRAM_BOT_TOKEN)%'
             string $extraSpicySpamChatId: '%env(EXTRA_SPICY_SPAM_CHAT_ID)%'
 
     # makes classes in src/ available to be used as services

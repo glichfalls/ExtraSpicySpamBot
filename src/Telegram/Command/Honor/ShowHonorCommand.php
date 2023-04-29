@@ -13,6 +13,11 @@ class ShowHonorCommand extends AbstractHonorCommand
         return 'show_honor';
     }
 
+    public function getDescription(): string
+    {
+        return 'See your honor';
+    }
+
     public function getAliases(): array
     {
         return ['showhonor', 'show_honor', '/showhonor', '/show_honor'];
