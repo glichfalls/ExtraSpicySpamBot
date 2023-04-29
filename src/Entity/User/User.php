@@ -2,9 +2,13 @@
 
 namespace App\Entity\User;
 
+use App\Entity\Honor\Honor;
 use App\Model\Id;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\OneToMany;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity]
@@ -22,12 +26,14 @@ class User
     #[Column(type: 'string', nullable: true)]
     private ?string $firstName = null;
 
-    #[Column(type: 'integer')]
-    private int $honor = 0;
+    #[Column]
+    #[OneToMany(mappedBy: 'recipient', targetEntity: Honor::class)]
+    private Collection $honor;
 
     public function __construct()
     {
         $this->generateId();
+        $this->honor = new ArrayCollection();
     }
 
     public function getTelegramUserId(): int
@@ -58,16 +64,6 @@ class User
     public function setFirstName(?string $firstName): void
     {
         $this->firstName = $firstName;
-    }
-
-    public function getHonor(): int
-    {
-        return $this->honor;
-    }
-
-    public function setHonor(int $honor): void
-    {
-        $this->honor = $honor;
     }
 
 }

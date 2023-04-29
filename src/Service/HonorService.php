@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,7 +46,8 @@ class HonorService
             $user = $this->userRepository->findOneBy(['name' => $name]);
 
             if ($user) {
-                $user->setHonor($user->getHonor() + $count);
+                $honor = HonorFactory::create($message->getChat(), $message->getUser(), $user, $count);
+                $this->manager->persist($honor);
                 $this->manager->flush();
                 $this->api->sendMessage($update->getMessage()->getChat()->getId(), "Ehre +{$count} für {$name}!");
             } else {
