@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e4a0673eb24af2b83b64c33b037c34eb",
+    "content-hash": "3feb66bad8cf82cb44868591ccc7f352",
     "packages": [
         {
             "name": "behat/transliterator",
@@ -5708,16 +5708,16 @@
         },
         {
             "name": "telegram-bot/api",
-            "version": "v2.3.26",
+            "version": "v2.3.24",
             "source": {
                 "type": "git",
                 "url": "https://github.com/TelegramBot/Api.git",
-                "reference": "58897c23420a678ab2debef7a73834b54c14e796"
+                "reference": "579f64d0ffe7f21d1f61cb8734e297686b286bf7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/TelegramBot/Api/zipball/58897c23420a678ab2debef7a73834b54c14e796",
-                "reference": "58897c23420a678ab2debef7a73834b54c14e796",
+                "url": "https://api.github.com/repos/TelegramBot/Api/zipball/579f64d0ffe7f21d1f61cb8734e297686b286bf7",
+                "reference": "579f64d0ffe7f21d1f61cb8734e297686b286bf7",
                 "shasum": ""
             },
             "require": {
@@ -5762,9 +5762,9 @@
             ],
             "support": {
                 "issues": "https://github.com/TelegramBot/Api/issues",
-                "source": "https://github.com/TelegramBot/Api/tree/v2.3.26"
+                "source": "https://github.com/TelegramBot/Api/tree/v2.3.24"
             },
-            "time": "2023-04-21T18:10:37+00:00"
+            "time": "2021-12-06T13:05:34+00:00"
         },
         {
             "name": "twig/twig",
