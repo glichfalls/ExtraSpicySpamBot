@@ -34,6 +34,7 @@ jobs:
         with:
           server: 185.117.169.140
           server-dir: ./subdomains/extra-spicy-spam/httpdocs/
+          log-level: minimal
           port: 21
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
