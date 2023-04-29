@@ -36,10 +36,14 @@ class HonorService
 
         $this->logger->info($text);
 
-        if (preg_match('/^\+\s*(?<count>\d+)\s*ehre\s*@(?<name>.+)$/i', $text, $matches) === 1) {
+        if (preg_match('/^\(?<op>+|\-)\s*(?<count>\d+)\s*ehre\s*@(?<name>.+)$/i', $text, $matches) === 1) {
 
+            $operation = $matches['op'];
             $name = $matches['name'];
             $count = (int) $matches['count'];
+            if ($operation === '-') {
+                $count *= -1;
+            }
 
             /** @var MessageEntity[] $entities */
             $entities = $update->getMessage()->getEntities();
@@ -60,7 +64,11 @@ class HonorService
                 $this->logger->info(sprintf('Found mention %s', $entity->toJson()));
 
                 if ($recipient === null) {
-                    $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s not found', $name));
+                    $this->api->sendMessage(
+                        $update->getMessage()->getChat()->getId(),
+                        sprintf('User %s not found', $name),
+                        replyToMessageId: $update->getMessage()->getMessageId(),
+                    );
                     continue;
                 }
 
@@ -83,7 +91,11 @@ class HonorService
                 $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $count);
                 $this->manager->persist($honor);
                 $this->manager->flush();
-                $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s received %d Ehre', $name, $count));
+                $this->api->sendMessage(
+                    $update->getMessage()->getChat()->getId(),
+                    sprintf('User %s received %d Ehre', $name, $count),
+                    replyToMessageId: $update->getMessage()->getMessageId(),
+                );
             }
         }
 
