@@ -39,6 +39,8 @@ class TelegramWebhookService
         $message->setChat($chat);
         $message->setUser($sender);
         $message->setMessage($update->getMessage()->getText());
+        $message->setCreatedAt(new \DateTime());
+        $message->setUpdatedAt(new \DateTime());
         $this->manager->persist($message);
         $this->manager->flush();
 

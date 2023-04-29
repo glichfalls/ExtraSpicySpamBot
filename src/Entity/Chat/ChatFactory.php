@@ -17,6 +17,8 @@ class ChatFactory
         } else {
             $chat->setName($telegramChat->getTitle());
         }
+        $chat->setCreatedAt(new \DateTime());
+        $chat->setUpdatedAt(new \DateTime());
         return $chat;
     }
 
