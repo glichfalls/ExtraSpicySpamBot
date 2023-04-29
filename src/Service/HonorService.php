@@ -166,7 +166,7 @@ class HonorService
             ->setParameter('chat', $chat)
             ->setParameter('user', $user)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult() ?: 0;
     }
 
 }
