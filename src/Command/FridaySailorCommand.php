@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Entity\Chat\Chat;
 use App\Repository\ChatRepository;
 use App\Service\TelegramBaseService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -23,9 +24,13 @@ class FridaySailorCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        /** @var Chat[] $chats */
         $chats = $this->chatRepository->findAll();
         foreach ($chats as $chat) {
-            $this->telegramService->sendVideo($chat, 'https://extra-spicy-spam.portner.dev/assets/video/friday-sailor.mp4');
+            $this->telegramService->sendVideo(
+                $chat->getChatId(),
+                'https://extra-spicy-spam.portner.dev/assets/video/friday-sailor.mp4'
+            );
         }
     }
 

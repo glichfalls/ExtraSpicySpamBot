@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Chat\Chat;
 use App\Entity\User\User;
 use App\Repository\ChatRepository;
 use App\Repository\MessageRepository;
@@ -30,7 +29,6 @@ class TelegramBaseService
         protected ChatRepository $chatRepository,
         protected MessageRepository $messageRepository,
         protected UserRepository $userRepository,
-        private string $extraSpicySpamChatId,
     )
     {
         $this->__telegramServiceHelperTraitConstruct($bot, $chatRepository, $messageRepository, $userRepository);
@@ -64,21 +62,16 @@ class TelegramBaseService
         return $users;
     }
 
-    public function sendVideo(Chat $chat, string $url): ?array
+    public function sendVideo(string $chatId, string $url): ?array
     {
         $media = new ArrayOfInputMedia();
         $media->addItem(new InputMediaVideo($url));
-        return $this->bot->sendMediaGroup($chat->getChatId(), $media);
+        return $this->bot->sendMediaGroup($chatId, $media);
     }
 
-    public function sendText(Chat $chat, string $text): ?Message
+    public function sendText(string $chatId, string $text): ?Message
     {
-        return $this->bot->sendMessage($chat->getChatId(), $text);
-    }
-
-    public function spam(string $text): ?Message
-    {
-        return $this->send($this->extraSpicySpamChatId, $text);
+        return $this->bot->sendMessage($chatId, $text);
     }
 
 }
