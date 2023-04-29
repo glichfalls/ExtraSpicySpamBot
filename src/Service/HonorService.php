@@ -65,12 +65,19 @@ class HonorService
                 }
 
                 if ($recipient->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
+                    if ($message->getUser()->getName() !== 'glichfalls') {
+                        $this->api->sendMessage(
+                            $update->getMessage()->getChat()->getId(),
+                            'xd!',
+                            replyToMessageId: $update->getMessage()->getMessageId(),
+                        );
+                        return;
+                    }
                     $this->api->sendMessage(
                         $update->getMessage()->getChat()->getId(),
-                        'xd!',
+                        'hehe',
                         replyToMessageId: $update->getMessage()->getMessageId(),
                     );
-                    return;
                 }
 
                 $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $count);
