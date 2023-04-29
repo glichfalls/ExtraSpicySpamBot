@@ -76,7 +76,10 @@ class HonorService
         if (count($leaderboard) === 0) {
             $this->telegramService->replyTo($message, 'no leaderboard yet');
         } else {
-            $text = array_map(fn($entry) => sprintf('%s: %d', $entry['name'], $entry['amount']), $leaderboard);
+            $text = array_map(function ($entry) {
+                $name = $entry['firstName'] ?? $entry['name'];
+                return sprintf('%s: %d Ehre',  $name, $entry['amount']);
+            }, $leaderboard);
             $text = implode(PHP_EOL, $text);
             $this->telegramService->replyTo($message, $text);
         }

@@ -41,11 +41,13 @@ trait TelegramServiceHelperTrait
         Message $message,
         string $text,
         ?ReplyKeyboardMarkup $replyMarkup = null,
+        $parseMode = null,
     ): TelegramMessage
     {
         return $this->bot->sendMessage(
             $message->getChat()->getChatId(),
             $text,
+            parseMode: $parseMode,
             replyToMessageId: $message->getTelegramMessageId(),
             replyMarkup: $replyMarkup,
         );
