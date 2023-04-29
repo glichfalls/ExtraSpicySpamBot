@@ -13,6 +13,14 @@ class MemeService
 
     }
 
+    public function weekdaySailor(string $weekday): void
+    {
+        $this->telegramService->sendVideo(
+            $this->extraSpicySpamChatId,
+            sprintf('https://extra-spicy-spam.portner.dev/assets/video/%s-sailor.mp4', $weekday)
+        );
+    }
+
     public function fridaySailor(): void
     {
         $this->telegramService->sendVideo(
