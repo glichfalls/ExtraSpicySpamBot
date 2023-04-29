@@ -45,7 +45,7 @@ class HonorService
             $entities = $update->getMessage()->getEntities();
 
             foreach ($entities as $entity) {
-                if ($entity->getType() === MessageEntity::TYPE_TEXT_MENTION) {
+                if ($entity->getType() === MessageEntity::TYPE_TEXT_MENTION || $entity->getType() === MessageEntity::TYPE_MENTION) {
 
                     $this->logger->info(sprintf('Found mention %s', $entity->toJson()));
 
