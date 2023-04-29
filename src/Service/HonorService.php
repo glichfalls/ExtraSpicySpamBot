@@ -34,7 +34,7 @@ class HonorService
 
         $this->logger->info($text);
 
-        if (preg_match('/^(?<op>[+\-])\s*(?<count>\d+)\s*ehre\s*@(?<name>.+)$/', $text, $matches) === 1) {
+        if (preg_match('/^(?<op>[+\-])\s*(?<count>\d+)\s*ehre\s*@(?<name>.+)$/i', $text, $matches) === 1) {
 
             $operation = $matches['op'];
             $name = $matches['name'];
