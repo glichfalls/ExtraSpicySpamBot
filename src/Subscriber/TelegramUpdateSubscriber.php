@@ -6,6 +6,7 @@ use App\Service\TelegramWebhookService;
 use BoShurik\TelegramBotBundle\Event\UpdateEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Throwable;
 
 class TelegramUpdateSubscriber implements EventSubscriberInterface
 {
@@ -28,7 +29,7 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
             $this->logger->debug('Update:', $event->getUpdate()->toJson(true));
             $this->webhookService->handle($event->getUpdate());
             $this->logger->info('Update handled');
-        } catch (\Exception $exception) {
+        } catch (Throwable $exception) {
             $this->logger->error('Update handling failed', [
                 'exception' => $exception,
             ]);

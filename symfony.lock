@@ -60,6 +60,9 @@
             "./config/packages/ramsey_uuid_doctrine.yaml"
         ]
     },
+    "rollbar/rollbar-php-symfony-bundle": {
+        "version": "v5.0.0"
+    },
     "symfony/apache-pack": {
         "version": "1.0",
         "recipe": {
