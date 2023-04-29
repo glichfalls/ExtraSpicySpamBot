@@ -41,9 +41,6 @@ class HonorService
             $operation = $matches['op'];
             $name = $matches['name'];
             $count = (int) $matches['count'];
-            if ($operation === '-') {
-                $count *= -1;
-            }
 
             if ($count <= 0 || $count > 10) {
                 $this->api->sendMessage(
@@ -52,6 +49,10 @@ class HonorService
                     replyToMessageId: $update->getMessage()->getMessageId(),
                 );
                 return;
+            }
+
+            if ($operation === '-') {
+                $count *= -1;
             }
 
             /** @var MessageEntity[] $entities */
