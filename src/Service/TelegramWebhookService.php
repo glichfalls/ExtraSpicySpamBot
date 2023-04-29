@@ -44,6 +44,8 @@ class TelegramWebhookService
 
         $this->honorService->handle($update, $message);
 
+        $successMessage = sprintf('saved "%s"', $message->getMessage());
+        $this->bot->sendMessage($chat->getChatId(), $successMessage, replyToMessageId: $update->getMessage()->getMessageId());
     }
 
     private function createChatIfNotExist(Update $update): Chat
