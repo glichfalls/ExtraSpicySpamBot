@@ -3,11 +3,12 @@
 namespace App\Entity\Chat;
 
 use App\Model\Id;
+use App\Repository\ChatRepository;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[Entity]
+#[Entity(repositoryClass: ChatRepository::class)]
 class Chat
 {
     use Id;

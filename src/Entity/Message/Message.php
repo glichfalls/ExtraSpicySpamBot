@@ -5,12 +5,13 @@ namespace App\Entity\Message;
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
 use App\Model\Id;
+use App\Repository\MessageRepository;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[Entity]
+#[Entity(repositoryClass: MessageRepository::class)]
 class Message
 {
     use Id;
@@ -21,6 +22,9 @@ class Message
 
     #[ManyToOne(targetEntity: User::class)]
     private User $user;
+
+    #[Column(type: 'string')]
+    private ?string $telegramMessageId = null;
 
     #[Column(type: 'string')]
     private string $message;
@@ -48,6 +52,16 @@ class Message
     public function setChat(Chat $chat): void
     {
         $this->chat = $chat;
+    }
+
+    public function getTelegramMessageId(): ?string
+    {
+        return $this->telegramMessageId;
+    }
+
+    public function setTelegramMessageId(?string $telegramMessageId): void
+    {
+        $this->telegramMessageId = $telegramMessageId;
     }
 
     public function getMessage(): string

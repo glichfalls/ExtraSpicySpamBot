@@ -2,7 +2,7 @@
 
 namespace App\Subscriber;
 
-use App\Service\TelegramWebhookService;
+use App\Service\TelegramWebhookBaseService;
 use BoShurik\TelegramBotBundle\Event\UpdateEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -14,7 +14,7 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
 
     public function __construct(
         private LoggerInterface $logger,
-        private TelegramWebhookService $webhookService,
+        private TelegramWebhookBaseService $webhookService,
         private BotApi $bot,
     )
     {
@@ -44,11 +44,11 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
                     replyToMessageId: $update->getMessage()->getMessageId()
                 );
             } catch (Throwable $exception) {
-                $this->logger->error('send error message failed', [
+                $this->logger->emergency('send error message failed', [
                     'exception' => $exception,
                 ]);
             } finally {
-                $this->logger->error('Update handling failed', [
+                $this->logger->critical('Update handling failed', [
                     'exception' => $exception,
                 ]);
             }

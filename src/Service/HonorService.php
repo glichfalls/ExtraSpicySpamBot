@@ -3,40 +3,28 @@
 namespace App\Service;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
+use App\Repository\HonorRepository;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
 use Psr\Log\LoggerInterface;
-use TelegramBot\Api\BotApi;
-use TelegramBot\Api\Exception;
-use TelegramBot\Api\InvalidArgumentException;
-use TelegramBot\Api\Types\MessageEntity;
 use TelegramBot\Api\Types\Update;
 
 class HonorService
 {
 
-    /** @var EntityRepository<Honor> $honorRepository */
-    private EntityRepository $honorRepository;
-
     public function __construct(
+        private TelegramBaseService $telegramService,
+        private HonorRepository $honorRepository,
         private LoggerInterface $logger,
-        private BotApi $api,
-        private UserService $userService,
-        private EntityManagerInterface $manager
+        private EntityManagerInterface $manager,
     )
     {
-        $this->honorRepository = $this->manager->getRepository(Honor::class);
+
     }
 
-    /**
-     * @throws Exception
-     * @throws InvalidArgumentException
-     */
     public function handle(Update $update, Message $message): void
     {
 
@@ -50,123 +38,72 @@ class HonorService
             $name = $matches['name'];
             $count = (int) $matches['count'];
 
-            if ($count <= 0 || $count > 3) {
-                $this->api->sendMessage(
-                    $update->getMessage()->getChat()->getId(),
-                    'xddd!!111',
-                    replyToMessageId: $update->getMessage()->getMessageId(),
-                );
-                return;
-            }
-
             if ($operation === '-') {
                 $count *= -1;
             }
 
-            /** @var MessageEntity[] $entities */
-            $entities = $update->getMessage()->getEntities();
+            $recipients = $this->telegramService->getUsersFromMentions($update);
 
-            foreach ($entities as $entity) {
-                switch ($entity->getType()) {
-                    case MessageEntity::TYPE_MENTION:
-                        $recipient = $this->userService->getByName(
-                            substr($text, $entity->getOffset() + 1, $entity->getLength() - 1)
-                        );
-                        break;
-                    case MessageEntity::TYPE_TEXT_MENTION:
-                        $recipient = $this->userService->createUserFromMessageEntity($entity);
-                        break;
-                    default: continue 2;
-                }
-
-                $this->logger->info(sprintf('Found mention %s', $entity->toJson()));
+            foreach ($recipients as $recipient) {
 
                 if ($recipient === null) {
-                    $this->api->sendMessage(
-                        $update->getMessage()->getChat()->getId(),
-                        sprintf('User %s not found', $name),
-                        replyToMessageId: $update->getMessage()->getMessageId(),
-                    );
+                    $this->telegramService->replyTo($message, sprintf('User %s not found', $name));
                     continue;
                 }
 
-                if ($recipient->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
-                    if ($message->getUser()->getName() !== 'glichfalls') {
-                        $this->api->sendMessage(
-                            $update->getMessage()->getChat()->getId(),
-                            ':^)',
-                            replyToMessageId: $update->getMessage()->getMessageId(),
-                        );
-                        return;
-                    }
-                }
+                $this->applyHonor($message, $recipient, $count);
 
-                $timeSinceLastChange = $this->getTimeSinceLastChange($message->getUser(), $recipient, $message->getChat());
-                if ($this->isRateLimited($timeSinceLastChange)) {
-                    $waitTime = 5 - $timeSinceLastChange->i;
-                    $this->api->sendMessage(
-                        $update->getMessage()->getChat()->getId(),
-                        sprintf('You are rate limited, wait %s minutes', $waitTime),
-                        replyToMessageId: $update->getMessage()->getMessageId(),
-                    );
-                    return;
-                }
-
-                $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $count);
-                $this->manager->persist($honor);
-                $this->manager->flush();
-                $this->api->sendMessage(
-                    $update->getMessage()->getChat()->getId(),
-                    sprintf('User %s received %d Ehre', $name, $count),
-                    replyToMessageId: $update->getMessage()->getMessageId(),
-                );
             }
         }
 
         if (preg_match('/^!(honor|ehre)/i', $text) === 1) {
-            $total = $this->getHonorCount($message->getUser(), $message->getChat());
-            $responseText = sprintf('You have %d Ehre', $total);
-            $this->api->sendMessage($update->getMessage()->getChat()->getId(), $responseText, replyToMessageId: $update->getMessage()->getMessageId());
+            $this->showHonor($message);
         }
 
     }
 
-    private function getTimeSinceLastChange(User $sender, User $recipient, Chat $chat): ?DateInterval
+    public function showHonor(Message $message): void
     {
-        $lastChange = $this->getLastChange($sender, $recipient, $chat);
+        $total = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
+        $this->telegramService->replyTo($message, sprintf('You have %d Ehre', $total));
+    }
+
+    public function applyHonor(Message $message, User $recipient, int $amount): void
+    {
+        if ($amount < -3 || $amount > 3) {
+            $this->telegramService->replyTo($message, 'xddd!!111');
+            return;
+        }
+
+        if ($recipient->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
+            if ($message->getUser()->getName() !== 'glichfalls') {
+                $this->telegramService->replyTo($message, ':^)');
+                return;
+            }
+        }
+
+        $timeSinceLastChange = $this->getTimeSinceLastChange($message->getUser(), $recipient, $message->getChat());
+        if ($this->isRateLimited($timeSinceLastChange)) {
+            $waitTime = 5 - $timeSinceLastChange->i;
+            $this->telegramService->replyTo($message, sprintf('wait %s more minutes', $waitTime));
+            return;
+        }
+
+        $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $amount);
+        $this->manager->persist($honor);
+        $this->manager->flush();
+        $this->telegramService->replyTo($message, sprintf('User %s received %d Ehre', $recipient->getName(), $amount));
+    }
+
+    public function getTimeSinceLastChange(User $sender, User $recipient, Chat $chat): ?DateInterval
+    {
+        $lastChange = $this->honorRepository->getLastChange($sender, $recipient, $chat);
         return $lastChange?->getCreatedAt()->diff(new \DateTime());
     }
 
-    private function isRateLimited(?DateInterval $timeSinceLastChange): bool
+    public function isRateLimited(?DateInterval $timeSinceLastChange): bool
     {
         return $timeSinceLastChange !== null && $timeSinceLastChange->i < 5;
-    }
-
-    private function getLastChange(User $sender, User $recipient, Chat $chat): ?Honor
-    {
-        return $this->honorRepository->createQueryBuilder('h')
-            ->where('h.chat = :chat')
-            ->andWhere('h.sender = :sender')
-            ->andWhere('h.recipient = :recipient')
-            ->setParameter('chat', $chat)
-            ->setParameter('sender', $sender)
-            ->setParameter('recipient', $recipient)
-            ->orderBy('h.createdAt', 'DESC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
-    private function getHonorCount(User $user, Chat $chat): int
-    {
-        return $this->honorRepository->createQueryBuilder('h')
-            ->select('SUM(h.amount)')
-            ->where('h.chat = :chat')
-            ->andWhere('h.recipient = :user')
-            ->setParameter('chat', $chat)
-            ->setParameter('user', $user)
-            ->getQuery()
-            ->getSingleScalarResult() ?: 0;
     }
 
 }

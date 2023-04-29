@@ -4,6 +4,7 @@ namespace App\Entity\User;
 
 use App\Entity\Honor\Honor;
 use App\Model\Id;
+use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
@@ -11,7 +12,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToMany;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[Entity]
+#[Entity(repositoryClass: UserRepository::class)]
 class User
 {
     use Id;

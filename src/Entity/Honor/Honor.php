@@ -5,12 +5,13 @@ namespace App\Entity\Honor;
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
 use App\Model\Id;
+use App\Repository\HonorRepository;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[Entity]
+#[Entity(repositoryClass: HonorRepository::class)]
 class Honor
 {
     use Id;
