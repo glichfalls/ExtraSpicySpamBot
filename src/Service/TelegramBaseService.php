@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Chat\Chat;
 use App\Entity\User\User;
 use App\Repository\ChatRepository;
 use App\Repository\MessageRepository;
@@ -9,7 +10,9 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use TelegramBot\Api\BotApi;
-use TelegramBot\Api\Types\Inline\InlineQuery;
+use TelegramBot\Api\Types\InputMedia\ArrayOfInputMedia;
+use TelegramBot\Api\Types\InputMedia\InputMediaVideo;
+use TelegramBot\Api\Types\Message;
 use TelegramBot\Api\Types\MessageEntity;
 use TelegramBot\Api\Types\Update;
 
@@ -27,6 +30,7 @@ class TelegramBaseService
         protected ChatRepository $chatRepository,
         protected MessageRepository $messageRepository,
         protected UserRepository $userRepository,
+        private string $extraSpicySpamChatId,
     )
     {
         $this->__telegramServiceHelperTraitConstruct($bot, $chatRepository, $messageRepository, $userRepository);
@@ -60,13 +64,21 @@ class TelegramBaseService
         return $users;
     }
 
-    public function answerInlineQuery(
-        InlineQuery $inlineQuery
-    ): void
+    public function sendVideo(Chat $chat, string $url): ?array
     {
-        $this->bot->answerInlineQuery(
-            $inlineQuery->getId(),
-        );
+        $media = new ArrayOfInputMedia();
+        $media->addItem(new InputMediaVideo($url));
+        return $this->bot->sendMediaGroup($chat->getChatId(), $media);
+    }
+
+    public function sendText(Chat $chat, string $text): ?Message
+    {
+        return $this->bot->sendMessage($chat->getChatId(), $text);
+    }
+
+    public function spam(string $text): ?Message
+    {
+        return $this->send($this->extraSpicySpamChatId, $text);
     }
 
 }

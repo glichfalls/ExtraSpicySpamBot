@@ -19,7 +19,6 @@ use \TelegramBot\Api\Types\Message as TelegramMessage;
 trait TelegramServiceHelperTrait
 {
 
-
     public function __construct(
         protected BotApi $bot,
         protected ChatRepository $chatRepository,
@@ -29,12 +28,6 @@ trait TelegramServiceHelperTrait
         if ($_ENV['APP_ENV'] === 'dev') {
             $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
         }
-    }
-
-    protected function setBot(BotApi $bot): void
-    {
-        $this->bot = $bot;
-
     }
 
     public function replyTo(
