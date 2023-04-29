@@ -14,6 +14,7 @@ class IndexController extends AbstractController
     public function index(LoggerInterface $logger): Response
     {
         $logger->info('test');
+        $logger->debug('handlers', $logger->getHandlers());
         return $this->render('pages/index.html.twig');
     }
 

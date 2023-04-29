@@ -1,4 +1,4 @@
 rollbar:
   enabled: true
   access_token: '%env(ROLLBAR_ACCESS_TOKEN)%'
-  environment: '%kernel.environment%'
+  environment: 'production'
