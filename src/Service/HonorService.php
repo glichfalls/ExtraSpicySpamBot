@@ -45,6 +45,15 @@ class HonorService
                 $count *= -1;
             }
 
+            if ($count <= 0 || $count > 10) {
+                $this->api->sendMessage(
+                    $update->getMessage()->getChat()->getId(),
+                    'nei lol',
+                    replyToMessageId: $update->getMessage()->getMessageId(),
+                );
+                return;
+            }
+
             /** @var MessageEntity[] $entities */
             $entities = $update->getMessage()->getEntities();
 
@@ -99,7 +108,7 @@ class HonorService
             }
         }
 
-        if (preg_match('/^!honor/i', $text) === 1) {
+        if (preg_match('/^!(honor|ehre)/i', $text) === 1) {
             $honors = $message->getUser()->getHonor();
             $total = array_reduce($honors->toArray(), fn($carry, $item) => $carry + $item->getAmount(), 0);
             $responseText = sprintf('You have %d Ehre', $total);
