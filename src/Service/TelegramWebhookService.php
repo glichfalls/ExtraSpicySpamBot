@@ -9,6 +9,7 @@ use App\Entity\User\User;
 use App\Entity\User\UserFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Psr\Log\LoggerInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Types\Update;
 
@@ -21,6 +22,7 @@ class TelegramWebhookService
     public function __construct(
         private BotApi $bot,
         private EntityManagerInterface $manager,
+        private LoggerInterface $logger,
         private HonorService $honorService,
     )
     {
@@ -35,6 +37,14 @@ class TelegramWebhookService
     {
         $chat = $this->createChatIfNotExist($update);
         $sender = $this->createUserIfNotExist($update);
+        if (!$chat || !$sender) {
+            $this->logger->info('chat or sender not found');
+            $chatId = $update->getMessage()?->getChat()?->getId();
+            if ($chatId) {
+                $this->bot->sendMessage($chatId, 'failed to process update');
+            }
+            return;
+        }
         if ($update->getMessage()) {
             $message = new Message();
             $message->setChat($chat);
@@ -53,8 +63,11 @@ class TelegramWebhookService
         }
     }
 
-    private function createChatIfNotExist(Update $update): Chat
+    private function createChatIfNotExist(Update $update): ?Chat
     {
+        if ($update->getMessage()?->getChat()?->getId() === null) {
+            return null;
+        }
         $chat = $this->chatRepository->findOneBy(['chatId' => $update->getMessage()->getChat()->getId()]);
         if (!$chat) {
             $chat = ChatFactory::createFromUpdate($update);
@@ -64,8 +77,11 @@ class TelegramWebhookService
         return $chat;
     }
 
-    private function createUserIfNotExist(Update $update): User
+    private function createUserIfNotExist(Update $update): ?User
     {
+        if ($update->getMessage()?->getFrom()?->getId() === null) {
+            return null;
+        }
         $user = $this->userRepository->findOneBy(['telegramUserId' => $update->getMessage()->getFrom()->getId()]);
         if (!$user) {
             $user = UserFactory::createFromUpdate($update);
