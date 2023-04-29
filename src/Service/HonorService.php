@@ -4,9 +4,7 @@ namespace App\Service;
 
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
-use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
 use Psr\Log\LoggerInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Exception;
@@ -49,6 +47,8 @@ class HonorService
             foreach ($entities as $entity) {
                 if ($entity->getType() === MessageEntity::TYPE_TEXT_MENTION) {
 
+                    $this->logger->info(sprintf('Found mention %s', $entity->toJson()));
+
                     $recipient = $this->userService->createUserFromMessageEntity($entity);
 
                     if ($recipient === null) {
@@ -68,7 +68,7 @@ class HonorService
                     $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $count);
                     $this->manager->persist($honor);
                     $this->manager->flush();
-                    $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s got %d Ehre', $name, $count));
+                    $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s received %d Ehre', $name, $count));
                 }
             }
         }
