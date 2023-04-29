@@ -17,7 +17,7 @@ class MemeService
     {
         $this->telegramService->sendVideo(
             $this->extraSpicySpamChatId,
-            sprintf('https://extra-spicy-spam.portner.dev/assets/video/%s-sailor.mp4', $weekday)
+            sprintf('https://extra-spicy-spam.portner.dev/assets/video/%s-sailor.mp4', strtolower($weekday))
         );
     }
 
