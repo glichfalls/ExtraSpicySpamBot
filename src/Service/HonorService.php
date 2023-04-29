@@ -50,7 +50,11 @@ class HonorService
             if ($user) {
 
                 if ($user->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
-                    $this->api->sendMessage($update->getMessage()->getChat()->getId(), 'xd!', replyToMessageId: $message->getMessageId());
+                    $this->api->sendMessage(
+                        $update->getMessage()->getChat()->getId(),
+                        'xd!',
+                        replyToMessageId: $update->getMessage()->getMessageId(),
+                    );
                     return;
                 }
 
