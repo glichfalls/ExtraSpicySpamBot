@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
 use Doctrine\ORM\EntityManagerInterface;
@@ -10,7 +11,6 @@ use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Exception;
 use TelegramBot\Api\InvalidArgumentException;
 use TelegramBot\Api\Types\MessageEntity;
-use TelegramBot\Api\Types\Sticker;
 use TelegramBot\Api\Types\Update;
 
 class HonorService
@@ -106,7 +106,7 @@ class HonorService
         }
 
         if (preg_match('/^!(honor|ehre)/i', $text) === 1) {
-            $honors = $message->getUser()->getHonor();
+            $honors = $message->getUser()->getHonor()->filter(fn(Honor $item) => $item->getChat()->getId() === $message->getChat()->getChatId());
             $total = array_reduce($honors->toArray(), fn($carry, $item) => $carry + $item->getAmount(), 0);
             $responseText = sprintf('You have %d Ehre', $total);
             $this->api->sendMessage($update->getMessage()->getChat()->getId(), $responseText, replyToMessageId: $update->getMessage()->getMessageId());
