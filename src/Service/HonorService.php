@@ -43,9 +43,9 @@ class HonorService
             $count = (int) $matches['count'];
 
             if ($count <= 0 || $count > 10) {
-                $this->api->sendMessage(
+                $this->api->sendSticker(
                     $update->getMessage()->getChat()->getId(),
-                    'nei lol',
+                    'AgADMgsAArxIuVI',
                     replyToMessageId: $update->getMessage()->getMessageId(),
                 );
                 return;
