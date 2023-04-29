@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,7 +15,10 @@ use Symfony\Component\Routing\Annotation\Route;
 class GithubController extends AbstractController
 {
 
-    public function __construct(private string $githubWebhookSecret)
+    public function __construct(
+        private LoggerInterface $logger,
+        private string $githubWebhookSecret
+    )
     {
 
     }
@@ -28,10 +33,9 @@ class GithubController extends AbstractController
         if ($data['action'] === 'completed') {
             $application = new Application($this->container->get('kernel'));
             $application->setAutoExit(false);
-            $application->run(
-                new ArrayInput(['command' => 'cache:clear']),
-                new NullOutput()
-            );
+            $output = new BufferedOutput();
+            $application->run(new ArrayInput(['command' => 'cache:clear']), $output);
+            $this->logger->info($output->fetch());
         }
 
         return new Response('ok', 200);
