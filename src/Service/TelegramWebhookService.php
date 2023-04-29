@@ -35,19 +35,22 @@ class TelegramWebhookService
     {
         $chat = $this->createChatIfNotExist($update);
         $sender = $this->createUserIfNotExist($update);
-        $message = new Message();
-        $message->setChat($chat);
-        $message->setUser($sender);
-        $message->setMessage($update->getMessage()->getText());
-        $message->setCreatedAt(new \DateTime());
-        $message->setUpdatedAt(new \DateTime());
-        $this->manager->persist($message);
-        $this->manager->flush();
+        if ($update->getMessage()) {
+            $message = new Message();
+            $message->setChat($chat);
+            $message->setUser($sender);
+            $message->setMessage($update->getMessage()->getText());
+            $message->setCreatedAt(new \DateTime());
+            $message->setUpdatedAt(new \DateTime());
+            $this->manager->persist($message);
+            $this->manager->flush();
 
-        $this->honorService->handle($update, $message);
-
-        $successMessage = sprintf('saved "%s"', $message->getMessage());
-        $this->bot->sendMessage($chat->getChatId(), $successMessage, replyToMessageId: $update->getMessage()->getMessageId());
+            $this->honorService->handle($update, $message);
+            $successMessage = sprintf('saved "%s"', $message->getMessage());
+            $this->bot->sendMessage($chat->getChatId(), $successMessage, replyToMessageId: $update->getMessage()->getMessageId());
+        } else {
+            $this->bot->sendMessage($chat->getChatId(), 'ok');
+        }
     }
 
     private function createChatIfNotExist(Update $update): Chat
