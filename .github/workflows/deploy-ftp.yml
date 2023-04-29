@@ -8,6 +8,7 @@ on:
 
 env:
   APP_ENV: prod
+  ROLLBAR_ACCESS_TOKEN: ${{ secrets.ROLLBAR_ACCESS_TOKEN }}
 
 jobs:
   build:
