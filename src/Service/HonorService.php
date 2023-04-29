@@ -2,10 +2,13 @@
 
 namespace App\Service;
 
+use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
+use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Psr\Log\LoggerInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Exception;
@@ -16,6 +19,9 @@ use TelegramBot\Api\Types\Update;
 class HonorService
 {
 
+    /** @var EntityRepository<Honor> $honorRepository */
+    private EntityRepository $honorRepository;
+
     public function __construct(
         private LoggerInterface $logger,
         private BotApi $api,
@@ -23,7 +29,7 @@ class HonorService
         private EntityManagerInterface $manager
     )
     {
-
+        $this->honorRepository = $this->manager->getRepository(Honor::class);
     }
 
     /**
@@ -106,12 +112,23 @@ class HonorService
         }
 
         if (preg_match('/^!(honor|ehre)/i', $text) === 1) {
-            $honors = $message->getUser()->getHonor()->filter(fn(Honor $item) => $item->getChat()->getId() === $message->getChat()->getChatId());
-            $total = array_reduce($honors->toArray(), fn($carry, $item) => $carry + $item->getAmount(), 0);
+            $total = $this->getHonorCount($message->getUser(), $message->getChat());
             $responseText = sprintf('You have %d Ehre', $total);
             $this->api->sendMessage($update->getMessage()->getChat()->getId(), $responseText, replyToMessageId: $update->getMessage()->getMessageId());
         }
 
+    }
+
+    private function getHonorCount(User $user, Chat $chat): int
+    {
+        return $this->honorRepository->createQueryBuilder('h')
+            ->select('SUM(h.amount)')
+            ->where('h.chat = :chat')
+            ->andWhere('h.recipient = :user')
+            ->setParameter('chat', $chat)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
 }
