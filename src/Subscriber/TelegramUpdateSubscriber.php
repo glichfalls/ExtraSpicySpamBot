@@ -38,14 +38,16 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
             $this->logger->info('Update handled');
         } catch (Throwable $exception) {
             try {
-                $this->bot->sendMessage(
-                    $update->getMessage()->getChat()->getId(),
-                    sprintf('sadge :( [%s]', $exception->getMessage()),
-                    replyToMessageId: $update->getMessage()->getMessageId()
-                );
-            } catch (Throwable $exception) {
+                if ($update->getMessage()->getChat()) {
+                    $this->bot->sendMessage(
+                        $update->getMessage()->getChat()->getId(),
+                        sprintf('sadge :( [%s]', $exception->getMessage()),
+                        replyToMessageId: $update->getMessage()->getMessageId()
+                    );
+                }
+            } catch (Throwable $secondException) {
                 $this->logger->emergency('send error message failed', [
-                    'exception' => $exception,
+                    'exception' => $secondException,
                 ]);
             } finally {
                 $this->logger->critical('Update handling failed', [

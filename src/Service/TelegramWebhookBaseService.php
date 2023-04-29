@@ -16,8 +16,10 @@ class TelegramWebhookBaseService
 
     public function handle(Update $update): void
     {
-        $message = $this->telegramBaseService->createMessageFromUpdate($update);
-        $this->honorBaseService->handle($update, $message);
+        if ($update->getMessage()->getChat()) {
+            $message = $this->telegramBaseService->createMessageFromUpdate($update);
+            $this->honorBaseService->handle($update, $message);
+        }
     }
 
 }

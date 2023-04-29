@@ -9,6 +9,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use TelegramBot\Api\BotApi;
+use TelegramBot\Api\Types\Inline\InlineQuery;
 use TelegramBot\Api\Types\MessageEntity;
 use TelegramBot\Api\Types\Update;
 
@@ -57,6 +58,15 @@ class TelegramBaseService
             }
         }
         return $users;
+    }
+
+    public function answerInlineQuery(
+        InlineQuery $inlineQuery
+    ): void
+    {
+        $this->bot->answerInlineQuery(
+            $inlineQuery->getId(),
+        );
     }
 
 }
