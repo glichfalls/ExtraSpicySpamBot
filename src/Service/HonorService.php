@@ -10,6 +10,7 @@ use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Exception;
 use TelegramBot\Api\InvalidArgumentException;
 use TelegramBot\Api\Types\MessageEntity;
+use TelegramBot\Api\Types\Sticker;
 use TelegramBot\Api\Types\Update;
 
 class HonorService
@@ -42,10 +43,10 @@ class HonorService
             $name = $matches['name'];
             $count = (int) $matches['count'];
 
-            if ($count <= 0 || $count > 10) {
-                $this->api->sendSticker(
+            if ($count <= 0 || $count > 3) {
+                $this->api->sendMessage(
                     $update->getMessage()->getChat()->getId(),
-                    'AgADMgsAArxIuVI',
+                    'xddd!!111',
                     replyToMessageId: $update->getMessage()->getMessageId(),
                 );
                 return;
@@ -86,16 +87,11 @@ class HonorService
                     if ($message->getUser()->getName() !== 'glichfalls') {
                         $this->api->sendMessage(
                             $update->getMessage()->getChat()->getId(),
-                            'xd!',
+                            ':^)',
                             replyToMessageId: $update->getMessage()->getMessageId(),
                         );
                         return;
                     }
-                    $this->api->sendMessage(
-                        $update->getMessage()->getChat()->getId(),
-                        'hehe',
-                        replyToMessageId: $update->getMessage()->getMessageId(),
-                    );
                 }
 
                 $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $count);
