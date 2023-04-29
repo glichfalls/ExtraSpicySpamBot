@@ -45,7 +45,7 @@ class TelegramWebhookService
             }
             return;
         }
-        if ($update->getMessage()) {
+        if ($update->getMessage() && $update->getMessage()->getText()) {
             $message = new Message();
             $message->setChat($chat);
             $message->setUser($sender);
