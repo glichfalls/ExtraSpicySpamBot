@@ -25,8 +25,9 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
     public function onUpdate(UpdateEvent $event): void
     {
         try {
-            $this->logger->info('Update received');
-            $this->logger->debug('Update:', $event->getUpdate()->toJson(true));
+            $this->logger->info('Update received', [
+                'update' => $event->getUpdate()->toJson(true)
+            ]);
             $this->webhookService->handle($event->getUpdate());
             $this->logger->info('Update handled');
         } catch (Throwable $exception) {
