@@ -57,10 +57,8 @@ class TelegramWebhookService
                 $this->manager->flush();
 
                 $this->honorService->handle($update, $message);
-                $successMessage = sprintf('saved "%s"', $message->getMessage());
-                $this->bot->sendMessage($chat->getChatId(), $successMessage, replyToMessageId: $update->getMessage()->getMessageId());
-            } else {
-                $this->bot->sendMessage($chat->getChatId(), 'ok');
+                //$successMessage = sprintf('saved "%s"', $message->getMessage());
+                //$this->bot->sendMessage($chat->getChatId(), $successMessage, replyToMessageId: $update->getMessage()->getMessageId());
             }
         } catch (\Exception $exception) {
             $this->logger->error($exception->getMessage());

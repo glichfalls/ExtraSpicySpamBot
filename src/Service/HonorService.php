@@ -48,14 +48,27 @@ class HonorService
             $user = $this->userRepository->findOneBy(['name' => $name]);
 
             if ($user) {
+
+                if ($user->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
+                    $this->api->sendMessage($update->getMessage()->getChat()->getId(), 'xd!', replyToMessageId: $message->getMessageId());
+                    return;
+                }
+
                 $honor = HonorFactory::create($message->getChat(), $message->getUser(), $user, $count);
                 $this->manager->persist($honor);
                 $this->manager->flush();
-                $this->api->sendMessage($update->getMessage()->getChat()->getId(), "Ehre +{$count} für {$name}!");
+                $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s got %d Ehre', $name, $count));
             } else {
-                $this->api->sendMessage($update->getMessage()->getChat()->getId(), "User {$name} nicht gefunden!");
+                $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s not found', $name));
             }
 
+        }
+
+        if (preg_match('/^!honor/i', $text) === 1) {
+            $honors = $message->getUser()->getHonor();
+            $total = array_reduce($honors->toArray(), fn($carry, $item) => $carry + $item->getAmount(), 0);
+            $responseText = sprintf('You have %d Ehre', $total);
+            $this->api->sendMessage($update->getMessage()->getChat()->getId(), $responseText, replyToMessageId: $message->getMessageId());
         }
 
     }
