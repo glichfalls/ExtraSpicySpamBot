@@ -2,6 +2,7 @@
 
 namespace App\Telegram\Command\Honor;
 
+use App\Entity\User\User;
 use App\Repository\UserRepository;
 use App\Service\HonorService;
 use App\Service\TelegramBaseService;
@@ -35,30 +36,23 @@ class AddHonorCommand extends AbstractHonorCommand
 
     public function getAliases(): array
     {
-        return ['honor', 'ehre'];
+        return ['/honor', '/ehre'];
     }
 
     public function execute(BotApi $api, Update $update): void
     {
+        return;
         $message = $this->telegramService->createMessageFromUpdate($update);
-        $parameter = $this->getCommandParameters($update);
-        $this->logger->info($parameter);
 
         $users = $this->userRepository->getUsersByChat($message->getChat());
 
-        $buttons = ['test'];
+        $buttons = array_map(fn(User $user) => [$user->getName()], $users);
 
-        foreach ($users as $user) {
-            $buttons[] = [$user->getUsername()];
-        }
+        // fill buttons, 2 per row
+        $buttons = array_chunk($buttons, 2);
 
         $keyboard = new ReplyKeyboardMarkup($buttons, true);
 
-        $api->sendMessage(
-            $message->getChat()->getId(),
-            'test',
-            replyToMessageId: $message->getMessageId(),
-            replyMarkup: $keyboard,
-        );
+        $this->telegramService->replyTo($message, 'select user', replyMarkup: $keyboard);
     }
 }

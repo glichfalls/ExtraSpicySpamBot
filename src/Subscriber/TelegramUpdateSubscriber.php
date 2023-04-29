@@ -34,6 +34,9 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
             $this->logger->info('Update received', [
                 'update' => $update->toJson(true)
             ]);
+            if (!$update->getMessage()->getText()) {
+                return;
+            }
             $this->webhookService->handle($update);
             $this->logger->info('Update handled');
         } catch (Throwable $exception) {
@@ -41,7 +44,7 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
                 if ($update->getMessage()->getChat()) {
                     $this->bot->sendMessage(
                         $update->getMessage()->getChat()->getId(),
-                        sprintf('sadge :( [%s]', $exception->getMessage()),
+                        'sadge',
                         replyToMessageId: $update->getMessage()->getMessageId()
                     );
                 }

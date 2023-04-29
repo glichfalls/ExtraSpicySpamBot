@@ -23,7 +23,8 @@ class UserRepository extends ServiceEntityRepository
     public function getUsersByChat(Chat $chat): array
     {
         return $this->createQueryBuilder('u')
-            ->join('u.chats', 'c')
+            ->join('u.messages', 'm')
+            ->join('m.chat', 'c')
             ->where('c.id = :id')
             ->setParameter('id', $chat->getId())
             ->getQuery()

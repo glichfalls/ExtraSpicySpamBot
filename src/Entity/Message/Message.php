@@ -20,7 +20,7 @@ class Message
     #[ManyToOne(targetEntity: Chat::class)]
     private Chat $chat;
 
-    #[ManyToOne(targetEntity: User::class)]
+    #[ManyToOne(targetEntity: User::class, inversedBy: 'messages')]
     private User $user;
 
     #[Column(type: 'integer', nullable: true)]

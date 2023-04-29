@@ -17,10 +17,10 @@ class Honor
     use Id;
     use TimestampableEntity;
 
-    #[ManyToOne(targetEntity: User::class, inversedBy: 'honor')]
+    #[ManyToOne(targetEntity: User::class, inversedBy: 'sentHonor')]
     private User $sender;
 
-    #[ManyToOne(targetEntity: User::class, inversedBy: 'honor')]
+    #[ManyToOne(targetEntity: User::class, inversedBy: 'receivedHonor')]
     private User $recipient;
 
     #[ManyToOne(targetEntity: Chat::class)]

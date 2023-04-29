@@ -7,6 +7,7 @@ use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\HonorRepository;
+use App\Repository\UserRepository;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -18,6 +19,7 @@ class HonorService
     public function __construct(
         private TelegramBaseService $telegramService,
         private HonorRepository $honorRepository,
+        private UserRepository $userRepository,
         private LoggerInterface $logger,
         private EntityManagerInterface $manager,
     )
@@ -66,6 +68,18 @@ class HonorService
     {
         $total = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
         $this->telegramService->replyTo($message, sprintf('You have %d Ehre', $total));
+    }
+
+    public function showLeaderboard(Message $message): void
+    {
+        $leaderboard = $this->honorRepository->getLeaderboard($message->getChat());
+        if (count($leaderboard) === 0) {
+            $this->telegramService->replyTo($message, 'no leaderboard yet');
+        } else {
+            $text = array_map(fn($entry) => sprintf('%s: %d', $entry['name'], $entry['amount']), $leaderboard);
+            $text = implode(PHP_EOL, $text);
+            $this->telegramService->replyTo($message, $text);
+        }
     }
 
     public function applyHonor(Message $message, User $recipient, int $amount): void

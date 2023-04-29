@@ -4,11 +4,11 @@ namespace App\Telegram\Command\Honor;
 
 use App\Service\HonorService;
 use App\Service\TelegramBaseService;
-use BoShurik\TelegramBotBundle\Telegram\Command\AbstractCommand;
+use App\Telegram\Command\AbstractCommandExtension;
 use BoShurik\TelegramBotBundle\Telegram\Command\PublicCommandInterface;
 use Psr\Log\LoggerInterface;
 
-abstract class AbstractHonorCommand extends AbstractCommand implements PublicCommandInterface
+abstract class AbstractHonorCommand extends AbstractCommandExtension implements PublicCommandInterface
 {
 
     public function __construct(

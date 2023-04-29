@@ -12,7 +12,9 @@ use App\Repository\ChatRepository;
 use App\Repository\MessageRepository;
 use App\Repository\UserRepository;
 use TelegramBot\Api\BotApi;
+use TelegramBot\Api\Types\ReplyKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
+use \TelegramBot\Api\Types\Message as TelegramMessage;
 
 trait TelegramServiceHelperTrait
 {
@@ -35,17 +37,25 @@ trait TelegramServiceHelperTrait
 
     }
 
-    public function replyTo(Message $message, string $text): void
+    public function replyTo(
+        Message $message,
+        string $text,
+        ?ReplyKeyboardMarkup $replyMarkup = null,
+    ): TelegramMessage
     {
-        $this->bot->sendMessage(
+        return $this->bot->sendMessage(
             $message->getChat()->getChatId(),
             $text,
             replyToMessageId: $message->getTelegramMessageId(),
+            replyMarkup: $replyMarkup,
         );
     }
 
     public function createMessageFromUpdate(Update $update): Message
     {
+        if (!$update->getMessage()?->getText()) {
+            throw new \RuntimeException('message not found');
+        }
         $chat = $this->getChatFromUpdate($update);
         $sender = $this->getSenderFromUpdate($update);
         if (!$chat || !$sender) {

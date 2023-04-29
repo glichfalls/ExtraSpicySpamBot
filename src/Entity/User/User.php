@@ -3,6 +3,7 @@
 namespace App\Entity\User;
 
 use App\Entity\Honor\Honor;
+use App\Entity\Message\Message;
 use App\Model\Id;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -27,13 +28,20 @@ class User
     #[Column(type: 'string', nullable: true)]
     private ?string $firstName = null;
 
+    #[OneToMany(mappedBy: 'sender', targetEntity: Honor::class)]
+    private Collection $sentHonor;
+
     #[OneToMany(mappedBy: 'recipient', targetEntity: Honor::class)]
-    private Collection $honor;
+    private Collection $receivedHonor;
+
+    #[OneToMany(mappedBy: 'user', targetEntity: Message::class)]
+    private Collection $messages;
 
     public function __construct()
     {
         $this->generateId();
-        $this->honor = new ArrayCollection();
+        $this->sentHonor = new ArrayCollection();
+        $this->receivedHonor = new ArrayCollection();
     }
 
     public function getTelegramUserId(): int
@@ -64,14 +72,6 @@ class User
     public function setFirstName(?string $firstName): void
     {
         $this->firstName = $firstName;
-    }
-
-    /**
-     * @return Collection<Honor>
-     */
-    public function getHonor(): Collection
-    {
-        return $this->honor;
     }
 
 }

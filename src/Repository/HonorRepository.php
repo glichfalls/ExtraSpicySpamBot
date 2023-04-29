@@ -28,6 +28,19 @@ class HonorRepository extends ServiceEntityRepository
             ->getSingleScalarResult() ?: 0;
     }
 
+    public function getLeaderboard(Chat $chat): array
+    {
+        return $this->createQueryBuilder('h')
+            ->select('r.name, SUM(h.amount) as amount')
+            ->join('h.recipient', 'r')
+            ->where('h.chat = :chat')
+            ->setParameter('chat', $chat)
+            ->groupBy('r.id')
+            ->orderBy('amount', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function getLastChange(User $sender, User $recipient, Chat $chat): ?Honor
     {
         return $this->createQueryBuilder('h')

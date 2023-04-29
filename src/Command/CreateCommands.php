@@ -2,7 +2,6 @@
 
 namespace App\Command;
 
-use BoShurik\TelegramBotBundle\Telegram\Command\AbstractCommand;
 use BoShurik\TelegramBotBundle\Telegram\Command\CommandRegistry;
 use BoShurik\TelegramBotBundle\Telegram\Command\PublicCommandInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
