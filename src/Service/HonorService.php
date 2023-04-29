@@ -45,31 +45,38 @@ class HonorService
             $entities = $update->getMessage()->getEntities();
 
             foreach ($entities as $entity) {
-                if ($entity->getType() === MessageEntity::TYPE_TEXT_MENTION || $entity->getType() === MessageEntity::TYPE_MENTION) {
-
-                    $this->logger->info(sprintf('Found mention %s', $entity->toJson()));
-
-                    $recipient = $this->userService->createUserFromMessageEntity($entity);
-
-                    if ($recipient === null) {
-                        $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s not found', $name));
-                        continue;
-                    }
-
-                    if ($recipient->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
-                        $this->api->sendMessage(
-                            $update->getMessage()->getChat()->getId(),
-                            'xd!',
-                            replyToMessageId: $update->getMessage()->getMessageId(),
+                switch ($entity->getType()) {
+                    case MessageEntity::TYPE_MENTION:
+                        $recipient = $this->userService->getByName(
+                            substr($text, $entity->getOffset() + 1, $entity->getLength() - 1)
                         );
-                        return;
-                    }
-
-                    $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $count);
-                    $this->manager->persist($honor);
-                    $this->manager->flush();
-                    $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s received %d Ehre', $name, $count));
+                        break;
+                    case MessageEntity::TYPE_TEXT_MENTION:
+                        $recipient = $this->userService->createUserFromMessageEntity($entity);
+                        break;
+                    default: continue 2;
                 }
+
+                $this->logger->info(sprintf('Found mention %s', $entity->toJson()));
+
+                if ($recipient === null) {
+                    $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s not found', $name));
+                    continue;
+                }
+
+                if ($recipient->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
+                    $this->api->sendMessage(
+                        $update->getMessage()->getChat()->getId(),
+                        'xd!',
+                        replyToMessageId: $update->getMessage()->getMessageId(),
+                    );
+                    return;
+                }
+
+                $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $count);
+                $this->manager->persist($honor);
+                $this->manager->flush();
+                $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s received %d Ehre', $name, $count));
             }
         }
 

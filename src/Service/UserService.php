@@ -20,6 +20,11 @@ class UserService
         $this->userRepository = $this->manager->getRepository(User::class);
     }
 
+    public function getByName(string $name): ?User
+    {
+        return $this->userRepository->findOneBy(['name' => $name]);
+    }
+
     public function createSender(Update $update): ?User
     {
         if ($update->getMessage()?->getFrom()?->getId() === null) {
