@@ -25,7 +25,7 @@ class FridaySailorCommand extends Command
     {
         $chats = $this->chatRepository->findAll();
         foreach ($chats as $chat) {
-            $this->telegramService->sendVideo($chat->getId(), 'https://extra-spicy-spam.portner.dev/assets/video/friday-sailor.mp4');
+            $this->telegramService->sendVideo($chat, 'https://extra-spicy-spam.portner.dev/assets/video/friday-sailor.mp4');
         }
     }
 
