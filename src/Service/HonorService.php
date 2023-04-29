@@ -7,6 +7,7 @@ use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
+use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Psr\Log\LoggerInterface;
@@ -100,6 +101,26 @@ class HonorService
                     }
                 }
 
+                $timeSinceLastChange = $this->getTimeSinceLastChange($message->getUser(), $recipient, $message->getChat());
+                if ($this->isRateLimited($timeSinceLastChange)) {
+                    $waitTime = 5 - $timeSinceLastChange->i;
+                    $this->api->sendMessage(
+                        $update->getMessage()->getChat()->getId(),
+                        sprintf('You are rate limited, wait %s minutes', $waitTime),
+                        replyToMessageId: $update->getMessage()->getMessageId(),
+                    );
+                    return;
+                }
+
+                if ($this->isRateLimited($message->getUser(), $recipient, $message->getChat())) {
+                    $this->api->sendMessage(
+                        $update->getMessage()->getChat()->getId(),
+                        sprintf('You are rate limited, %s', $message->getUser()->getName()),
+                        replyToMessageId: $update->getMessage()->getMessageId(),
+                    );
+                    return;
+                }
+
                 $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $count);
                 $this->manager->persist($honor);
                 $this->manager->flush();
@@ -117,6 +138,32 @@ class HonorService
             $this->api->sendMessage($update->getMessage()->getChat()->getId(), $responseText, replyToMessageId: $update->getMessage()->getMessageId());
         }
 
+    }
+
+    private function getTimeSinceLastChange(User $sender, User $recipient, Chat $chat): ?DateInterval
+    {
+        $lastChange = $this->getLastChange($sender, $recipient, $chat);
+        return $lastChange?->getCreatedAt()->diff(new \DateTime());
+    }
+
+    private function isRateLimited(?DateInterval $timeSinceLastChange): bool
+    {
+        return $timeSinceLastChange !== null && $timeSinceLastChange->i < 5;
+    }
+
+    private function getLastChange(User $sender, User $recipient, Chat $chat): ?Honor
+    {
+        return $this->honorRepository->createQueryBuilder('h')
+            ->where('h.chat = :chat')
+            ->andWhere('h.sender = :sender')
+            ->andWhere('h.recipient = :recipient')
+            ->setParameter('chat', $chat)
+            ->setParameter('sender', $sender)
+            ->setParameter('recipient', $recipient)
+            ->orderBy('h.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     private function getHonorCount(User $user, Chat $chat): int
