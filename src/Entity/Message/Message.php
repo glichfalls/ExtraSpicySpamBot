@@ -23,8 +23,8 @@ class Message
     #[ManyToOne(targetEntity: User::class)]
     private User $user;
 
-    #[Column(type: 'string')]
-    private ?string $telegramMessageId = null;
+    #[Column(type: 'integer', nullable: true)]
+    private ?int $telegramMessageId = null;
 
     #[Column(type: 'string')]
     private string $message;
@@ -54,12 +54,12 @@ class Message
         $this->chat = $chat;
     }
 
-    public function getTelegramMessageId(): ?string
+    public function getTelegramMessageId(): ?int
     {
         return $this->telegramMessageId;
     }
 
-    public function setTelegramMessageId(?string $telegramMessageId): void
+    public function setTelegramMessageId(?int $telegramMessageId): void
     {
         $this->telegramMessageId = $telegramMessageId;
     }
