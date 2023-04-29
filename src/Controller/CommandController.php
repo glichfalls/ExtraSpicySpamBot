@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\MemeService;
 use App\Service\TelegramBaseService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -14,6 +15,7 @@ class CommandController extends AbstractController
 
     public function __construct(
         private TelegramBaseService $telegramService,
+        private MemeService $memeService,
         private string $extraSpicySpamChatId,
     )
     {
@@ -32,10 +34,14 @@ class CommandController extends AbstractController
     #[Route('/friday')]
     public function friday(): Response
     {
-        $this->telegramService->sendVideo(
-            $this->extraSpicySpamChatId,
-            'https://extra-spicy-spam.portner.dev/assets/video/friday-sailor.mp4'
-        );
+        $this->memeService->fridaySailor();
+        return new RedirectResponse('/');
+    }
+
+    #[Route('/saturday')]
+    public function saturday(): Response
+    {
+        $this->memeService->saturdaySailor();
         return new RedirectResponse('/');
     }
 
