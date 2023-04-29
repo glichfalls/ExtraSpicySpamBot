@@ -11,20 +11,20 @@ use Psr\Log\LoggerInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Exception;
 use TelegramBot\Api\InvalidArgumentException;
+use TelegramBot\Api\Types\MessageEntity;
 use TelegramBot\Api\Types\Update;
 
 class HonorService
 {
 
-    private EntityRepository $userRepository;
-
     public function __construct(
         private LoggerInterface $logger,
         private BotApi $api,
+        private UserService $userService,
         private EntityManagerInterface $manager
     )
     {
-        $this->userRepository = $this->manager->getRepository(User::class);
+
     }
 
     /**
@@ -40,39 +40,44 @@ class HonorService
 
         if (preg_match('/^\+\s*(?<count>\d+)\s*ehre\s*@(?<name>.+)$/i', $text, $matches) === 1) {
 
-            $this->logger->info('matches');
             $name = $matches['name'];
             $count = (int) $matches['count'];
 
-            /** @var User $user */
-            $user = $this->userRepository->findOneBy(['name' => $name]);
+            /** @var MessageEntity[] $entities */
+            $entities = $update->getMessage()->getEntities();
 
-            if ($user) {
+            foreach ($entities as $entity) {
+                if ($entity->getType() === MessageEntity::TYPE_TEXT_MENTION) {
 
-                if ($user->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
-                    $this->api->sendMessage(
-                        $update->getMessage()->getChat()->getId(),
-                        'xd!',
-                        replyToMessageId: $update->getMessage()->getMessageId(),
-                    );
-                    return;
+                    $recipient = $this->userService->createUserFromMessageEntity($entity);
+
+                    if ($recipient === null) {
+                        $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s not found', $name));
+                        continue;
+                    }
+
+                    if ($recipient->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
+                        $this->api->sendMessage(
+                            $update->getMessage()->getChat()->getId(),
+                            'xd!',
+                            replyToMessageId: $update->getMessage()->getMessageId(),
+                        );
+                        return;
+                    }
+
+                    $honor = HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $count);
+                    $this->manager->persist($honor);
+                    $this->manager->flush();
+                    $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s got %d Ehre', $name, $count));
                 }
-
-                $honor = HonorFactory::create($message->getChat(), $message->getUser(), $user, $count);
-                $this->manager->persist($honor);
-                $this->manager->flush();
-                $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s got %d Ehre', $name, $count));
-            } else {
-                $this->api->sendMessage($update->getMessage()->getChat()->getId(), sprintf('User %s not found', $name));
             }
-
         }
 
         if (preg_match('/^!honor/i', $text) === 1) {
             $honors = $message->getUser()->getHonor();
             $total = array_reduce($honors->toArray(), fn($carry, $item) => $carry + $item->getAmount(), 0);
             $responseText = sprintf('You have %d Ehre', $total);
-            $this->api->sendMessage($update->getMessage()->getChat()->getId(), $responseText, replyToMessageId: $message->getMessageId());
+            $this->api->sendMessage($update->getMessage()->getChat()->getId(), $responseText, replyToMessageId: $update->getMessage()->getMessageId());
         }
 
     }

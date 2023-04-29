@@ -17,27 +17,26 @@ class TelegramWebhookService
 {
 
     private EntityRepository $chatRepository;
-    private EntityRepository $userRepository;
 
     public function __construct(
         private BotApi $bot,
         private EntityManagerInterface $manager,
         private LoggerInterface $logger,
         private HonorService $honorService,
+        private UserService $userService,
     )
     {
         if ($_ENV['APP_ENV'] === 'dev') {
             $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
         }
         $this->chatRepository = $this->manager->getRepository(Chat::class);
-        $this->userRepository = $this->manager->getRepository(User::class);
     }
 
     public function handle(Update $update): void
     {
         try {
             $chat = $this->createChatIfNotExist($update);
-            $sender = $this->createUserIfNotExist($update);
+            $sender = $this->userService->createSender($update);
             if (!$chat || !$sender) {
                 $this->logger->info('chat or sender not found');
                 $chatId = $update->getMessage()?->getChat()?->getId();
@@ -81,20 +80,6 @@ class TelegramWebhookService
             $this->manager->flush();
         }
         return $chat;
-    }
-
-    private function createUserIfNotExist(Update $update): ?User
-    {
-        if ($update->getMessage()?->getFrom()?->getId() === null) {
-            return null;
-        }
-        $user = $this->userRepository->findOneBy(['telegramUserId' => $update->getMessage()->getFrom()->getId()]);
-        if (!$user) {
-            $user = UserFactory::createFromUpdate($update);
-            $this->manager->persist($user);
-            $this->manager->flush();
-        }
-        return $user;
     }
 
 }
