@@ -3,16 +3,19 @@
 namespace App\Entity\WasteDisposal;
 
 use App\Model\Id;
+use App\Repository\WasteDisposalDateRepository;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[Entity]
+#[Entity(repositoryClass: WasteDisposalDateRepository::class)]
 class WasteDisposalDate
 {
     use Id;
     use TimestampableEntity;
+
+    public const SUBSCRIPTION_TYPE = 'waste_disposal';
 
     #[Column(type: 'date')]
     private DateTimeInterface $date;

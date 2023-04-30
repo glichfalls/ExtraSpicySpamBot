@@ -10,6 +10,7 @@ class TelegramWebhookBaseService
     public function __construct(
         private TelegramBaseService $telegramBaseService,
         private HonorService $honorBaseService,
+        private ChatSubscriptionService $chatSubscriptionService,
     )
     {
     }
@@ -19,6 +20,7 @@ class TelegramWebhookBaseService
         if ($update->getMessage()->getChat()) {
             $message = $this->telegramBaseService->createMessageFromUpdate($update);
             $this->honorBaseService->handle($update, $message);
+            $this->chatSubscriptionService->handle($update, $message);
         }
     }
 
