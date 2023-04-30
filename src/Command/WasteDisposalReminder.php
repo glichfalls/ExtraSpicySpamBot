@@ -26,11 +26,19 @@ class WasteDisposalReminder extends Command
         parent::__construct();
     }
 
+    protected function configure(): void
+    {
+        $this->addOption('debug', 'd', null, 'Debug mode');
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $dates = $this->dateRepository->getAllByDate(new \DateTime());
         if (count($dates) === 0) {
             $this->logger->info('No waste disposal dates found for today');
+            if ($input->getOption('debug')) {
+                $this->sendToSubscriber('Morgen ist keine Sammlung');
+            }
             return Command::SUCCESS;
         }
         foreach ($dates as $date) {
