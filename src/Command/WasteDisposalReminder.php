@@ -51,7 +51,8 @@ class WasteDisposalReminder extends Command
     {
         $subscriptions = $this->subscriptionRepository->getByType(WasteDisposalDate::SUBSCRIPTION_TYPE);
         foreach ($subscriptions as $subscription) {
-            $this->telegramService->sendText($subscription->getChatId(), $text);
+            $this->logger->info(sprintf('Sending message to %s', $subscription->getChat()->getName()));
+            $this->telegramService->sendText($subscription->getChat()->getChatId(), $text);
         }
     }
 

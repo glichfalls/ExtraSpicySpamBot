@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Chat\Chat;
 use App\Entity\Message\Message;
 use App\Entity\Subscription\ChatSubscription;
 use App\Repository\ChatSubscriptionRepository;
@@ -28,7 +29,7 @@ class ChatSubscriptionService
         if (preg_match('/^!subscribe (?<type>.+)$/i', $message->getMessage(), $matches) === 1) {
             try {
                 $type = $matches['type'];
-                $this->subscribe($message->getChat()->getChatId(), $type);
+                $this->subscribe($message->getChat(), $type);
                 $this->telegramService->replyTo($message, sprintf('Subscribed to %s', $type));
             } catch (\RuntimeException $exception) {
                 $this->telegramService->replyTo($message, $exception->getMessage());
@@ -36,17 +37,14 @@ class ChatSubscriptionService
         }
     }
 
-    public function subscribe(string $chatId, string $type): void
+    public function subscribe(Chat $chat, string $type): void
     {
-        $existing = $this->subscriptionRepository->findOneBy([
-            'chatId' => $chatId,
-            'type' => $type,
-        ]);
+        $existing = $this->subscriptionRepository->findOneBy(['chat' => $chat, 'type' => $type]);
         if ($existing) {
             throw new \RuntimeException(sprintf('Already subscribed to %s', $type));
         }
         $subscription = new ChatSubscription();
-        $subscription->setChatId($chatId);
+        $subscription->setChat($chat);
         $subscription->setType($type);
         $subscription->setCreatedAt(new DateTime());
         $subscription->setUpdatedAt(new DateTime());

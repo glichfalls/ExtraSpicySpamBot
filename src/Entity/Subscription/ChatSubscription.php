@@ -2,10 +2,12 @@
 
 namespace App\Entity\Subscription;
 
+use App\Entity\Chat\Chat;
 use App\Model\Id;
 use App\Repository\ChatSubscriptionRepository;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity(repositoryClass: ChatSubscriptionRepository::class)]
@@ -14,8 +16,8 @@ class ChatSubscription
     use Id;
     use TimestampableEntity;
 
-    #[Column]
-    private string $chatId;
+    #[ManyToOne(targetEntity: Chat::class)]
+    private Chat $chat;
 
     #[Column]
     private string $type;
@@ -25,14 +27,14 @@ class ChatSubscription
         $this->generateId();
     }
 
-    public function getChatId(): string
+    public function getChat(): Chat
     {
-        return $this->chatId;
+        return $this->chat;
     }
 
-    public function setChatId(string $chatId): void
+    public function setChat(Chat $chat): void
     {
-        $this->chatId = $chatId;
+        $this->chat = $chat;
     }
 
     public function getType(): string
