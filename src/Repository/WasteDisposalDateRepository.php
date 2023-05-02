@@ -23,7 +23,7 @@ class WasteDisposalDateRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('w')
             ->where('w.date = :date')
-            ->setParameter('date', $date)
+            ->setParameter('date', $date->format('Y-m-d'))
             ->getQuery()
             ->getResult();
     }
