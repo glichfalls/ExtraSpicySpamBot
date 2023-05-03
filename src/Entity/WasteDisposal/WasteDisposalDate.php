@@ -21,10 +21,14 @@ class WasteDisposalDate
     private DateTimeInterface $date;
 
     #[Column(type: 'string')]
-    private string $zone = '';
+    private string $zipCode = '';
+
+    #[Column(type: 'string', nullable: true)]
+    private ?string $zone = null;
 
     #[Column(type: 'string')]
     private string $description = '';
+
 
     public function __construct()
     {
@@ -41,12 +45,22 @@ class WasteDisposalDate
         $this->date = $date;
     }
 
-    public function getZone(): string
+    public function getZipCode(): string
+    {
+        return $this->zipCode;
+    }
+
+    public function setZipCode(string $zipCode): void
+    {
+        $this->zipCode = $zipCode;
+    }
+
+    public function getZone(): ?string
     {
         return $this->zone;
     }
 
-    public function setZone(string $zone): void
+    public function setZone(?string $zone): void
     {
         $this->zone = $zone;
     }

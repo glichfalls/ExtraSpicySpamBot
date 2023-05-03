@@ -12,8 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-#[AsCommand('app:waste-disposal:fetch')]
-class WasteDisposableCalendarImportCommand extends Command
+#[AsCommand('app:waste-disposal:wallisellen:fetch')]
+class WallisellenWasteDisposableCalendarImportCommand extends Command
 {
 
     private const URL = 'https://www.wallisellen.ch/abfalldaten';
@@ -54,6 +54,7 @@ class WasteDisposableCalendarImportCommand extends Command
                 continue;
             }
             $date = new WasteDisposalDate();
+            $date->setZipCode('8304');
             $date->setCreatedAt(new \DateTime());
             $date->setUpdatedAt(new \DateTime());
             if (array_key_exists('abfallkreisNameList', $entity)) {
@@ -65,7 +66,9 @@ class WasteDisposableCalendarImportCommand extends Command
                 $date->setDate(new \DateTime($matches['date']));
             }
             if (preg_match('/<a.*>(?<name>.+)<\/a>/', $entity['name'], $matches)) {
-                $date->setDescription($matches['name']);
+                $description = $matches['name'];
+                $description = str_replace(['Blau', 'Gelb'], '', $description);
+                $date->setDescription(trim($description));
             }
             $this->manager->persist($date);
             $rows++;
