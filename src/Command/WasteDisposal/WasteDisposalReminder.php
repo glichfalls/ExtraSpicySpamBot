@@ -47,7 +47,11 @@ class WasteDisposalReminder extends Command
             return Command::SUCCESS;
         }
         foreach ($dates as $date) {
-            $this->sendToSubscriber($zipCode, sprintf('Morgen ist %s in Zone %s', $date->getDescription(), $date->getZone()));
+            if ($date->getZone() === null) {
+                $this->sendToSubscriber($date->getZipCode(), sprintf('Morgen ist %s', $date->getDescription()));
+            } else {
+                $this->sendToSubscriber($date->getZipCode(), sprintf('Morgen ist %s in Zone %s', $date->getDescription(), $date->getZone()));
+            }
         }
         return Command::SUCCESS;
     }

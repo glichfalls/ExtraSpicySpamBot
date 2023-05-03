@@ -48,7 +48,18 @@ class ChatSubscriptionService
 
     public function subscribe(Chat $chat, string $type, ?string $parameter): void
     {
-        $existing = $this->subscriptionRepository->findOneBy(['chat' => $chat, 'type' => $type]);
+        if ($parameter === null) {
+            $existing = $this->subscriptionRepository->findOneBy([
+                'chat' => $chat,
+                'type' => $type,
+            ]);
+        } else {
+            $existing = $this->subscriptionRepository->findOneBy([
+                'chat' => $chat,
+                'type' => $type,
+                'parameter' => $parameter,
+            ]);
+        }
         if ($existing) {
             throw new \RuntimeException(sprintf('Already subscribed to %s', $type));
         }
