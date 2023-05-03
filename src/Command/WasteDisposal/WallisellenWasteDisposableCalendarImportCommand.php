@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command;
+namespace App\Command\WasteDisposal;
 
 use App\Entity\WasteDisposal\WasteDisposalDate;
 use Doctrine\ORM\EntityManagerInterface;
