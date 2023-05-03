@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Chat\Chat;
 use App\Entity\Message\Message;
 use App\Entity\Subscription\ChatSubscription;
+use App\Entity\Subscription\SubscriptionTypes;
 use App\Repository\ChatSubscriptionRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,18 +27,26 @@ class ChatSubscriptionService
         if (!$message->getMessage()) {
             return;
         }
-        if (preg_match('/^!subscribe (?<type>.+)$/i', $message->getMessage(), $matches) === 1) {
+        if (preg_match('/^!subscribe (?<type>[\w_]+)\s*(?<parameter>[\w_]+)?$/i', $message->getMessage(), $matches) === 1) {
             try {
                 $type = $matches['type'];
-                $this->subscribe($message->getChat(), $type);
-                $this->telegramService->replyTo($message, sprintf('Subscribed to %s', $type));
+                $parameter = $matches['parameter'] ?? null;
+                if (!SubscriptionTypes::isAllowed($type)) {
+                    throw new \RuntimeException(sprintf('Subscription type %s is not supported', $type));
+                }
+                $this->subscribe($message->getChat(), $type, $parameter);
+                if ($parameter !== null) {
+                    $this->telegramService->replyTo($message, sprintf('Subscribed to %s with %s', $type, $parameter));
+                } else {
+                    $this->telegramService->replyTo($message, sprintf('Subscribed to %s', $type));
+                }
             } catch (\RuntimeException $exception) {
                 $this->telegramService->replyTo($message, $exception->getMessage());
             }
         }
     }
 
-    public function subscribe(Chat $chat, string $type): void
+    public function subscribe(Chat $chat, string $type, ?string $parameter): void
     {
         $existing = $this->subscriptionRepository->findOneBy(['chat' => $chat, 'type' => $type]);
         if ($existing) {
@@ -46,6 +55,7 @@ class ChatSubscriptionService
         $subscription = new ChatSubscription();
         $subscription->setChat($chat);
         $subscription->setType($type);
+        $subscription->setParameter($parameter);
         $subscription->setCreatedAt(new DateTime());
         $subscription->setUpdatedAt(new DateTime());
         $this->manager->persist($subscription);

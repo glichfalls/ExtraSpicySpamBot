@@ -27,6 +27,22 @@ class ChatSubscriptionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @param string $type
+     * @param string|null $parameter
+     * @return array<int, ChatSubscription>
+     */
+    public function getByTypeAndParameterOrNull(string $type, ?string $parameter): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.type = :type')
+            ->andWhere('c.parameter = :parameter OR c.parameter IS NULL')
+            ->setParameter('type', $type)
+            ->setParameter('parameter', $parameter)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function deleteByChatId(string $chatId): void
     {
         $this->createQueryBuilder('c')

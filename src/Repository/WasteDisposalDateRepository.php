@@ -28,4 +28,20 @@ class WasteDisposalDateRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @param DateTime $date
+     * @param string $zipCode
+     * @return array<int, WasteDisposalDate>
+     */
+    public function getAllByDateAndZipCode(DateTime $date, string $zipCode): array
+    {
+        return $this->createQueryBuilder('w')
+            ->where('w.date = :date')
+            ->andWhere('w.zipCode = :zipCode')
+            ->setParameter('date', $date->format('Y-m-d'))
+            ->setParameter('zipCode', $zipCode)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

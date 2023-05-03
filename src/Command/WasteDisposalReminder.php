@@ -9,6 +9,7 @@ use App\Service\TelegramBaseService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -29,27 +30,31 @@ class WasteDisposalReminder extends Command
     protected function configure(): void
     {
         $this->addOption('debug', 'd', null, 'Debug mode');
+        $this->addArgument('zipCode', InputArgument::OPTIONAL, 'Zip code');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $dates = $this->dateRepository->getAllByDate(new \DateTime());
+        $zipCode = $input->getArgument('zipCode');
+        $dates = $zipCode !== null
+            ? $this->dateRepository->getAllByDateAndZipCode(new \DateTime(), $zipCode)
+            : $this->dateRepository->getAllByDate(new \DateTime());
         if (count($dates) === 0) {
             $this->logger->info('No waste disposal dates found for today');
             if ($input->getOption('debug')) {
-                $this->sendToSubscriber('Morgen ist keine Sammlung');
+                $this->sendToSubscriber($zipCode, 'Morgen ist keine Sammlung');
             }
             return Command::SUCCESS;
         }
         foreach ($dates as $date) {
-            $this->sendToSubscriber(sprintf('Morgen ist %s in Zone %s', $date->getDescription(), $date->getZone()));
+            $this->sendToSubscriber($zipCode, sprintf('Morgen ist %s in Zone %s', $date->getDescription(), $date->getZone()));
         }
         return Command::SUCCESS;
     }
 
-    private function sendToSubscriber(string $text): void
+    private function sendToSubscriber(?string $zipCode, string $text): void
     {
-        $subscriptions = $this->subscriptionRepository->getByType(WasteDisposalDate::SUBSCRIPTION_TYPE);
+        $subscriptions = $this->subscriptionRepository->getByTypeAndParameterOrNull(WasteDisposalDate::SUBSCRIPTION_TYPE, $zipCode);
         foreach ($subscriptions as $subscription) {
             $this->logger->info(sprintf('Sending message to %s', $subscription->getChat()->getName()));
             $this->telegramService->sendText($subscription->getChat()->getChatId(), $text);

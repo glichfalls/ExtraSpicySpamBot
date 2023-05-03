@@ -22,6 +22,9 @@ class ChatSubscription
     #[Column]
     private string $type;
 
+    #[Column(nullable: true)]
+    private ?string $parameter = null;
+
     public function __construct()
     {
         $this->generateId();
@@ -45,6 +48,16 @@ class ChatSubscription
     public function setType(string $type): void
     {
         $this->type = $type;
+    }
+
+    public function getParameter(): ?string
+    {
+        return $this->parameter;
+    }
+
+    public function setParameter(?string $parameter): void
+    {
+        $this->parameter = $parameter;
     }
 
 }
