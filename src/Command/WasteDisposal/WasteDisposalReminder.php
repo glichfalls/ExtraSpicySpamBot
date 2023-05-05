@@ -6,6 +6,7 @@ use App\Entity\WasteDisposal\WasteDisposalDate;
 use App\Repository\ChatSubscriptionRepository;
 use App\Repository\WasteDisposalDateRepository;
 use App\Service\TelegramBaseService;
+use DateTime;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -36,9 +37,10 @@ class WasteDisposalReminder extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $zipCode = $input->getArgument('zipCode');
+        $tomorrow = new DateTime('tomorrow');
         $dates = $zipCode !== null
-            ? $this->dateRepository->getAllByDateAndZipCode(new \DateTime(), $zipCode)
-            : $this->dateRepository->getAllByDate(new \DateTime());
+            ? $this->dateRepository->getAllByDateAndZipCode($tomorrow, $zipCode)
+            : $this->dateRepository->getAllByDate($tomorrow);
         if (count($dates) === 0) {
             $this->logger->info('No waste disposal dates found for today');
             if ($input->getOption('debug')) {
