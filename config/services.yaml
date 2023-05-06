@@ -13,7 +13,6 @@ services:
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
         bind:
-            string $botToken: '%env(TELEGRAM_BOT_TOKEN)%'
             string $githubWebhookSecret: '%env(GITHUB_WEBHOOK_SECRET)%'
             string $extraSpicySpamChatId: '%env(EXTRA_SPICY_SPAM_CHAT_ID)%'
 
