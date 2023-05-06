@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command;
+namespace App\Command\Memes;
 
 use App\Service\MemeService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -17,9 +17,10 @@ class WeekdaySailorCommand extends Command
         parent::__construct();
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->memeService->weekdaySailor(date('l'));
+        return Command::SUCCESS;
     }
 
 }
