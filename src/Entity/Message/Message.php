@@ -26,7 +26,7 @@ class Message
     #[Column(type: 'integer', nullable: true)]
     private ?int $telegramMessageId = null;
 
-    #[Column(type: 'string')]
+    #[Column(type: 'text')]
     private string $message;
 
     public function __construct()
