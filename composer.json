@@ -9,6 +9,7 @@
         "ext-curl": "*",
         "ext-iconv": "*",
         "boshurik/telegram-bot-bundle": "^5.0",
+        "cron/cron-bundle": "^2.10",
         "doctrine/doctrine-bundle": "^2.9",
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.14",
