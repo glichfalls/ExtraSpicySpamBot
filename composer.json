@@ -14,6 +14,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.14",
         "gedmo/doctrine-extensions": "^3.11",
+        "orhanerday/open-ai": "^4.7",
         "ramsey/uuid-doctrine": "^2.0",
         "rollbar/rollbar-php-symfony-bundle": "^5.0",
         "sentry/sentry-symfony": "^4.8",
