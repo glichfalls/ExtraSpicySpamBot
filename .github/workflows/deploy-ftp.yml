@@ -20,7 +20,7 @@ jobs:
 
       - name: 🔐 Create .env
         run: |
-          echo ${{ secrets.ENV_FILE }} > .env.local
+          echo "${{ secrets.ENV_FILE }}" > .env.local
           echo "!.env.local" > .git-ftp-include
 
       - name: 🔨 Setup php composer dependencies
