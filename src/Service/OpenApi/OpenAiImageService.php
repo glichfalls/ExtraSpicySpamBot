@@ -22,6 +22,9 @@ class OpenAiImageService extends BaseOpenAiService
     private function saveGeneratedImage(GeneratedImage $generatedImage, string $base64Image): void
     {
         $generatedImage->setImageBase64($base64Image);
+        if (file_put_contents(sprintf('public/generated-images/%s.png', $generatedImage->getId()), base64_decode($base64Image) === false)) {
+            throw new \RuntimeException('Failed to save generated image');
+        }
         $generatedImage->setPublicPath(sprintf('/public/generated-images/%s.png', $generatedImage->getId()));
         $this->entityManager->flush();
     }
