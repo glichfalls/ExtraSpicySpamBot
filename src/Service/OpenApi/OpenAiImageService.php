@@ -34,7 +34,7 @@ class OpenAiImageService extends BaseOpenAiService
     private function saveGeneratedImage(GeneratedImage $generatedImage, string $base64Image): void
     {
         $generatedImage->setImageBase64($base64Image);
-        $publicPath = sprintf('/public/generated-images/%s', $generatedImage->getId());
+        $publicPath = sprintf('/public/generated-images/%s.png', $generatedImage->getId());
         $serverPath = sprintf('%s/%s', $this->kernel->getProjectDir(), $publicPath);
         $this->filesystem->dumpFile($serverPath, base64_decode($base64Image));
         $generatedImage->setPublicPath($publicPath);
