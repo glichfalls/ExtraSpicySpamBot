@@ -30,7 +30,10 @@ class TelegramImageGenerationService
             try {
                 $prompt = $matches['prompt'];
                 $generatedImage = $this->openAiImageService->generateImage($prompt);
-                $this->telegramService->videoReplyTo($message, $generatedImage->getPublicPath());
+                $this->telegramService->videoReplyTo(
+                    $message,
+                    sprintf('https://%s/%s', $_SERVER['HTTP_HOST'], $generatedImage->getPublicPath()),
+                );
             } catch (\Throwable $th) {
                 $this->logger->error($th->getMessage());
                 $this->telegramService->replyTo($message, $th->getMessage());
