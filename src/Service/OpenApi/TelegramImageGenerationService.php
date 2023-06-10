@@ -27,9 +27,14 @@ class TelegramImageGenerationService
     {
         $text = $message->getMessage();
         if (preg_match('/^ai\s*img (?<prompt>.+)$/i', $text, $matches) === 1) {
-            $prompt = $matches['prompt'];
-            $generatedImage = $this->openAiImageService->generateImage($prompt);
-            $this->telegramService->videoReplyTo($message, $generatedImage->getPublicPath());
+            try {
+                $prompt = $matches['prompt'];
+                $generatedImage = $this->openAiImageService->generateImage($prompt);
+                $this->telegramService->videoReplyTo($message, $generatedImage->getPublicPath());
+            } catch (\Throwable $th) {
+                $this->logger->error($th->getMessage());
+                $this->telegramService->replyTo($message, $th->getMessage());
+            }
         }
     }
 
