@@ -3,9 +3,21 @@
 namespace App\Service\OpenApi;
 
 use App\Entity\OpenApi\GeneratedImage;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class OpenAiImageService extends BaseOpenAiService
 {
+
+    private Filesystem $filesystem;
+
+    public function __construct(private KernelInterface $kernel, HttpClientInterface $httpClient, EntityManagerInterface $entityManager, string $openAiApiKey)
+    {
+        parent::__construct($httpClient, $entityManager, $openAiApiKey);
+        $this->filesystem = new Filesystem();
+    }
 
     private function createGeneratedImage(string $prompt, string $size): GeneratedImage
     {
@@ -22,10 +34,10 @@ class OpenAiImageService extends BaseOpenAiService
     private function saveGeneratedImage(GeneratedImage $generatedImage, string $base64Image): void
     {
         $generatedImage->setImageBase64($base64Image);
-        if (file_put_contents(sprintf('public/generated-images/%s.png', $generatedImage->getId()), base64_decode($base64Image) === false)) {
-            throw new \RuntimeException('Failed to save generated image');
-        }
-        $generatedImage->setPublicPath(sprintf('/public/generated-images/%s.png', $generatedImage->getId()));
+        $publicPath = sprintf('/public/generated-images/%s', $generatedImage->getId());
+        $serverPath = sprintf('%s/%s', $this->kernel->getProjectDir(), $publicPath);
+        $this->filesystem->dumpFile($serverPath, base64_decode($base64Image));
+        $generatedImage->setPublicPath($publicPath);
         $this->entityManager->flush();
     }
 

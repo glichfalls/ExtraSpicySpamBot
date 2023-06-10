@@ -23,6 +23,7 @@
         "symfony/css-selector": "6.0.*",
         "symfony/dom-crawler": "6.0.*",
         "symfony/dotenv": "6.0.*",
+        "symfony/filesystem": "6.0.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "6.0.*",
         "symfony/http-client": "6.0.*",
