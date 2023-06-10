@@ -46,6 +46,18 @@ trait TelegramServiceHelperTrait
         );
     }
 
+    public function videoReplyTo(
+        Message $message,
+        string $videoUrl,
+    ): TelegramMessage
+    {
+        return $this->bot->sendVideo(
+            $message->getChat()->getChatId(),
+            $videoUrl,
+            replyToMessageId: $message->getTelegramMessageId(),
+        );
+    }
+
     public function createMessageFromUpdate(Update $update): Message
     {
         if (!$update->getMessage()?->getText()) {

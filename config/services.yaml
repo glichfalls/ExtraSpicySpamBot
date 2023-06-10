@@ -15,6 +15,7 @@ services:
         bind:
             string $githubWebhookSecret: '%env(GITHUB_WEBHOOK_SECRET)%'
             string $extraSpicySpamChatId: '%env(EXTRA_SPICY_SPAM_CHAT_ID)%'
+            string $openAiApiKey: '%env(OPENAI_API_KEY)%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ec6f2ddaa5d41a02e5f0e0b28f818114",
+    "content-hash": "f6653147f405eb578c7f2f2608ff0a69",
     "packages": [
         {
             "name": "behat/transliterator",
@@ -840,16 +840,16 @@
         },
         {
             "name": "doctrine/doctrine-bundle",
-            "version": "2.9.1",
+            "version": "2.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/DoctrineBundle.git",
-                "reference": "7539b3c8bd620f7df6c2c6d510204bd2ce0064e3"
+                "reference": "b2ec6c2668f6dc514e8bf51257d19c7c19398afe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/7539b3c8bd620f7df6c2c6d510204bd2ce0064e3",
-                "reference": "7539b3c8bd620f7df6c2c6d510204bd2ce0064e3",
+                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/b2ec6c2668f6dc514e8bf51257d19c7c19398afe",
+                "reference": "b2ec6c2668f6dc514e8bf51257d19c7c19398afe",
                 "shasum": ""
             },
             "require": {
@@ -936,7 +936,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/DoctrineBundle/issues",
-                "source": "https://github.com/doctrine/DoctrineBundle/tree/2.9.1"
+                "source": "https://github.com/doctrine/DoctrineBundle/tree/2.10.0"
             },
             "funding": [
                 {
@@ -952,7 +952,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-04-14T05:39:34+00:00"
+            "time": "2023-06-05T14:43:41+00:00"
         },
         {
             "name": "doctrine/doctrine-migrations-bundle",
@@ -2398,65 +2398,6 @@
                 }
             ],
             "time": "2023-02-06T13:44:46+00:00"
-        },
-        {
-            "name": "orhanerday/open-ai",
-            "version": "4.7.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/orhanerday/open-ai.git",
-                "reference": "990d811759d53dbfdb42b2271155088fa2ca20b1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/orhanerday/open-ai/zipball/990d811759d53dbfdb42b2271155088fa2ca20b1",
-                "reference": "990d811759d53dbfdb42b2271155088fa2ca20b1",
-                "shasum": ""
-            },
-            "require": {
-                "ext-curl": "*",
-                "ext-json": "*",
-                "php": ">=7.4"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.0",
-                "pestphp/pest": "^1.20",
-                "spatie/ray": "^1.28"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Orhanerday\\OpenAi\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Orhan Erday",
-                    "email": "orhanerday@gmail.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "OpenAI GPT-3 Api Client in PHP",
-            "homepage": "https://github.com/orhanerday/open-ai",
-            "keywords": [
-                "open-ai",
-                "orhanerday"
-            ],
-            "support": {
-                "issues": "https://github.com/orhanerday/open-ai/issues",
-                "source": "https://github.com/orhanerday/open-ai/tree/4.7.2"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/orhanerday",
-                    "type": "github"
-                }
-            ],
-            "time": "2023-05-15T07:52:19+00:00"
         },
         {
             "name": "php-http/client-common",
@@ -7701,16 +7642,16 @@
         },
         {
             "name": "twig/twig",
-            "version": "v3.6.0",
+            "version": "v3.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "106c170d08e8415d78be2d16c3d057d0d108262b"
+                "reference": "7e7d5839d4bec168dfeef0ac66d5c5a2edbabffd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/106c170d08e8415d78be2d16c3d057d0d108262b",
-                "reference": "106c170d08e8415d78be2d16c3d057d0d108262b",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/7e7d5839d4bec168dfeef0ac66d5c5a2edbabffd",
+                "reference": "7e7d5839d4bec168dfeef0ac66d5c5a2edbabffd",
                 "shasum": ""
             },
             "require": {
@@ -7756,7 +7697,7 @@
             ],
             "support": {
                 "issues": "https://github.com/twigphp/Twig/issues",
-                "source": "https://github.com/twigphp/Twig/tree/v3.6.0"
+                "source": "https://github.com/twigphp/Twig/tree/v3.6.1"
             },
             "funding": [
                 {
@@ -7768,7 +7709,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-05-03T19:06:57+00:00"
+            "time": "2023-06-08T12:52:13+00:00"
         }
     ],
     "packages-dev": [

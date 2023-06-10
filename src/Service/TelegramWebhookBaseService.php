@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Service\OpenApi\TelegramImageGenerationService;
 use TelegramBot\Api\Types\Update;
 
 class TelegramWebhookBaseService
@@ -11,6 +12,7 @@ class TelegramWebhookBaseService
         private TelegramBaseService $telegramBaseService,
         private HonorService $honorBaseService,
         private ChatSubscriptionService $chatSubscriptionService,
+        private TelegramImageGenerationService $telegramImageGenerationService,
     )
     {
     }
@@ -21,6 +23,7 @@ class TelegramWebhookBaseService
             $message = $this->telegramBaseService->createMessageFromUpdate($update);
             $this->honorBaseService->handle($update, $message);
             $this->chatSubscriptionService->handle($update, $message);
+            $this->telegramImageGenerationService->handle($update, $message);
         }
     }
 

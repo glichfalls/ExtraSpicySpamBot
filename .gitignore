@@ -10,4 +10,5 @@
 ###< symfony/framework-bundle ###
 
 /.idea/
+/public/generated-images/*.png
 .ftp-deploy-sync-state.json
