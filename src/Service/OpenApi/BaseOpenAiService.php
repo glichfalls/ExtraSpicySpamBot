@@ -30,7 +30,11 @@ abstract class BaseOpenAiService
                 'json' => $data,
             ]);
             if ($response->getStatusCode() !== 200) {
-                throw new \RuntimeException(sprintf('OpenAI API returned status code %s', $response->getStatusCode()));
+                throw new \RuntimeException(sprintf(
+                    'OpenAI API returned status code %s (%s)',
+                    $response->getStatusCode(),
+                    $response->getContent(false),
+                ));
             }
             return json_decode($response->getContent(), true);
         } catch (\Throwable $throwable) {
