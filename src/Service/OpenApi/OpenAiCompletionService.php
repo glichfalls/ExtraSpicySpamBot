@@ -52,7 +52,6 @@ class OpenAiCompletionService extends BaseOpenAiService
             'messages' => array_values($messages),
             'max_tokens' => 50,
         ]);
-        dump($data);
         $completion->setCompletion($data['choices'][0]['message']['content']);
         $this->entityManager->flush();
         return $completion;
