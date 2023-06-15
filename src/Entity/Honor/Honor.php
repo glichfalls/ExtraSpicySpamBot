@@ -17,6 +17,8 @@ class Honor
     use Id;
     use TimestampableEntity;
 
+    public const BASE_HONOR = 10;
+
     #[ManyToOne(targetEntity: User::class, inversedBy: 'sentHonor')]
     private User $sender;
 
