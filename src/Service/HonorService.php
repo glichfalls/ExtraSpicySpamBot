@@ -90,7 +90,7 @@ class HonorService
         }
 
         if (preg_match('/^!cancel raid$/i', $text) === 1) {
-            $this->startRaid($message);
+            $this->cancelRaid($message);
         }
 
     }
@@ -280,8 +280,7 @@ class HonorService
 
         $this->telegramService->sendText($message->getChat()->getChatId(), sprintf('
             raid against %s started with %s supporters and %s defenders, %s honor will be stolen and equally 
-            distributed among the supporters if the raid is successful. the defenders will receive %s honor from 
-            the supporters if the raid fails.
+            distributed among the supporters if the raid is successful.
             ',
             $raid->getTarget()->getName(),
             $supporterCount,
