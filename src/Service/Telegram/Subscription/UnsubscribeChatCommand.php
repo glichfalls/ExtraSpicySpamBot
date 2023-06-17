@@ -5,7 +5,7 @@ namespace App\Service\Telegram\Subscription;
 use App\Entity\Message\Message;
 use App\Repository\ChatSubscriptionRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
-use App\Service\TelegramBaseService;
+use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -15,10 +15,10 @@ class UnsubscribeChatCommand extends AbstractTelegramChatCommand
 {
 
     public function __construct(
-        EntityManagerInterface $manager,
-        TranslatorInterface $translator,
-        LoggerInterface $logger,
-        TelegramBaseService $telegramService,
+        EntityManagerInterface             $manager,
+        TranslatorInterface                $translator,
+        LoggerInterface                    $logger,
+        TelegramService                    $telegramService,
         private ChatSubscriptionRepository $subscriptionRepository,
     )
     {

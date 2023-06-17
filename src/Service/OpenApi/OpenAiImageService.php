@@ -47,7 +47,7 @@ class OpenAiImageService extends BaseOpenAiService
         $data = $this->post('/v1/images/generations', [
             'prompt' => $prompt,
             'n' => 1,
-            'size' => '256x256',
+            'size' => $size,
             'response_format' => 'b64_json',
         ]);
         $this->saveGeneratedImage($generatedImage, $data['data'][0]['b64_json']);

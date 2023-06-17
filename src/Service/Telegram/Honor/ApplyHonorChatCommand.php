@@ -8,7 +8,7 @@ use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
-use App\Service\TelegramBaseService;
+use App\Service\Telegram\TelegramService;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -22,10 +22,10 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
     private const MAX_HONOR_AMOUNT = 1;
 
     public function __construct(
-        EntityManagerInterface $manager,
-        TranslatorInterface $translator,
-        LoggerInterface $logger,
-        TelegramBaseService $telegramService,
+        EntityManagerInterface  $manager,
+        TranslatorInterface     $translator,
+        LoggerInterface         $logger,
+        TelegramService         $telegramService,
         private HonorRepository $honorRepository,
     )
     {

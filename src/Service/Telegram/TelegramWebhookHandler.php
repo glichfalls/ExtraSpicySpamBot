@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\Telegram;
 
-use App\Service\Telegram\TelegramChatCommand;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use TelegramBot\Api\Types\Update;
 
-class TelegramWebhookService
+class TelegramWebhookHandler
 {
 
     /**
@@ -16,8 +15,8 @@ class TelegramWebhookService
 
     public function __construct(
         #[TaggedIterator('telegram.chat_command')]
-        iterable $telegramChatCommands,
-        private TelegramBaseService $telegramBaseService,
+        iterable                $telegramChatCommands,
+        private TelegramService $telegramBaseService,
     )
     {
         $this->handlers = $telegramChatCommands;

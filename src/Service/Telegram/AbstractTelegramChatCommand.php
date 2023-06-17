@@ -2,7 +2,6 @@
 
 namespace App\Service\Telegram;
 
-use App\Service\TelegramBaseService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -14,7 +13,7 @@ abstract class AbstractTelegramChatCommand implements TelegramChatCommand
         protected EntityManagerInterface $manager,
         protected TranslatorInterface $translator,
         protected LoggerInterface $logger,
-        protected TelegramBaseService $telegramService
+        protected TelegramService $telegramService
     )
     {
 

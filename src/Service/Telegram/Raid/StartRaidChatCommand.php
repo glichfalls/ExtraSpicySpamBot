@@ -8,7 +8,7 @@ use App\Repository\HonorRepository;
 use App\Repository\RaidRepository;
 use App\Service\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
-use App\Service\TelegramBaseService;
+use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -18,13 +18,13 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
 {
 
     public function __construct(
-        EntityManagerInterface $manager,
-        TranslatorInterface $translator,
-        LoggerInterface $logger,
-        TelegramBaseService $telegramService,
-        private RaidRepository $raidRepository,
+        EntityManagerInterface  $manager,
+        TranslatorInterface     $translator,
+        LoggerInterface         $logger,
+        TelegramService         $telegramService,
+        private RaidRepository  $raidRepository,
         private HonorRepository $honorRepository,
-        private HonorService $honorService,
+        private HonorService    $honorService,
     )
     {
         parent::__construct($manager, $translator, $logger, $telegramService);

@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Service\MemeService;
-use App\Service\TelegramBaseService;
+use App\Service\Telegram\TelegramService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,9 +14,9 @@ class CommandController extends AbstractController
 {
 
     public function __construct(
-        private TelegramBaseService $telegramService,
-        private MemeService $memeService,
-        private string $extraSpicySpamChatId,
+        private TelegramService $telegramService,
+        private MemeService     $memeService,
+        private string          $extraSpicySpamChatId,
     )
     {
     }

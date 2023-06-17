@@ -5,7 +5,7 @@ namespace App\Telegram\Command\Honor;
 use App\Entity\User\User;
 use App\Repository\UserRepository;
 use App\Service\HonorService;
-use App\Service\TelegramBaseService;
+use App\Service\Telegram\TelegramService;
 use Psr\Log\LoggerInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Types\ReplyKeyboardMarkup;
@@ -15,9 +15,9 @@ class AddHonorCommand extends AbstractHonorCommand
 {
 
     public function __construct(
-        LoggerInterface $logger,
-        TelegramBaseService $telegramService,
-        HonorService $honorService,
+        LoggerInterface        $logger,
+        TelegramService        $telegramService,
+        HonorService           $honorService,
         private UserRepository $userRepository,
     )
     {

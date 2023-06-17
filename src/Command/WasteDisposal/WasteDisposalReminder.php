@@ -5,7 +5,7 @@ namespace App\Command\WasteDisposal;
 use App\Entity\WasteDisposal\WasteDisposalDate;
 use App\Repository\ChatSubscriptionRepository;
 use App\Repository\WasteDisposalDateRepository;
-use App\Service\TelegramBaseService;
+use App\Service\Telegram\TelegramService;
 use DateTime;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -19,10 +19,10 @@ class WasteDisposalReminder extends Command
 {
 
     public function __construct(
-        private LoggerInterface $logger,
+        private LoggerInterface             $logger,
         private WasteDisposalDateRepository $dateRepository,
-        private ChatSubscriptionRepository $subscriptionRepository,
-        private TelegramBaseService $telegramService,
+        private ChatSubscriptionRepository  $subscriptionRepository,
+        private TelegramService             $telegramService,
     )
     {
         parent::__construct();
