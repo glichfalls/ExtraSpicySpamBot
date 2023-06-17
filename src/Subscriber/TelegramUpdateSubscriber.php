@@ -2,7 +2,7 @@
 
 namespace App\Subscriber;
 
-use App\Service\TelegramWebhookBaseService;
+use App\Service\TelegramWebhookService;
 use BoShurik\TelegramBotBundle\Event\UpdateEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -13,9 +13,9 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
 {
 
     public function __construct(
-        private LoggerInterface $logger,
-        private TelegramWebhookBaseService $webhookService,
-        private BotApi $bot,
+        private LoggerInterface        $logger,
+        private TelegramWebhookService $webhookService,
+        private BotApi                 $bot,
     )
     {
     }
