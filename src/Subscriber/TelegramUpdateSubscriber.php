@@ -7,6 +7,7 @@ use BoShurik\TelegramBotBundle\Event\UpdateEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TelegramBot\Api\BotApi;
+use TelegramBot\Api\HttpException;
 use Throwable;
 
 class TelegramUpdateSubscriber implements EventSubscriberInterface
@@ -40,6 +41,12 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
             }
             $this->webhookService->handle($update);
             $this->logger->info('Update handled');
+        } catch (HttpException $exception) {
+            // telegram api seems to have some downtime sometimes
+            // nothing we can do about it
+            $this->logger->error('failed to call telegram api', [
+                'exception' => $exception->getMessage(),
+            ]);
         } catch (Throwable $exception) {
             try {
                 if ($update->getMessage() && $update->getMessage()->getChat()) {
