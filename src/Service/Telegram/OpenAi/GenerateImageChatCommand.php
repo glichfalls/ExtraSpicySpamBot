@@ -72,7 +72,7 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
             return false;
         }
         $diff = $latestGeneratedImage->getCreatedAt()->diff(new \DateTime());
-        return $diff->s < self::RATE_LIMIT_SECONDS;
+        return $diff->s > self::RATE_LIMIT_SECONDS;
     }
 
     private function getSize(array $matches): string

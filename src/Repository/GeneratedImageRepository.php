@@ -33,7 +33,6 @@ class GeneratedImageRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
-
     }
 
 }
