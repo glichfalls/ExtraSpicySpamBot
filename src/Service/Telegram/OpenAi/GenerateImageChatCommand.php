@@ -44,10 +44,10 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $timeSinceLastImage = $this->getTimeSinceLastChange($message->getUser());
-            if ($this->isRateLimited($timeSinceLastImage)) {
+            $secondsSinceLastImage = $this->getTimeSinceLastChange($message->getUser());
+            if ($secondsSinceLastImage < self::RATE_LIMIT_SECONDS) {
                 $this->telegramService->replyTo($message, $this->translator->trans('telegram.openai.rate_limit', [
-                    'seconds' => self::RATE_LIMIT_SECONDS - $timeSinceLastImage->s,
+                    'seconds' => self::RATE_LIMIT_SECONDS - $secondsSinceLastImage,
                 ]));
             } else {
                 $generatedImage = $this->openAiImageService->generateImage(
@@ -66,15 +66,11 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
         }
     }
 
-    private function getTimeSinceLastChange(User $user): ?\DateInterval
+    private function getTimeSinceLastChange(User $user): int
     {
         $latestGeneratedImage = $this->generatedImageRepository->getLatestByUser($user);
-        return $latestGeneratedImage?->getCreatedAt()->diff(new \DateTime());
-    }
-
-    public function isRateLimited(?\DateInterval $timeSinceLastImage): bool
-    {
-        return $timeSinceLastImage !== null && $timeSinceLastImage->s < self::RATE_LIMIT_SECONDS;
+        $diff = $latestGeneratedImage?->getCreatedAt()->diff(new \DateTime());
+        return ($diff->d * 24 * 60 * 60) + ($diff->h * 60 * 60) + ($diff->i * 60) + $diff->s;
     }
 
     private function getSize(array $matches): string
