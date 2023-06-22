@@ -2,6 +2,26 @@
 
 {% block title %}ExtraSpicySpam{% endblock %}
 
+{% block stylesheets %}
+    <style lang="css">
+        .ai-images {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 1rem;
+        }
+
+        .ai-images img {
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-    ExtraSpicySpam
+    <div class="ai-images">
+        {% for image in images %}
+            {% if image.publicPath is not null %}
+                <img src="{{ image.publicPath }}" alt="{{ image.text }}">
+            {% endif %}
+        {% endfor %}
+    </div>
 {% endblock %}
