@@ -71,15 +71,18 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
     {
         $latestGeneratedImage = $this->generatedImageRepository->getLatest();
         if ($latestGeneratedImage === null) {
-            return false;
+            return 0;
         }
-        $diffSeconds = $this->intervalToSeconds($latestGeneratedImage->getCreatedAt()->diff(new \DateTime()));
-        if ($diffSeconds < self::GENERAL_RATE_LIMIT_SECONDS) {
-            return self::GENERAL_RATE_LIMIT_SECONDS - $diffSeconds;
+        $secondsSinceLastImage = $this->intervalToSeconds($latestGeneratedImage->getCreatedAt()->diff(new \DateTime()));
+        if ($secondsSinceLastImage < self::GENERAL_RATE_LIMIT_SECONDS) {
+            return self::GENERAL_RATE_LIMIT_SECONDS - $secondsSinceLastImage;
         }
         $latestUserGeneratedImage = $this->generatedImageRepository->getLatestByUser($user);
-        $diff = $this->intervalToSeconds($latestUserGeneratedImage?->getCreatedAt()->diff(new \DateTime()));
-        return self::USER_RATE_LIMIT_SECONDS - $diff;
+        if ($latestUserGeneratedImage === null) {
+            return 0;
+        }
+        $secondsSinceLastUserImage = $this->intervalToSeconds($latestUserGeneratedImage?->getCreatedAt()->diff(new \DateTime()));
+        return self::USER_RATE_LIMIT_SECONDS - $secondsSinceLastUserImage;
     }
 
     private function intervalToSeconds(\DateInterval $interval): int
