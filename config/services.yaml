@@ -8,7 +8,6 @@ services:
 
         bind:
             string $telegramToken: '%env(TELEGRAM_BOT_TOKEN)%'
-            string $githubWebhookSecret: '%env(GITHUB_WEBHOOK_SECRET)%'
             string $extraSpicySpamChatId: '%env(EXTRA_SPICY_SPAM_CHAT_ID)%'
             string $openAiApiKey: '%env(OPENAI_API_KEY)%'
 
