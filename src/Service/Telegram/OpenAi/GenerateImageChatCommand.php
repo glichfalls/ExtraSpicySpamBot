@@ -16,7 +16,8 @@ use TelegramBot\Api\Types\Update;
 class GenerateImageChatCommand extends AbstractTelegramChatCommand
 {
 
-    private const RATE_LIMIT_SECONDS = 180;
+    private const USER_RATE_LIMIT_SECONDS = 120;
+    private const GENERAL_RATE_LIMIT_SECONDS = 30;
 
     private const SIZES = [
         's' => '256x256',
@@ -44,10 +45,10 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $secondsSinceLastImage = $this->getTimeSinceLastChange($message->getUser());
-            if ($secondsSinceLastImage < self::RATE_LIMIT_SECONDS) {
+            $secondsToWait = $this->getRateLimitSeconds($message->getUser());
+            if ($secondsToWait > 0) {
                 $this->telegramService->replyTo($message, $this->translator->trans('telegram.openai.rate_limit', [
-                    'seconds' => self::RATE_LIMIT_SECONDS - $secondsSinceLastImage,
+                    'seconds' => $secondsToWait,
                 ]));
             } else {
                 $generatedImage = $this->openAiImageService->generateImage(
@@ -66,11 +67,24 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
         }
     }
 
-    private function getTimeSinceLastChange(User $user): int
+    private function getRateLimitSeconds(User $user): int
     {
-        $latestGeneratedImage = $this->generatedImageRepository->getLatestByUser($user);
-        $diff = $latestGeneratedImage?->getCreatedAt()->diff(new \DateTime());
-        return ($diff->d * 24 * 60 * 60) + ($diff->h * 60 * 60) + ($diff->i * 60) + $diff->s;
+        $latestGeneratedImage = $this->generatedImageRepository->getLatest();
+        if ($latestGeneratedImage === null) {
+            return false;
+        }
+        $diffSeconds = $this->intervalToSeconds($latestGeneratedImage->getCreatedAt()->diff(new \DateTime()));
+        if ($diffSeconds < self::GENERAL_RATE_LIMIT_SECONDS) {
+            return self::GENERAL_RATE_LIMIT_SECONDS - $diffSeconds;
+        }
+        $latestUserGeneratedImage = $this->generatedImageRepository->getLatestByUser($user);
+        $diff = $this->intervalToSeconds($latestUserGeneratedImage?->getCreatedAt()->diff(new \DateTime()));
+        return self::USER_RATE_LIMIT_SECONDS - $diff;
+    }
+
+    private function intervalToSeconds(\DateInterval $interval): int
+    {
+        return ($interval->d * 24 * 60 * 60) + ($interval->h * 60 * 60) + ($interval->i * 60) + $interval->s;
     }
 
     private function getSize(array $matches): string
