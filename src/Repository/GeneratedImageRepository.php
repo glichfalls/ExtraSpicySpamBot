@@ -19,9 +19,8 @@ class GeneratedImageRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('i')
             ->orderBy('i.createdAt', 'DESC')
-            ->setMaxResults(1)
             ->getQuery()
-            ->getSingleResult();
+            ->getOneOrNullResult();
     }
 
     public function getLatestByUser(User $user): ?GeneratedImage
@@ -30,9 +29,8 @@ class GeneratedImageRepository extends ServiceEntityRepository
             ->andWhere('i.user = :user')
             ->setParameter('user', $user)
             ->orderBy('i.createdAt', 'DESC')
-            ->setMaxResults(1)
             ->getQuery()
-            ->getSingleResult();
+            ->getOneOrNullResult();
     }
 
 }
