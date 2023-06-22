@@ -14,6 +14,12 @@ use TelegramBot\Api\Types\Update;
 class GenerateImageChatCommand extends AbstractTelegramChatCommand
 {
 
+    private const SIZES = [
+        's' => '256x256',
+        'm' => '512x512',
+        'l' => '1024x1024',
+    ];
+
     public function __construct(
         EntityManagerInterface     $manager,
         TranslatorInterface        $translator,
@@ -27,13 +33,14 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^ai\s*img (?<prompt>.+)$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^aiimg\s(?<size>[sml])?\s?(?<prompt>.+)$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $generatedImage = $this->openAiImageService->generateImage($matches['prompt'], '512x512');
+            $size = $this->getSize($matches);
+            $generatedImage = $this->openAiImageService->generateImage($matches['prompt'], $size);
             $this->telegramService->imageReplyTo(
                 $message,
                 sprintf('https://%s/%s', $_SERVER['HTTP_HOST'], $generatedImage->getPublicPath()),
@@ -42,6 +49,17 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
             $this->logger->error($th->getMessage());
             $this->telegramService->replyTo($message, $th->getMessage());
         }
+    }
+
+    private function getSize(array $matches): string
+    {
+        if (array_key_exists('size', $matches)) {
+            $size = strtolower($matches['size']);
+            if (array_key_exists($size, self::SIZES)) {
+                return self::SIZES[$size];
+            }
+        }
+        return self::SIZES['s'];
     }
 
 }
