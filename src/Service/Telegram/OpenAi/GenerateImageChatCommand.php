@@ -45,7 +45,7 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
     {
         try {
             if ($this->isRateLimited($message->getUser())) {
-                $this->telegramService->replyTo($message, $this->translator->trans('openai.rate_limit', [
+                $this->telegramService->replyTo($message, $this->translator->trans('telegram.openai.rate_limit', [
                     'seconds' => self::RATE_LIMIT_SECONDS,
                 ]));
             }
