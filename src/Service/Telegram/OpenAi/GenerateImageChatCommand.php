@@ -48,16 +48,17 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
                 $this->telegramService->replyTo($message, $this->translator->trans('telegram.openai.rate_limit', [
                     'seconds' => self::RATE_LIMIT_SECONDS,
                 ]));
+            } else {
+                $generatedImage = $this->openAiImageService->generateImage(
+                    $message->getUser(),
+                    $matches['prompt'],
+                    $this->getSize($matches),
+                );
+                $this->telegramService->imageReplyTo(
+                    $message,
+                    sprintf('https://%s/%s', $_SERVER['HTTP_HOST'], $generatedImage->getPublicPath()),
+                );
             }
-            $generatedImage = $this->openAiImageService->generateImage(
-                $message->getUser(),
-                $matches['prompt'],
-                $this->getSize($matches),
-            );
-            $this->telegramService->imageReplyTo(
-                $message,
-                sprintf('https://%s/%s', $_SERVER['HTTP_HOST'], $generatedImage->getPublicPath()),
-            );
         } catch (\Throwable $th) {
             $this->logger->error($th->getMessage());
             $this->telegramService->replyTo($message, $th->getMessage());
