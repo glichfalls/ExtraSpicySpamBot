@@ -16,7 +16,7 @@ use TelegramBot\Api\Types\Update;
 class GenerateImageChatCommand extends AbstractTelegramChatCommand
 {
 
-    private const RATE_LIMIT_SECONDS = 60;
+    private const RATE_LIMIT_SECONDS = 180;
 
     private const SIZES = [
         's' => '256x256',
