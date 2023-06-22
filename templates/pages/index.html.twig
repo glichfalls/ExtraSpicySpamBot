@@ -10,8 +10,14 @@
             grid-gap: 1rem;
         }
 
-        .ai-images img {
+        .ai-image img {
             width: 100%;
+        }
+
+        .ai-image p {
+            font-size: .8rem;
+            margin-top: .2rem;
+            font-family: Arial, Helvetica, sans-serif;
         }
     </style>
 {% endblock %}
@@ -20,7 +26,10 @@
     <div class="ai-images">
         {% for image in images %}
             {% if image.publicPath is not null %}
-                <img src="{{ image.publicPath }}" alt="{{ image.text }}">
+                <div class="ai-image">
+                    <img src="{{ image.publicPath }}" alt="{{ image.prompt }}">
+                    <p>{{ image.prompt }}</p>
+                </div>
             {% endif %}
         {% endfor %}
     </div>

@@ -15,7 +15,7 @@ class IndexController extends AbstractController
     public function index(EntityManagerInterface $manager): Response
     {
         $imageRepository = $manager->getRepository(GeneratedImage::class);
-        $images = $imageRepository->findAll();
+        $images = $imageRepository->findBy([], ['createdAt' => 'DESC']);
         return $this->render('pages/index.html.twig', [
             'images' => $images,
         ]);
