@@ -41,13 +41,13 @@ class OpenAiImageService extends BaseOpenAiService
         $this->entityManager->flush();
     }
 
-    public function generateImage($prompt, $size = '256x256'): GeneratedImage
+    public function generateImage($prompt, $size = '1024x1024'): GeneratedImage
     {
         $generatedImage = $this->createGeneratedImage($prompt, $size);
         $data = $this->post('/v1/images/generations', [
             'prompt' => $prompt,
             'n' => 1,
-            'size' => '1024x1024',
+            'size' => $size,
             'response_format' => 'b64_json',
         ]);
         $this->saveGeneratedImage($generatedImage, $data['data'][0]['b64_json']);

@@ -2,12 +2,14 @@
 
 namespace App\Service;
 
+use App\Service\Telegram\TelegramService;
+
 class MemeService
 {
 
     public function __construct(
-        private TelegramBaseService $telegramService,
-        private string $extraSpicySpamChatId,
+        private TelegramService $telegramService,
+        private string          $extraSpicySpamChatId,
     )
     {
 

@@ -2,7 +2,7 @@
 
 namespace App\Telegram\Command;
 
-use App\Service\TelegramBaseService;
+use App\Service\Telegram\TelegramService;
 use BoShurik\TelegramBotBundle\Telegram\Command\AbstractCommand;
 use BoShurik\TelegramBotBundle\Telegram\Command\PublicCommandInterface;
 use Psr\Log\LoggerInterface;
@@ -13,7 +13,7 @@ abstract class AbstractCommandExtension extends AbstractCommand implements Publi
 
     public function __construct(
         protected LoggerInterface $logger,
-        protected TelegramBaseService $telegramService
+        protected TelegramService $telegramService
     ) {
 
     }

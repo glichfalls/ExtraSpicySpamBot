@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\Telegram;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Chat\ChatFactory;
@@ -11,23 +11,73 @@ use App\Entity\User\UserFactory;
 use App\Repository\ChatRepository;
 use App\Repository\MessageRepository;
 use App\Repository\UserRepository;
+use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use TelegramBot\Api\BotApi;
+use TelegramBot\Api\Types\InputMedia\ArrayOfInputMedia;
+use TelegramBot\Api\Types\InputMedia\InputMediaVideo;
+use TelegramBot\Api\Types\Message as TelegramMessage;
+use TelegramBot\Api\Types\MessageEntity;
 use TelegramBot\Api\Types\ReplyKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
-use \TelegramBot\Api\Types\Message as TelegramMessage;
 
-trait TelegramServiceHelperTrait
+class TelegramService
 {
 
     public function __construct(
         protected BotApi $bot,
+        protected LoggerInterface $logger,
+        protected UserService $userService,
+        protected EntityManagerInterface $manager,
         protected ChatRepository $chatRepository,
         protected MessageRepository $messageRepository,
-        protected UserRepository $userRepository)
+        protected UserRepository $userRepository,
+    )
     {
         if ($_ENV['APP_ENV'] === 'dev') {
             $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
         }
+    }
+
+    /**
+     * @param Update $update
+     * @return array<User>
+     */
+    public function getUsersFromMentions(Update $update): array
+    {
+        $users = [];
+        /** @var MessageEntity $entity */
+        foreach ($update->getMessage()->getEntities() as $entity) {
+            $user = match ($entity->getType()) {
+                MessageEntity::TYPE_MENTION => $this->userService->getByName(
+                    substr(
+                        $update->getMessage()->getText(),
+                        $entity->getOffset() + 1,
+                        $entity->getLength() - 1
+                    )
+                ),
+                MessageEntity::TYPE_TEXT_MENTION => $this->userService->createUserFromMessageEntity($entity),
+                default => null,
+            };
+            if ($user !== null) {
+                $this->logger->info(sprintf('Found mention %s', $entity->toJson()));
+                $users[] = $user;
+            }
+        }
+        return $users;
+    }
+
+    public function sendVideo(string $chatId, string $url): ?array
+    {
+        $media = new ArrayOfInputMedia();
+        $media->addItem(new InputMediaVideo($url));
+        return $this->bot->sendMediaGroup($chatId, $media);
+    }
+
+    public function sendText(string $chatId, string $text): ?TelegramMessage
+    {
+        return $this->bot->sendMessage($chatId, $text);
     }
 
     public function replyTo(
@@ -54,6 +104,15 @@ trait TelegramServiceHelperTrait
         return $this->bot->sendVideo(
             $message->getChat()->getChatId(),
             $videoUrl,
+            replyToMessageId: $message->getTelegramMessageId(),
+        );
+    }
+
+    public function imageReplyTo(Message $message, string $imageUrl): TelegramMessage
+    {
+        return $this->bot->sendPhoto(
+            $message->getChat()->getChatId(),
+            $imageUrl,
             replyToMessageId: $message->getTelegramMessageId(),
         );
     }
