@@ -3,6 +3,7 @@
 namespace App\Service\OpenApi;
 
 use App\Entity\OpenApi\GeneratedImage;
+use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -19,9 +20,10 @@ class OpenAiImageService extends BaseOpenAiService
         $this->filesystem = new Filesystem();
     }
 
-    private function createGeneratedImage(string $prompt, string $size): GeneratedImage
+    private function createGeneratedImage(User $user, string $prompt, string $size): GeneratedImage
     {
         $generatedImage = new GeneratedImage();
+        $generatedImage->setUser($user);
         $generatedImage->setPrompt($prompt);
         $generatedImage->setSize($size);
         $generatedImage->setCreatedAt(new \DateTime());
@@ -40,9 +42,9 @@ class OpenAiImageService extends BaseOpenAiService
         $this->entityManager->flush();
     }
 
-    public function generateImage($prompt, $size = '256x256'): GeneratedImage
+    public function generateImage(User $user, $prompt, $size = '256x256'): GeneratedImage
     {
-        $generatedImage = $this->createGeneratedImage($prompt, $size);
+        $generatedImage = $this->createGeneratedImage($user, $prompt, $size);
         $data = $this->post('/v1/images/generations', [
             'prompt' => $prompt,
             'n' => 1,

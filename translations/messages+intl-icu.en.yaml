@@ -24,3 +24,5 @@ telegram:
     raidFailed: 'raid against {target} failed! the raiders lost a total of {totalHonor} honor and it will be equally distributed among the defenders and the target. Each defender will receive {honorPerDefender} honor. The leader lost all of their honor. The supporters lost half of their honor.'
     raidEnded: 'Thank you for participating in RAID: Shadow Legends! (Beta)'
     raidCanceled: 'raid cancelled'
+  openai:
+    rate_limit: 'please wait {seconds} seconds'

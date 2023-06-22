@@ -2,8 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\OpenApi\GeneratedImage;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\GeneratedImageRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -12,10 +11,9 @@ class IndexController extends AbstractController
 {
 
     #[Route('/', name: 'index')]
-    public function index(EntityManagerInterface $manager): Response
+    public function index(GeneratedImageRepository $repository): Response
     {
-        $imageRepository = $manager->getRepository(GeneratedImage::class);
-        $images = $imageRepository->findBy([], ['createdAt' => 'DESC']);
+        $images = $repository->findBy([], ['createdAt' => 'DESC']);
         return $this->render('pages/index.html.twig', [
             'images' => $images,
         ]);
