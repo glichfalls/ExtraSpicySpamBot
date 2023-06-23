@@ -70,7 +70,7 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
         // supporters + defenders + leader + target
         $totalParticipants = $supporterCount + $defenderCount + 2;
 
-        if (random_int(1, $totalParticipants) === random_int(1, $totalParticipants)) {
+        if (random_int(1, 2) === 1) {
             $this->telegramService->sendText(
                 $message->getChat()->getChatId(),
                 $this->translator->trans('telegram.raid.raidSuccessful', [
