@@ -67,22 +67,10 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
             ]),
         );
 
-        // leader + supporters - defenders
-        $chance = 1 + $supporterCount - $defenderCount;
-
         // supporters + defenders + leader + target
         $totalParticipants = $supporterCount + $defenderCount + 2;
 
-        $chancePercentage = $chance / $totalParticipants * 100;
-
-        $this->telegramService->sendText(
-            $message->getChat()->getChatId(),
-            $this->translator->trans('telegram.raid.chanceToWin', [
-                'chance' => $chancePercentage,
-            ]),
-        );
-
-        if (random_int(1, $totalParticipants) >= $chance) {
+        if (random_int(1, $totalParticipants) === random_int(1, $totalParticipants)) {
             $this->telegramService->sendText(
                 $message->getChat()->getChatId(),
                 $this->translator->trans('telegram.raid.raidSuccessful', [
