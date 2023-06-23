@@ -26,9 +26,9 @@ class CreateStickerSetCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $owner = $this->userRepository->getByTelegramId('1098121923');
-        $generatedImage = $this->aiImageService->generateImage($owner, 'A tree', '512x512');
-        $path = sprintf('https://extra-spicy-spam.portner.dev/%s', $generatedImage->getPublicPath());
-        return $this->telegramService->createStickerSet($owner, 'test', 'Test', $path) !== null;
+        //$generatedImage = $this->aiImageService->generateImage($owner, 'A tree', '512x512');
+        //$path = sprintf('https://extra-spicy-spam.portner.dev/%s', $generatedImage->getPublicPath());
+        return $this->telegramService->createStickerSet($owner, 'test', 'Test', 'https://extra-spicy-spam.portner.dev/generated-images/5830043f-37bb-4282-8d95-1400dbd9c866.png') !== null;
     }
 
 }
