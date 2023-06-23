@@ -28,7 +28,7 @@ class SupportRaidChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!(support|s)/i', $message->getMessage()) === 1;
+        return preg_match('/^!(support|s)$/i', $message->getMessage()) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void

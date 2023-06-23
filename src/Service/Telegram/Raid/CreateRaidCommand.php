@@ -53,6 +53,12 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'raid already active');
             return;
         }
+        $latestRaid = $this->raidRepository->getLatestRaid($chat);
+        $diff = time() - $latestRaid->getCreatedAt()->getTimestamp();
+        if ($diff < 3600) {
+            $this->telegramService->replyTo($message, sprintf('please wait %d minutes', 60 - ($diff / 60)));
+            return;
+        }
         $targetHonorCount = $this->honorRepository->getHonorCount($target, $chat);
         if ($targetHonorCount <= 0) {
             $this->telegramService->replyTo($message, 'target has no honor, no raid possible :(');

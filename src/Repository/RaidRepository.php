@@ -36,4 +36,15 @@ class RaidRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function getLatestRaid(Chat $chat): ?Raid
+    {
+        return $this->createQueryBuilder('r')
+            ->where('r.chat = :chat')
+            ->setParameter('chat', $chat)
+            ->orderBy('r.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }
