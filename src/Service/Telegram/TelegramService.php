@@ -6,6 +6,10 @@ use App\Entity\Chat\Chat;
 use App\Entity\Chat\ChatFactory;
 use App\Entity\Message\Message;
 use App\Entity\Message\MessageFactory;
+use App\Entity\Sticker\StickerFile;
+use App\Entity\Sticker\StickerFileFactory;
+use App\Entity\Sticker\StickerSet;
+use App\Entity\Sticker\StickerSetFactory;
 use App\Entity\User\User;
 use App\Entity\User\UserFactory;
 use App\Repository\ChatRepository;
@@ -115,6 +119,69 @@ class TelegramService
             $imageUrl,
             replyToMessageId: $message->getTelegramMessageId(),
         );
+    }
+
+    public function createStickerSet(User $owner, string $name, string $title, string $stickerPublicPath): ?StickerSet
+    {
+        try {
+            $stickerFile = $this->uploadStickerFile($owner, $stickerPublicPath);
+            $set = StickerSetFactory::create($owner, $name, $title);
+            $this->manager->persist($set);
+            $this->manager->flush();
+            $data = $this->bot->call('createNewStickerSet', [
+                'user_id' => $owner->getTelegramUserId(),
+                'name' => $set->getName(),
+                'title' => $set->getTitle(),
+                'stickers' => [
+                    ['sticker' => $stickerFile->getFileId(), 'emoji_list' => ['🤖']],
+                ],
+                'sticker_format' => $set->getStickerFormat(),
+            ]);
+            if ($data === true) {
+                return $set;
+            }
+            return null;
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+            return null;
+        }
+    }
+
+    public function createSticker()
+    {
+
+    }
+
+    public function sendSticker()
+    {
+
+    }
+
+    private function uploadStickerFile(User $user, string $publicPath): ?StickerFile
+    {
+        try {
+            $stickerFile = StickerFileFactory::create($user, $publicPath);
+            $this->manager->persist($stickerFile);
+            $this->manager->flush();
+            $this->bot->setCurlOption(CURLOPT_HTTPHEADER, [
+                'Content-Type: multipart/form-data',
+            ]);
+            $data = $this->bot->call('uploadStickerFile', [
+                'user_id' => $stickerFile->getOwner()->getTelegramUserId(),
+                'sticker' => $stickerFile->getSticker(),
+                'sticker_format' => $stickerFile->getStickerFormat(),
+            ]);
+            $this->bot->unsetCurlOption(CURLOPT_HTTPHEADER);
+            $stickerFile->setFileId($data['file_id']);
+            $stickerFile->setFileUniqueId($data['file_unique_id']);
+            $stickerFile->setFileSize($data['file_size']);
+            $stickerFile->setFilePath($data['file_path']);
+            $this->manager->flush();
+            return $stickerFile;
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+            return null;
+        }
     }
 
     public function createMessageFromUpdate(Update $update): Message
