@@ -125,6 +125,9 @@ class TelegramService
     {
         try {
             $stickerFile = $this->uploadStickerFile($owner, $stickerPublicPath);
+            if ($stickerFile === null) {
+                return null;
+            }
             $set = StickerSetFactory::create($owner, $name, $title);
             $this->manager->persist($set);
             $this->manager->flush();
@@ -147,16 +150,6 @@ class TelegramService
         }
     }
 
-    public function createSticker()
-    {
-
-    }
-
-    public function sendSticker()
-    {
-
-    }
-
     private function uploadStickerFile(User $user, string $publicPath): ?StickerFile
     {
         try {
@@ -168,7 +161,7 @@ class TelegramService
             ]);
             $data = $this->bot->call('uploadStickerFile', [
                 'user_id' => $stickerFile->getOwner()->getTelegramUserId(),
-                'sticker' => $stickerFile->getSticker(),
+                'sticker' => new \CURLFile($publicPath, 'image/png'),
                 'sticker_format' => $stickerFile->getStickerFormat(),
             ]);
             $this->bot->unsetCurlOption(CURLOPT_HTTPHEADER);
