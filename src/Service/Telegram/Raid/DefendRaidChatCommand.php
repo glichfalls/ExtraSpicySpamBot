@@ -58,12 +58,6 @@ class DefendRaidChatCommand extends AbstractTelegramChatCommand
         $this->manager->persist($raid);
         $this->manager->flush();
         $this->telegramService->replyTo($message, 'you are now defending the raid');
-        $this->telegramService->sendText($message->getChat()->getChatId(), sprintf(
-            '%s are now supporting the raid against %s, %s are defending',
-            $raid->getSupporters()->count(),
-            $raid->getTarget()->getName(),
-            $raid->getDefenders()->count(),
-        ));
     }
 
 }

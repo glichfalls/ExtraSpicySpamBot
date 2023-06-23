@@ -58,11 +58,6 @@ class SupportRaidChatCommand extends AbstractTelegramChatCommand
         $this->manager->persist($raid);
         $this->manager->flush();
         $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.nowSupportingRaid'));
-        $this->telegramService->sendText($message->getChat()->getChatId(), $this->translator->trans('telegram.raid.nowSupportingRaid', [
-            'supporters' => $raid->getSupporters()->count(),
-            'target' => $raid->getTarget()->getName(),
-            'defenders' => $raid->getDefenders()->count(),
-        ]));
     }
 
 }

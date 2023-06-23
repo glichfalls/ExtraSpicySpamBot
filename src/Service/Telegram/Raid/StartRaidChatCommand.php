@@ -74,7 +74,6 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
         $totalParticipants = $supporterCount + $defenderCount + 2;
 
         $chancePercentage = $chance / $totalParticipants * 100;
-        $this->telegramService->sendText($message->getChat()->getChatId(), sprintf('%s%% chance to succeed', $chancePercentage));
 
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
@@ -130,10 +129,6 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
         $this->manager->flush();
         $leaderboard = $this->honorService->getLeaderboardByChat($message->getChat());
         $this->telegramService->sendText($message->getChat()->getChatId(), $leaderboard);
-        $this->telegramService->sendText(
-            $message->getChat()->getChatId(),
-            $this->translator->trans('telegram.raid.raidEnded'),
-        );
     }
 
 }
