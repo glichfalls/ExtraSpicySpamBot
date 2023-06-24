@@ -40,7 +40,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'not enough ehre');
         } else {
             $number = random_int(0, 36);
-            $color = $number === 0 ? 'green' : ($number % 2 === 0 ? 'red' : 'black');
+            $color = $number === 0 ? '🟢' : ($number % 2 === 0 ? '🔴' : '⚫️');
             $amount = match ($bet) {
                 'red' => $number % 2 === 0 && $number !== 0 ? $initialAmount : -$initialAmount,
                 'black' => $number % 2 === 1 ? $initialAmount : -$initialAmount,
