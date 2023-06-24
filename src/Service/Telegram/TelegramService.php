@@ -22,6 +22,8 @@ use App\Repository\UserRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpKernel\KernelInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Types\InputMedia\ArrayOfInputMedia;
 use TelegramBot\Api\Types\InputMedia\InputMediaVideo;
@@ -33,7 +35,10 @@ use TelegramBot\Api\Types\Update;
 class TelegramService
 {
 
+    private Filesystem $filesystem;
+
     public function __construct(
+        private KernelInterface $kernel,
         protected BotApi $bot,
         protected LoggerInterface $logger,
         protected UserService $userService,
@@ -48,6 +53,7 @@ class TelegramService
         if ($_ENV['APP_ENV'] === 'dev') {
             $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
         }
+        $this->filesystem = new Filesystem();
     }
 
     /**
@@ -198,11 +204,12 @@ class TelegramService
             if ($existingStickerFile !== null) {
                 return $existingStickerFile;
             }
-            if (!file_exists($stickerPath)) {
+            $serverPath = sprintf('%s/public/%s', $this->kernel->getProjectDir(), $stickerPath);
+            if (!file_exists($serverPath)) {
                 $this->logger->error(sprintf('File %s does not exist', $stickerPath));
                 return null;
             }
-            $stickerFile = StickerFileFactory::create($user, $stickerPath);
+            $stickerFile = StickerFileFactory::create($user, $serverPath);
             $this->manager->persist($stickerFile);
             $this->manager->flush();
             $data = $this->bot->call('uploadStickerFile', [
