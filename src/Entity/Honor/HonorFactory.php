@@ -10,7 +10,7 @@ class HonorFactory
 
     public static function create(
         Chat $chat,
-        User $sender,
+        ?User $sender,
         User $recipient,
         int $amount
     ): Honor

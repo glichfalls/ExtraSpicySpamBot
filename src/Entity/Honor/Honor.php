@@ -20,7 +20,7 @@ class Honor
     public const BASE_HONOR = 10;
 
     #[ManyToOne(targetEntity: User::class, inversedBy: 'sentHonor')]
-    private User $sender;
+    private ?User $sender = null;
 
     #[ManyToOne(targetEntity: User::class, inversedBy: 'receivedHonor')]
     private User $recipient;
@@ -36,12 +36,12 @@ class Honor
         $this->generateId();
     }
 
-    public function getSender(): User
+    public function getSender(): ?User
     {
         return $this->sender;
     }
 
-    public function setSender(User $sender): void
+    public function setSender(?User $sender): void
     {
         $this->sender = $sender;
     }
