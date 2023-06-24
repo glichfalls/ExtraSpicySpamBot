@@ -48,6 +48,10 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
             ]));
             return;
         }
+        if ($target->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
+            $this->telegramService->replyTo($message, 'you can\'t raid yourself');
+            return;
+        }
         $chat = $message->getChat();
         if ($this->raidRepository->hasActiveRaid($chat)) {
             $this->telegramService->replyTo($message, 'raid already active');
