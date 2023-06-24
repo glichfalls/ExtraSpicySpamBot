@@ -40,10 +40,10 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         } else {
             if (rand(0, 1) === 1) {
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), $count));
-                $this->telegramService->replyTo($message, sprintf('you won %d honor', $count));
+                $this->telegramService->replyTo($message, sprintf('you have won %d honor', $count));
             } else {
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), -$count));
-                $this->telegramService->replyTo($message, sprintf('you lost %d honor', $count));
+                $this->telegramService->replyTo($message, sprintf('you have lost %d honor', $count));
             }
         }
     }
