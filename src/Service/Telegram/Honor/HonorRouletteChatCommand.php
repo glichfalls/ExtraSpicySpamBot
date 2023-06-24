@@ -52,7 +52,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand
                 default => $number === (int)$bet ? ($initialAmount * 36) - $initialAmount : -$initialAmount,
             };
             $this->telegramService->replyTo($message, sprintf(
-                'the number is %d (%s). You have %s %d ehre',
+                'the number is %d %s. You have %s %d ehre',
                 $number,
                 $color,
                 $amount > 0 ? 'won' : 'lost',
