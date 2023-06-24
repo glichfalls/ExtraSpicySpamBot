@@ -67,7 +67,7 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
         $raid = RaidFactory::create($chat, $message->getUser(), $target);
         $this->manager->persist($raid);
         $this->manager->flush();
-        $this->telegramService->sendText($chat->getChatId(), 'Welcome to RAID: Shadow Legends! (Beta)');
+        $this->telegramService->videoReplyTo($message, 'https://extra-spicy-spam.portner.dev/assets/video/raid.mp4');
         $this->telegramService->sendText($chat->getChatId(), sprintf(
             '%s started a raid against %s! to join write !support and to defend write !defend. To start the raid write !start raid',
             $message->getUser()->getName(),

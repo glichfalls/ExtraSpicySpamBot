@@ -14,11 +14,11 @@ class StickerSetRepository extends ServiceEntityRepository
         parent::__construct($registry, StickerSet::class);
     }
 
-    public function getByNameOrNull(string $name): ?StickerSet
+    public function getByTitleOrNull(string $title): ?StickerSet
     {
         return $this->createQueryBuilder('s')
-            ->where('s.name = :name')
-            ->setParameter('name', $name)
+            ->where('s.title = :title')
+            ->setParameter('title', $title)
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();

@@ -96,6 +96,15 @@ class TelegramService
         return $this->bot->sendMessage($chatId, $text);
     }
 
+    public function stickerReplyTo(Message $message, Sticker $sticker): TelegramMessage
+    {
+        return $this->bot->sendSticker(
+            $message->getChat()->getChatId(),
+            $sticker->getFile()->getFileId(),
+            replyToMessageId: $message->getTelegramMessageId(),
+        );
+    }
+
     public function replyTo(
         Message $message,
         string $text,
@@ -136,7 +145,7 @@ class TelegramService
     public function createStickerSet(User $owner, string $name, string $title, string $emoji, string $stickerPath): ?StickerSet
     {
         try {
-            $set = $this->stickerSetRepository->getByNameOrNull($name);
+            $set = $this->stickerSetRepository->getByTitleOrNull($title);
             if ($set !== null) {
                 $this->logger->warning(sprintf('Sticker set %s already exists', $name));
                 return null;
@@ -186,7 +195,7 @@ class TelegramService
                 ]),
             ]);
             if ($data === true) {
-                $this->manager->persist($stickerFile);
+                $this->manager->persist($sticker);
                 $this->manager->flush();
                 return $sticker;
             }
@@ -209,6 +218,10 @@ class TelegramService
                 $this->logger->error(sprintf('File %s does not exist', $stickerPath));
                 return null;
             }
+            // workaround for size limit by telegram (which should actually be 5MB, but is lower than 700KB)
+            $im = imagecreatefrompng($serverPath);
+            imagepng($im, $serverPath, 5);
+            imagedestroy($im);
             $stickerFile = StickerFileFactory::create($user, $serverPath);
             $this->manager->persist($stickerFile);
             $this->manager->flush();
