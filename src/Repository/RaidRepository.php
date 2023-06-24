@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\Raid\Raid;
+use App\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -41,6 +42,19 @@ class RaidRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->where('r.chat = :chat')
             ->setParameter('chat', $chat)
+            ->orderBy('r.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function getLatestRaidByLeader(Chat $chat, User $leader): ?Raid
+    {
+        return $this->createQueryBuilder('r')
+            ->where('r.chat = :chat')
+            ->andWhere('r.leader = :leader')
+            ->setParameter('chat', $chat)
+            ->setParameter('leader', $leader)
             ->orderBy('r.createdAt', 'DESC')
             ->setMaxResults(1)
             ->getQuery()

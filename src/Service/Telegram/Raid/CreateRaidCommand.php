@@ -57,7 +57,7 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'raid already active');
             return;
         }
-        $latestRaid = $this->raidRepository->getLatestRaid($chat);
+        $latestRaid = $this->raidRepository->getLatestRaidByLeader($chat, $message->getUser());
         $diff = time() - $latestRaid->getCreatedAt()->getTimestamp();
         if ($diff < 3600) {
             $this->telegramService->replyTo($message, sprintf('please wait %d minutes', 60 - ($diff / 60)));
