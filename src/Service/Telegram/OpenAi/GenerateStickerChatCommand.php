@@ -43,13 +43,14 @@ class GenerateStickerChatCommand extends AbstractTelegramChatCommand
         $owner = $this->userRepository->getByTelegramId(self::OWNER_TELEGRAM_ID);
         $stickerSet = $this->stickerSetRepository->getByNameOrNull(self::STICKER_SET_NAME);
         $image = $this->openAiImageService->generateImage($message->getUser(), $prompt, '512x512');
+        $path = 'public' . $image->getPublicPath();
         if ($stickerSet === null) {
             $set = $this->telegramService->createStickerSet(
                 $owner,
                 self::STICKER_SET_NAME,
                 'Extra Spicy Spam',
                 $emoji,
-                $image->getPublicPath(),
+                $path,
             );
             if ($set !== null) {
                 $this->telegramService->replyTo($message, $emoji);
@@ -57,7 +58,7 @@ class GenerateStickerChatCommand extends AbstractTelegramChatCommand
                 $this->telegramService->replyTo($message, 'Failed to create sticker set');
             }
         } else {
-            $sticker = $this->telegramService->addStickerToSet($stickerSet, $image->getPublicPath(), [$emoji]);
+            $sticker = $this->telegramService->addStickerToSet($stickerSet, $path, [$emoji]);
             if ($sticker !== null) {
                 $this->telegramService->replyTo($message, $emoji);
             } else {
