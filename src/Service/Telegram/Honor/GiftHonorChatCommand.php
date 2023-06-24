@@ -47,7 +47,7 @@ class GiftHonorChatCommand extends AbstractTelegramChatCommand
             $senderHonorAmount = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
 
             if ($senderHonorAmount < $amount) {
-                $this->telegramService->replyTo($message, sprintf('not enough honor, to gift %d honor to %s', $senderHonorAmount, $recipient->getFirstName()));
+                $this->telegramService->replyTo($message, sprintf('not enough honor to gift %d honor to %s', $senderHonorAmount, $recipient->getFirstName()));
                 continue;
             }
 
