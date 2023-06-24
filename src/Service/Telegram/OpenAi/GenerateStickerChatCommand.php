@@ -3,6 +3,7 @@
 namespace App\Service\Telegram\OpenAi;
 
 use App\Entity\Message\Message;
+use App\Repository\GeneratedImageRepository;
 use App\Repository\StickerSetRepository;
 use App\Repository\UserRepository;
 use App\Service\OpenApi\OpenAiImageService;
@@ -26,6 +27,7 @@ class GenerateStickerChatCommand extends AbstractTelegramChatCommand
         private UserRepository $userRepository,
         private StickerSetRepository $stickerSetRepository,
         private OpenAiImageService $openAiImageService,
+        private GeneratedImageRepository $generatedImageRepository,
     )
     {
         parent::__construct($manager, $translator, $logger, $telegramService);
@@ -42,7 +44,8 @@ class GenerateStickerChatCommand extends AbstractTelegramChatCommand
         $prompt = $matches['prompt'];
         $owner = $this->userRepository->getByTelegramId(self::OWNER_TELEGRAM_ID);
         $stickerSet = $this->stickerSetRepository->getByNameOrNull(self::STICKER_SET_NAME);
-        $image = $this->openAiImageService->generateImage($message->getUser(), $prompt, '512x512');
+        //$image = $this->openAiImageService->generateImage($message->getUser(), $prompt, '512x512');
+        $image = $this->generatedImageRepository->getLatest();
         $path = 'public' . $image->getPublicPath();
         if ($stickerSet === null) {
             $set = $this->telegramService->createStickerSet(
