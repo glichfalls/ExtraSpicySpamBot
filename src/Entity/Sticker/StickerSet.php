@@ -4,6 +4,7 @@ namespace App\Entity\Sticker;
 
 use App\Entity\User\User;
 use App\Model\Id;
+use App\Repository\StickerSetRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
@@ -11,7 +12,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\OneToMany;
 
-#[Entity]
+#[Entity(repositoryClass: StickerSetRepository::class)]
 class StickerSet
 {
     use Id;

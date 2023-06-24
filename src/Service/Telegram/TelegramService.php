@@ -6,6 +6,8 @@ use App\Entity\Chat\Chat;
 use App\Entity\Chat\ChatFactory;
 use App\Entity\Message\Message;
 use App\Entity\Message\MessageFactory;
+use App\Entity\Sticker\Sticker;
+use App\Entity\Sticker\StickerFactory;
 use App\Entity\Sticker\StickerFile;
 use App\Entity\Sticker\StickerFileFactory;
 use App\Entity\Sticker\StickerSet;
@@ -14,6 +16,8 @@ use App\Entity\User\User;
 use App\Entity\User\UserFactory;
 use App\Repository\ChatRepository;
 use App\Repository\MessageRepository;
+use App\Repository\StickerFileRepository;
+use App\Repository\StickerSetRepository;
 use App\Repository\UserRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,6 +41,8 @@ class TelegramService
         protected ChatRepository $chatRepository,
         protected MessageRepository $messageRepository,
         protected UserRepository $userRepository,
+        protected StickerFileRepository $stickerFileRepository,
+        protected StickerSetRepository $stickerSetRepository,
     )
     {
         if ($_ENV['APP_ENV'] === 'dev') {
@@ -121,27 +127,62 @@ class TelegramService
         );
     }
 
-    public function createStickerSet(User $owner, string $name, string $title, string $stickerPublicPath): ?StickerSet
+    public function createStickerSet(User $owner, string $name, string $title, string $emoji, string $stickerPath): ?StickerSet
     {
         try {
-            $stickerFile = $this->uploadStickerFile($owner, $stickerPublicPath);
+            $set = $this->stickerSetRepository->getByNameOrNull($name);
+            if ($set !== null) {
+                $this->logger->warning(sprintf('Sticker set %s already exists', $name));
+                return null;
+            }
+            $stickerFile = $this->uploadStickerFile($owner, $stickerPath);
             if ($stickerFile === null) {
+                $this->logger->warning(sprintf('failed to upload sticker file %s', $stickerPath));
                 return null;
             }
             $set = StickerSetFactory::create($owner, $name, $title);
-            $this->manager->persist($set);
-            $this->manager->flush();
             $data = $this->bot->call('createNewStickerSet', [
                 'user_id' => $owner->getTelegramUserId(),
                 'name' => $set->getName(),
                 'title' => $set->getTitle(),
-                'stickers' => [
-                    ['sticker' => $stickerFile->getFileId(), 'emoji_list' => ['🤖']],
-                ],
+                'stickers' => json_encode([
+                    ['sticker' => $stickerFile->getFileId(), 'emoji_list' => [$emoji]],
+                ]),
                 'sticker_format' => $set->getStickerFormat(),
             ]);
             if ($data === true) {
+                $this->manager->persist($set);
+                $this->manager->flush();
                 return $set;
+            }
+            $this->logger->warning(sprintf('failed to create sticker set %s', $name));
+            return null;
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+            return null;
+        }
+    }
+
+    public function addStickerToSet(StickerSet $set, string $stickerPath, array $emojiList): ?Sticker
+    {
+        try {
+            $stickerFile = $this->uploadStickerFile($set->getOwner(), $stickerPath);
+            if ($stickerFile === null) {
+                return null;
+            }
+            $sticker = StickerFactory::create($set, $stickerFile, $emojiList);
+            $data = $this->bot->call('addStickerToSet', [
+                'user_id' => $sticker->getStickerSet()->getOwner()->getTelegramUserId(),
+                'name' => $sticker->getStickerSet()->getName(),
+                'sticker' => json_encode([
+                   'sticker' => $sticker->getFile()->getFileId(),
+                   'emoji_list' => $sticker->getEmojis(),
+                ]),
+            ]);
+            if ($data === true) {
+                $this->manager->persist($stickerFile);
+                $this->manager->flush();
+                return $sticker;
             }
             return null;
         } catch (\Exception $e) {
@@ -150,25 +191,29 @@ class TelegramService
         }
     }
 
-    private function uploadStickerFile(User $user, string $publicPath): ?StickerFile
+    private function uploadStickerFile(User $user, string $stickerPath): ?StickerFile
     {
         try {
-            $stickerFile = StickerFileFactory::create($user, $publicPath);
+            $existingStickerFile = $this->stickerFileRepository->getBySticker($stickerPath);
+            if ($existingStickerFile !== null) {
+                return $existingStickerFile;
+            }
+            if (!file_exists($stickerPath)) {
+                $this->logger->error(sprintf('File %s does not exist', $stickerPath));
+                return null;
+            }
+            $stickerFile = StickerFileFactory::create($user, $stickerPath);
             $this->manager->persist($stickerFile);
             $this->manager->flush();
-            $this->bot->setCurlOption(CURLOPT_HTTPHEADER, [
-                'Content-Type: multipart/form-data',
-            ]);
             $data = $this->bot->call('uploadStickerFile', [
                 'user_id' => $stickerFile->getOwner()->getTelegramUserId(),
-                'sticker' => new \CURLFile($publicPath, 'image/png'),
+                'sticker' => new \CURLFile($stickerFile->getSticker()),
                 'sticker_format' => $stickerFile->getStickerFormat(),
             ]);
-            $this->bot->unsetCurlOption(CURLOPT_HTTPHEADER);
             $stickerFile->setFileId($data['file_id']);
             $stickerFile->setFileUniqueId($data['file_unique_id']);
             $stickerFile->setFileSize($data['file_size']);
-            $stickerFile->setFilePath($data['file_path']);
+            $stickerFile->setFilePath($data['file_path'] ?? null);
             $this->manager->flush();
             return $stickerFile;
         } catch (\Exception $e) {

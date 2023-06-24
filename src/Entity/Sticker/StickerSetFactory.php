@@ -14,7 +14,7 @@ class StickerSetFactory
         $set->setOwner($owner);
         $set->setName(sprintf('%s_by_%s', $name, self::BOT_USERNAME));
         $set->setTitle($title);
-        $set->setStickerFormat('regular');
+        $set->setStickerFormat('static');
         return $set;
     }
 
