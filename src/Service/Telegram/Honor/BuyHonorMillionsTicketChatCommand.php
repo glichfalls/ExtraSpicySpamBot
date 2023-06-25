@@ -3,7 +3,6 @@
 namespace App\Service\Telegram\Honor;
 
 use App\Entity\Honor\HonorFactory;
-use App\Entity\Honor\HonorMillions\Draw\Draw;
 use App\Entity\Honor\HonorMillions\Ticket\Ticket;
 use App\Entity\Honor\HonorMillions\Ticket\TicketFactory;
 use App\Entity\Message\Message;
@@ -33,7 +32,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!buy ticket (?<number>\d+)/i', $message->getMessage()) === 1;
+        return preg_match('/^!ticket (?<number>\d+)/i', $message->getMessage()) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -49,12 +48,12 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
         }
         $currentHonor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
         if ($currentHonor < Ticket::TICKET_PRICE) {
-            $this->telegramService->replyTo($message, 'you need 100 honor to buy a ticket');
+            $this->telegramService->replyTo($message, 'you need 100 ehre to buy a ticket');
             return;
         }
-        $number = (int)$matches['number'];
+        $number = (int) $matches['number'];
         if ($number < 1 || $number > 100) {
-            $this->telegramService->replyTo($message, 'number must be between 1 and 100');
+            $this->telegramService->replyTo($message, sprintf('%d is not in range. number must be between 1 and 100', $number));
             return;
         }
         $ticket = TicketFactory::create($message->getUser(), $draw, Ticket::TICKET_PRICE);
@@ -63,7 +62,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
         $this->manager->persist($ticket);
         $this->manager->flush();
         $this->telegramService->replyTo($message, sprintf(
-            'ticket bought with number %d for %d honor. The jackpot is now %d',
+            'ticket bought with number %d for %d ehre. The jackpot is now %d ehre',
             $number,
             Ticket::TICKET_PRICE,
             $draw->getJackpot(),
