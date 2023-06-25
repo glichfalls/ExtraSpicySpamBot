@@ -44,7 +44,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand
             $amount = match ($bet) {
                 'red' => $number % 2 === 0 && $number !== 0 ? $initialAmount : -$initialAmount,
                 'black' => $number % 2 === 1 ? $initialAmount : -$initialAmount,
-                '1-12' => $number >= 1 && $number <= 36 ? ($initialAmount * 3) - $initialAmount : -$initialAmount,
+                '1-12' => $number >= 1 && $number <= 12 ? ($initialAmount * 3) - $initialAmount : -$initialAmount,
                 '13-24' => $number >= 13 && $number <= 24 ?  ($initialAmount * 3) - $initialAmount : -$initialAmount,
                 '25-36' => $number >= 25 && $number <= 36 ?  ($initialAmount * 3) - $initialAmount : -$initialAmount,
                 '1-18' => $number >= 1 && $number <= 18 ? $initialAmount : -$initialAmount,
