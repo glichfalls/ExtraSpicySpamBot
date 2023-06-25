@@ -34,7 +34,7 @@ class DrawRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('d')
             ->where('d.date = :date')
-            ->setParameter('date', $date)
+            ->setParameter('date', $date->format('Y-m-d'))
             ->getQuery()
             ->getResult();
     }
@@ -45,7 +45,7 @@ class DrawRepository extends ServiceEntityRepository
             ->where('d.chat = :chat')
             ->andWhere('d.date = :date')
             ->setParameter('chat', $chat)
-            ->setParameter('date', $date)
+            ->setParameter('date', $date->format('Y-m-d'))
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
