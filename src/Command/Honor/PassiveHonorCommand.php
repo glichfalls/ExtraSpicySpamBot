@@ -28,8 +28,8 @@ class PassiveHonorCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $chat = $this->chatRepository->findOneBy(['chatId' => self::CHAT_ID]);
-        $users = $this->userRepository->findBy(['chatId' => self::CHAT_ID]);
+        $chat = $this->chatRepository->getChatByTelegramId(self::CHAT_ID);
+        $users = $this->userRepository->getUsersByChat($chat);
         foreach ($users as $user) {
             $this->manager->persist(HonorFactory::create($chat, null, $user, self::PASSIVE_HONOR_PER_HOUR));
         }
