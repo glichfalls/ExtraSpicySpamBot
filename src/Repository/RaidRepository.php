@@ -22,7 +22,9 @@ class RaidRepository extends ServiceEntityRepository
             ->select('COUNT(r.id)')
             ->where('r.chat = :chat')
             ->andWhere('r.isActive = true')
+            ->andWhere('r.createdAt > :date')
             ->setParameter('chat', $chat)
+            ->setParameter('date', new \DateTime('-5 minutes'))
             ->getQuery()
             ->getSingleScalarResult() > 0;
     }
@@ -32,7 +34,9 @@ class RaidRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->where('r.chat = :chat')
             ->andWhere('r.isActive = true')
+            ->andWhere('r.createdAt > :date')
             ->setParameter('chat', $chat)
+            ->setParameter('date', new \DateTime('-5 minutes'))
             ->getQuery()
             ->getOneOrNullResult();
     }
