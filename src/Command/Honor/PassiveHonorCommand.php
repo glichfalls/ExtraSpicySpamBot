@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class PassiveHonorCommand extends Command
 {
     private const CHAT_ID = -1001285586333;
-    private const PASSIVE_HONOR_PER_HOUR = 1000;
+    private const PASSIVE_HONOR_PER_HOUR = 100;
 
     public function __construct(
         private EntityManagerInterface $manager,
