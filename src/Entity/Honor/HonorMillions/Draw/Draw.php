@@ -1,15 +1,20 @@
 <?php
 
-namespace App\Entity\Honor\HonorMillions;
+namespace App\Entity\Honor\HonorMillions\Draw;
 
+use App\Entity\Chat\Chat;
+use App\Entity\Honor\HonorMillions\Ticket\Ticket;
 use App\Model\Id;
+use App\Repository\DrawRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\ManyToOne;
+use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OneToOne;
 
-#[Entity]
+#[Entity(repositoryClass: DrawRepository::class)]
 class Draw
 {
     use Id;
@@ -23,9 +28,13 @@ class Draw
     #[Column(type: 'integer', nullable: true)]
     private ?int $winningNumber = null;
 
+    #[ManyToOne(targetEntity: Chat::class)]
+    private Chat $chat;
+
     #[OneToOne(targetEntity: Draw::class)]
     private ?Draw $previousDraw = null;
 
+    #[OneToMany(mappedBy: 'draw', targetEntity: Ticket::class)]
     private Collection $tickets;
 
     public function __construct()
@@ -62,6 +71,46 @@ class Draw
     public function setWinningNumber(int $winningNumber): void
     {
         $this->winningNumber = $winningNumber;
+    }
+
+    public function getChat(): Chat
+    {
+        return $this->chat;
+    }
+
+    public function setChat(Chat $chat): void
+    {
+        $this->chat = $chat;
+    }
+
+    public function getPreviousDraw(): ?Draw
+    {
+        return $this->previousDraw;
+    }
+
+    public function setPreviousDraw(?Draw $previousDraw): void
+    {
+        $this->previousDraw = $previousDraw;
+    }
+
+    /**
+     * @return Collection<Ticket>
+     */
+    public function getTickets(): Collection
+    {
+        return $this->tickets;
+    }
+
+    public function addTicket(Ticket $ticket): void
+    {
+        $this->tickets->add($ticket);
+    }
+
+    public function getJackpot(): int
+    {
+        $jackpot = $this->getPreviousJackpot();
+        $jackpot += $this->getTickets()->count() * Ticket::TICKET_PRICE;
+        return $jackpot;
     }
 
 }

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Entity\Honor\HonorMillions;
+namespace App\Entity\Honor\HonorMillions\Ticket;
 
+use App\Entity\Honor\HonorMillions\Draw\Draw;
 use App\Entity\User\User;
 
 class TicketFactory
