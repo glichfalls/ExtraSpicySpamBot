@@ -27,8 +27,7 @@ class HonorMillionsDrawCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $draws = $this->drawRepository->getDrawsByDate(new \DateTime());
-        foreach ($draws as $draw) {
+        foreach ($this->drawRepository->getDrawsByDate(new \DateTime()) as $draw) {
             $number = random_int(1, 100);
             $this->telegramService->sendText(
                 $draw->getChat()->getChatId(),

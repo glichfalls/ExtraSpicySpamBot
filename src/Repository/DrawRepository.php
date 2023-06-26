@@ -28,9 +28,9 @@ class DrawRepository extends ServiceEntityRepository
 
     /**
      * @param \DateTime $date
-     * @return Collection<Draw>
+     * @return array<Draw>
      */
-    public function getDrawsByDate(\DateTime $date): Collection
+    public function getDrawsByDate(\DateTime $date): array
     {
         return $this->createQueryBuilder('d')
             ->where('d.date = :date')
