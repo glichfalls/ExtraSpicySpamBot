@@ -22,7 +22,6 @@ use App\Repository\UserRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\KernelInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Types\InputMedia\ArrayOfInputMedia;
@@ -34,8 +33,6 @@ use TelegramBot\Api\Types\Update;
 
 class TelegramService
 {
-
-    private Filesystem $filesystem;
 
     public function __construct(
         private KernelInterface $kernel,
@@ -53,7 +50,6 @@ class TelegramService
         if ($_ENV['APP_ENV'] === 'dev') {
             $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
         }
-        $this->filesystem = new Filesystem();
     }
 
     /**
