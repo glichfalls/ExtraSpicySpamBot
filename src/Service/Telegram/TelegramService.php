@@ -91,9 +91,9 @@ class TelegramService
         return $this->bot->sendMediaGroup($chatId, $media);
     }
 
-    public function sendText(string $chatId, string $text): ?TelegramMessage
+    public function sendText(string $chatId, string $text, ?int $threadId = null): ?TelegramMessage
     {
-        return $this->bot->sendMessage($chatId, $text);
+        return $this->bot->sendMessage($chatId, $text, messageThreadId: $threadId);
     }
 
     public function stickerReplyTo(Message $message, Sticker $sticker): TelegramMessage
@@ -286,7 +286,14 @@ class TelegramService
         }
         if ($user->getName() !== $update->getMessage()->getFrom()->getUsername()) {
             $user->setName($update->getMessage()->getFrom()->getUsername());
+            $this->manager->flush();
+        }
+        if ($user->getFirstName() !== $update->getMessage()->getFrom()->getFirstName()) {
             $user->setFirstName($update->getMessage()->getFrom()->getFirstName());
+            $this->manager->flush();
+        }
+        if ($user->getLastName() !== $update->getMessage()->getFrom()->getLastName()) {
+            $user->setLastName($update->getMessage()->getFrom()->getLastName());
             $this->manager->flush();
         }
         return $user;

@@ -28,6 +28,9 @@ class User
     #[Column(type: 'string', nullable: true)]
     private ?string $firstName = null;
 
+    #[Column(type: 'string', nullable: true)]
+    private ?string $lastName = null;
+
     #[OneToMany(mappedBy: 'sender', targetEntity: Honor::class)]
     private Collection $sentHonor;
 
@@ -72,6 +75,16 @@ class User
     public function setFirstName(?string $firstName): void
     {
         $this->firstName = $firstName;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(?string $lastName): void
+    {
+        $this->lastName = $lastName;
     }
 
 }

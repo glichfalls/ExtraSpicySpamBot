@@ -15,6 +15,7 @@ class MessageFactory
         $message->setChat($chat);
         $message->setUser($sender);
         $message->setTelegramMessageId($telegramMessage->getMessageId());
+        $message->setTelegramThreadId($telegramMessage->getMessageThreadId());
         $message->setMessage($telegramMessage->getText());
         $message->setCreatedAt(new \DateTime());
         $message->setUpdatedAt(new \DateTime());

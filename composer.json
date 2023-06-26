@@ -33,7 +33,7 @@
         "symfony/translation": "6.0.*",
         "symfony/twig-bundle": "6.0.*",
         "symfony/yaml": "6.0.*",
-        "telegram-bot/api": "v2.3.24"
+        "telegram-bot/api": "^v2.4"
     },
     "require-dev": {
         "symfony/debug-bundle": "6.0.*",

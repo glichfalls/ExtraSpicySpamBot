@@ -19,6 +19,7 @@ class UserFactory
         $user->setTelegramUserId($telegramUser->getId());
         $user->setName($telegramUser->getUsername());
         $user->setFirstName($telegramUser->getFirstName());
+        $user->setLastName($telegramUser->getLastName());
         $user->setCreatedAt(new \DateTime());
         $user->setUpdatedAt(new \DateTime());
         return $user;

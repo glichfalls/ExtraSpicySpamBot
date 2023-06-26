@@ -40,7 +40,7 @@ class HonorMillionsDrawCommand extends Command
                     $draw->getChat()->getChatId(),
                     'Unfortunately, there are no winners this time.'
                 );
-                $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'));
+                $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());
                 $nextDraw->setPreviousDraw($draw);
                 $nextDraw->setPreviousJackpot($draw->getJackpot());
             } else {
@@ -53,7 +53,7 @@ class HonorMillionsDrawCommand extends Command
                     );
                     $this->manager->persist(HonorFactory::create($draw->getChat(), null, $winner->getUser(), $amountPerWinner));
                 }
-                $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'));
+                $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());
                 $nextDraw->setChat($draw->getChat());
                 $nextDraw->setPreviousDraw(null);
                 $nextDraw->setPreviousJackpot(0);

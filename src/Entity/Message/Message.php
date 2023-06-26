@@ -26,6 +26,9 @@ class Message
     #[Column(type: 'integer', nullable: true)]
     private ?int $telegramMessageId = null;
 
+    #[Column(type: 'integer', nullable: true)]
+    private ?int $telegramThreadId = null;
+
     #[Column(type: 'text')]
     private string $message;
 
@@ -62,6 +65,16 @@ class Message
     public function setTelegramMessageId(?int $telegramMessageId): void
     {
         $this->telegramMessageId = $telegramMessageId;
+    }
+
+    public function getTelegramThreadId(): ?int
+    {
+        return $this->telegramThreadId;
+    }
+
+    public function setTelegramThreadId(?int $telegramThreadId): void
+    {
+        $this->telegramThreadId = $telegramThreadId;
     }
 
     public function getMessage(): string

@@ -31,6 +31,9 @@ class Draw
     #[ManyToOne(targetEntity: Chat::class)]
     private Chat $chat;
 
+    #[Column(type: 'integer', nullable: true)]
+    private ?int $telegramThreadId = null;
+
     #[OneToOne(targetEntity: Draw::class)]
     private ?Draw $previousDraw = null;
 
@@ -81,6 +84,16 @@ class Draw
     public function setChat(Chat $chat): void
     {
         $this->chat = $chat;
+    }
+
+    public function getTelegramThreadId(): ?int
+    {
+        return $this->telegramThreadId;
+    }
+
+    public function setTelegramThreadId(?int $telegramThreadId): void
+    {
+        $this->telegramThreadId = $telegramThreadId;
     }
 
     public function getPreviousDraw(): ?Draw
