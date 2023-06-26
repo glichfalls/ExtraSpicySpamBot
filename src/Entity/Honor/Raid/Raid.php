@@ -38,6 +38,9 @@ class Raid
     #[JoinTable(name: 'raid_defenders')]
     private Collection $defenders;
 
+    #[Column(type: 'integer', options: ['default' => 0])]
+    private int $amount = 0;
+
     #[Column(type: 'boolean')]
     private bool $isActive = true;
 
@@ -105,6 +108,16 @@ class Raid
     public function setDefenders(Collection $defenders): void
     {
         $this->defenders = $defenders;
+    }
+
+    public function getAmount(): int
+    {
+        return $this->amount;
+    }
+
+    public function setAmount(int $amount): void
+    {
+        $this->amount = $amount;
     }
 
     public function isActive(): bool

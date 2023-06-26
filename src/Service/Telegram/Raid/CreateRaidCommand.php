@@ -68,7 +68,8 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'target has no honor, no raid possible :(');
             return;
         }
-        $raid = RaidFactory::create($chat, $message->getUser(), $target);
+        $raidAmount = $this->getRaidAmount($targetHonorCount);
+        $raid = RaidFactory::create($chat, $message->getUser(), $target, $raidAmount);
         $this->manager->persist($raid);
         $this->manager->flush();
         $this->telegramService->videoReplyTo($message, 'https://extra-spicy-spam.portner.dev/assets/video/raid.mp4');
@@ -76,7 +77,15 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
             '%s started a raid against %s! to join write !support and to defend write !defend. To start the raid write !start raid',
             $message->getUser()->getName(),
             $target->getName()
-        ), threadId: $message->getTelegramThreadId());
+        ), $message->getTelegramThreadId());
+    }
+
+    private function getRaidAmount(int $targetHonorAmount): int
+    {
+        if (($targetHonorAmount / 2) > 100) {
+            return $targetHonorAmount / 2;
+        }
+        return 100;
     }
 
 }

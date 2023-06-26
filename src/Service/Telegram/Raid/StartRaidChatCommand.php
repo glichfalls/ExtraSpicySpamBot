@@ -55,33 +55,36 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
             return;
         }
 
-        $targetHonorCount = $this->honorRepository->getHonorCount($raid->getTarget(), $message->getChat());
-
-        if (random_int(1, 2) === 1) {
+        if (random_int(1, 10) <= 6) {
             $this->telegramService->replyTo(
                 $message,
                 $this->translator->trans('telegram.raid.raidSuccessful', [
                     'target' => $raid->getTarget()->getName(),
-                    'honorCount' => $targetHonorCount,
+                    'honorCount' => $raid->getAmount(),
                 ]),
             );
             $raid->setIsActive(false);
             $raid->setIsSuccessful(true);
-            $honorPerSupporter = ceil($targetHonorCount / ($supporterCount + 1));
-            foreach ($raid->getSupporters() as $supporter) {
-                // add honor to supporters
-                $this->manager->persist(HonorFactory::create($message->getChat(), $raid->getTarget(), $supporter, $honorPerSupporter));
-            }
+            $honorPerSupporter = $raid->getAmount() / ($supporterCount + 1);
             // add honor to leader
-            $this->manager->persist(HonorFactory::create($message->getChat(), $raid->getTarget(), $raid->getLeader(), $honorPerSupporter));
-            // remove honor from target
-            $this->manager->persist(HonorFactory::create($message->getChat(), $raid->getTarget(), $raid->getTarget(), -$targetHonorCount));
-        } else {
-            $totalHonor = $this->honorRepository->getHonorCount($raid->getLeader(), $message->getChat());
+            $this->manager->persist(HonorFactory::create($message->getChat(), null, $raid->getLeader(), $honorPerSupporter));
+            // add honor to supporters
             foreach ($raid->getSupporters() as $supporter) {
-                $currentSupporterHonor = ceil(abs($this->honorRepository->getHonorCount($supporter, $message->getChat())) / 2);
+                $this->manager->persist(HonorFactory::create($message->getChat(), null, $supporter, $honorPerSupporter));
+            }
+            // remove honor from target
+            $this->manager->persist(HonorFactory::create($message->getChat(), null, $raid->getTarget(), -$raid->getAmount()));
+            // remove honor from defenders
+            foreach ($raid->getDefenders() as $defender) {
+                $this->manager->persist(HonorFactory::create($message->getChat(), null, $defender, -$honorPerSupporter));
+            }
+        } else {
+            $totalHonor = $this->honorRepository->getHonorCount($raid->getLeader(), $message->getChat()) / 2;
+            $this->manager->persist(HonorFactory::create($message->getChat(), null, $raid->getLeader(), -$totalHonor));
+            foreach ($raid->getSupporters() as $supporter) {
+                $currentSupporterHonor = ceil(abs($this->honorRepository->getHonorCount($supporter, $message->getChat())) / 4);
                 $totalHonor += $currentSupporterHonor;
-                $this->manager->persist(HonorFactory::create($message->getChat(), $raid->getTarget(), $supporter, -$currentSupporterHonor));
+                $this->manager->persist(HonorFactory::create($message->getChat(), null, $supporter, -$currentSupporterHonor));
             }
             $raid->setIsActive(false);
             $raid->setIsSuccessful(false);
@@ -96,10 +99,10 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
             );
             foreach ($raid->getDefenders() as $defender) {
                 // add honor to defenders
-                $this->manager->persist(HonorFactory::create($message->getChat(), $raid->getLeader(), $defender, $honorPerDefender));
+                $this->manager->persist(HonorFactory::create($message->getChat(), null, $defender, $honorPerDefender));
             }
             // add honor to target
-            $this->manager->persist(HonorFactory::create($message->getChat(), $raid->getLeader(), $raid->getTarget(), $honorPerDefender));
+            $this->manager->persist(HonorFactory::create($message->getChat(), null, $raid->getTarget(), $honorPerDefender));
         }
         $this->manager->flush();
         $leaderboard = $this->honorService->getLeaderboardByChat($message->getChat());
