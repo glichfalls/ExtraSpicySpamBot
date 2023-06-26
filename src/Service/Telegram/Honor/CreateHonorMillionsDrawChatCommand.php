@@ -28,12 +28,12 @@ class CreateHonorMillionsDrawChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!create honor millions/i', $message->getMessage()) === 1;
+        return preg_match('/^!create draw/i', $message->getMessage()) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $draw = $this->drawRepository->getByChat($message->getChat());
+        $draw = $this->drawRepository->getByChatAndDate($message->getChat(), new \DateTime());
         if ($draw !== null) {
             $this->telegramService->replyTo($message, 'there is already a draw for this chat');
             return;
