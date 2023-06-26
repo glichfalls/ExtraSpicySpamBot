@@ -34,6 +34,7 @@ class HonorMillionsDrawCommand extends Command
                 $draw->getChat()->getChatId(),
                 sprintf('The Honor Millions draw has been made! The winning number is %d', $number)
             );
+            $draw->setWinningNumber($number);
             $winners = $draw->getTickets()->filter(fn($ticket) => $ticket->getNumber() === $number);
             if ($winners->count() === 0) {
                 $this->telegramService->sendText(
