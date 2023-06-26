@@ -43,7 +43,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
             return;
         }
         $latestTransaction = $account->getTransactions()->last();
-        if ($latestTransaction !== null && $latestTransaction->getCreatedAt()->getTimestamp() > (time() - 60 * 60 * 12)) {
+        if ($latestTransaction && $latestTransaction->getCreatedAt()->getTimestamp() > (time() - 60 * 60 * 12)) {
             $this->telegramService->replyTo($message, 'you can only deposit every 12 hours');
             return;
         }
