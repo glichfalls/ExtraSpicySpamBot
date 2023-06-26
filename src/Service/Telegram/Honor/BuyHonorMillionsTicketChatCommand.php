@@ -56,7 +56,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, sprintf('%d is not in range. number must be between 1 and 100', $number));
             return;
         }
-        $ticket = TicketFactory::create($message->getUser(), $draw, Ticket::TICKET_PRICE);
+        $ticket = TicketFactory::create($message->getUser(), $draw, $number);
         $draw->getTickets()->add($ticket);
         $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -Ticket::TICKET_PRICE));
         $this->manager->persist($ticket);
