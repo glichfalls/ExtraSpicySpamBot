@@ -57,24 +57,13 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
 
         $targetHonorCount = $this->honorRepository->getHonorCount($raid->getTarget(), $message->getChat());
 
-        $this->telegramService->sendText(
-            $message->getChat()->getChatId(),
-            $this->translator->trans('telegram.raid.start', [
-                'target' => $raid->getTarget()->getName(),
-                'supporters' => $supporterCount,
-                'defenders' => $defenderCount,
-                'honor' => $targetHonorCount
-            ]),
-        );
-
         if (random_int(1, 2) === 1) {
-            $this->telegramService->sendText(
-                $message->getChat()->getChatId(),
+            $this->telegramService->replyTo(
+                $message,
                 $this->translator->trans('telegram.raid.raidSuccessful', [
                     'target' => $raid->getTarget()->getName(),
                     'honorCount' => $targetHonorCount,
                 ]),
-                threadId: $message->getTelegramThreadId(),
             );
             $raid->setIsActive(false);
             $raid->setIsSuccessful(true);
@@ -97,14 +86,13 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
             $raid->setIsActive(false);
             $raid->setIsSuccessful(false);
             $honorPerDefender = ceil($totalHonor / ($defenderCount + 1));
-            $this->telegramService->sendText(
-                $message->getChat()->getChatId(),
+            $this->telegramService->replyTo(
+                $message,
                 $this->translator->trans('telegram.raid.raidFailed', [
                     'target' => $raid->getTarget()->getName(),
                     'totalHonor' => $totalHonor,
                     'honorPerDefender' => $honorPerDefender,
                 ]),
-                threadId: $message->getTelegramThreadId(),
             );
             foreach ($raid->getDefenders() as $defender) {
                 // add honor to defenders
