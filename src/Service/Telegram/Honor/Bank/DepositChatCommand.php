@@ -2,7 +2,6 @@
 
 namespace App\Service\Telegram\Honor\Bank;
 
-use App\Entity\Honor\Bank\Transaction;
 use App\Entity\Honor\Bank\TransactionFactory;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
@@ -18,7 +17,8 @@ use TelegramBot\Api\Types\Update;
 class DepositChatCommand extends AbstractTelegramChatCommand
 {
     private const SERVICE_FEE = 0.05;
-    private const MAX_DEPOSIT = 2_000;
+    private const MAX_DEPOSIT = 1_000;
+    private const DEPOSIT_HOURS = 6;
 
     public function __construct(
         EntityManagerInterface $manager,
@@ -45,8 +45,8 @@ class DepositChatCommand extends AbstractTelegramChatCommand
             return;
         }
         $latestTransaction = $account->getTransactions()->last();
-        if ($latestTransaction && $latestTransaction->getCreatedAt()->getTimestamp() > (time() - 60 * 60 * 12)) {
-            $this->telegramService->replyTo($message, 'you can only deposit every 12 hours');
+        if ($latestTransaction && $latestTransaction->getCreatedAt()->getTimestamp() > (time() - (self::DEPOSIT_HOURS * 3600))) {
+            $this->telegramService->replyTo($message, sprintf('you can only deposit every %d hours', self::DEPOSIT_HOURS));
             return;
         }
         $amount = (int) $matches['amount'];
