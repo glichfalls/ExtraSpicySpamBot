@@ -46,11 +46,6 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'you already have a ticket');
             return;
         }
-        $currentHonor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
-        if ($currentHonor < Ticket::TICKET_PRICE) {
-            $this->telegramService->replyTo($message, 'you need 100 ehre to buy a ticket');
-            return;
-        }
         $number = (int) $matches['number'];
         if ($number < 1 || $number > 100) {
             $this->telegramService->replyTo($message, sprintf('%d is not in range. number must be between 1 and 100', $number));
