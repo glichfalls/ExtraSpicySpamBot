@@ -37,7 +37,7 @@ class CheckBalanceChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'you dont have an account');
             return;
         }
-        $this->telegramService->replyTo($message, sprintf('your balance is %d', $account->getBalance()));
+        $this->telegramService->replyTo($message, sprintf('your bank balance is %d ehre', $account->getBalance()));
     }
 
 }

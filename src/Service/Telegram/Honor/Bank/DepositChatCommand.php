@@ -18,7 +18,7 @@ use TelegramBot\Api\Types\Update;
 class DepositChatCommand extends AbstractTelegramChatCommand
 {
     private const SERVICE_FEE = 0.05;
-    private const MAX_DEPOSIT = 5_000;
+    private const MAX_DEPOSIT = 2_000;
 
     public function __construct(
         EntityManagerInterface $manager,
