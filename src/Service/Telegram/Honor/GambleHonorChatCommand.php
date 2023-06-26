@@ -4,6 +4,7 @@ namespace App\Service\Telegram\Honor;
 
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
+use App\Repository\DrawRepository;
 use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
@@ -16,11 +17,12 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 {
 
     public function __construct(
-        EntityManagerInterface  $manager,
-        TranslatorInterface     $translator,
-        LoggerInterface         $logger,
-        TelegramService         $telegramService,
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
         private HonorRepository $honorRepository,
+        private DrawRepository $drawRepository,
     )
     {
         parent::__construct($manager, $translator, $logger, $telegramService);
@@ -43,6 +45,8 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $this->manager->flush();
                 $this->telegramService->replyTo($message, sprintf('you have won %d honor', $count));
             } else {
+                $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
+                $draw?->setGamblingLosses($draw->getGamblingLosses() + $count);
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), -$count));
                 $this->manager->flush();
                 $this->telegramService->replyTo($message, sprintf('you have lost %d honor', $count));

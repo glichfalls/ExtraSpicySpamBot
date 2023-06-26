@@ -22,6 +22,9 @@ class Draw
     #[Column(type: 'integer')]
     private int $previousJackpot;
 
+    #[Column(type: 'integer')]
+    private int $gamblingLosses = 0;
+
     #[Column(type: 'date')]
     private \DateTime $date;
 
@@ -54,6 +57,16 @@ class Draw
     public function setPreviousJackpot(int $previousJackpot): void
     {
         $this->previousJackpot = $previousJackpot;
+    }
+
+    public function getGamblingLosses(): int
+    {
+        return $this->gamblingLosses;
+    }
+
+    public function setGamblingLosses(int $gamblingLosses): void
+    {
+        $this->gamblingLosses = $gamblingLosses;
     }
 
     public function getDate(): \DateTime
@@ -121,7 +134,7 @@ class Draw
 
     public function getJackpot(): int
     {
-        $jackpot = $this->getPreviousJackpot();
+        $jackpot = $this->getPreviousJackpot() + $this->getGamblingLosses();
         $jackpot += $this->getTickets()->count() * Ticket::TICKET_PRICE;
         return $jackpot;
     }

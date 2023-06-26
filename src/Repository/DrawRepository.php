@@ -51,4 +51,15 @@ class DrawRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function getActiveDrawByChat(Chat $chat): ?Draw
+    {
+        return $this->createQueryBuilder('d')
+            ->where('d.chat = :chat')
+            ->andWhere('d.winningNumber IS NULL')
+            ->setParameter('chat', $chat)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }

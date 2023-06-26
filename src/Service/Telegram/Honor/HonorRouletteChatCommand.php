@@ -4,6 +4,7 @@ namespace App\Service\Telegram\Honor;
 
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
+use App\Repository\DrawRepository;
 use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
@@ -21,6 +22,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand
         LoggerInterface $logger,
         TelegramService $telegramService,
         private HonorRepository $honorRepository,
+        private DrawRepository $drawRepository,
     )
     {
         parent::__construct($manager, $translator, $logger, $telegramService);
@@ -58,7 +60,12 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand
                 $amount > 0 ? 'won' : 'lost',
                 abs($amount),
                 $currentHonor + $amount,
-            ),);
+            ));
+            if ($number < 0) {
+                // add loss to the jackpot of the next honor millions draw
+                $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
+                $draw?->setGamblingLosses($draw->getGamblingLosses() + abs($amount));
+            }
             $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), $amount));
             $this->manager->flush();
         }
