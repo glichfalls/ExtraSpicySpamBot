@@ -17,6 +17,8 @@ use TelegramBot\Api\Types\Update;
 
 class DepositChatCommand extends AbstractTelegramChatCommand
 {
+    private const SERVICE_FEE = 0.05;
+    private const MAX_DEPOSIT = 5_000;
 
     public function __construct(
         EntityManagerInterface $manager,
@@ -53,15 +55,19 @@ class DepositChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'you do not have enough honor');
             return;
         }
-        $serviceFee = (int) ceil($amount * 0.05);
+        if ($amount > self::MAX_DEPOSIT) {
+            $this->telegramService->replyTo($message, sprintf('you can only deposit up to %d honor at once', self::MAX_DEPOSIT));
+            return;
+        }
+        $serviceFee = (int) ceil($amount * self::SERVICE_FEE);
         $transactionAmount = $amount - $serviceFee;
         $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$amount));
         $account->addTransaction(TransactionFactory::create($transactionAmount));
         $this->manager->flush();
         $this->telegramService->replyTo($message, sprintf(
-            'deposited %d honor (-5%% (%d) service fee)',
+            'deposited %d honor (-%d%% service fee)',
             $transactionAmount,
-            $serviceFee,
+            self::SERVICE_FEE * 100,
         ));
     }
 
