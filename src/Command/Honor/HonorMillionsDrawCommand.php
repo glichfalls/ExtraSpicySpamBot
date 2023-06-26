@@ -31,14 +31,16 @@ class HonorMillionsDrawCommand extends Command
             $number = random_int(1, 100);
             $this->telegramService->sendText(
                 $draw->getChat()->getChatId(),
-                sprintf('The Honor Millions draw has been made! The winning number is %d', $number)
+                sprintf('The Honor Millions draw has been made! The winning number is %d', $number),
+                $draw->getTelegramThreadId(),
             );
             $draw->setWinningNumber($number);
             $winners = $draw->getTickets()->filter(fn($ticket) => $ticket->getNumber() === $number);
             if ($winners->count() === 0) {
                 $this->telegramService->sendText(
                     $draw->getChat()->getChatId(),
-                    'Unfortunately, there are no winners this time.'
+                    'Unfortunately, there are no winners this time.',
+                    $draw->getTelegramThreadId(),
                 );
                 $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());
                 $nextDraw->setPreviousDraw($draw);
@@ -49,7 +51,8 @@ class HonorMillionsDrawCommand extends Command
                 foreach ($winners as $winner) {
                     $this->telegramService->sendText(
                         $draw->getChat()->getChatId(),
-                        sprintf('Congratulations %s, you have won %d ehre!', $winner->getUser()->getUsername(), $amountPerWinner)
+                        sprintf('Congratulations %s, you have won %d ehre!', $winner->getUser()->getUsername(), $amountPerWinner),
+                        $draw->getTelegramThreadId(),
                     );
                     $this->manager->persist(HonorFactory::create($draw->getChat(), null, $winner->getUser(), $amountPerWinner));
                 }
@@ -62,7 +65,8 @@ class HonorMillionsDrawCommand extends Command
             $this->manager->flush();
             $this->telegramService->sendText(
                 $draw->getChat()->getChatId(),
-                sprintf('The next draw will be on %s', $nextDraw->getDate()->format('d.m.Y'))
+                sprintf('The next draw will be on %s', $nextDraw->getDate()->format('d.m.Y')),
+                $draw->getTelegramThreadId(),
             );
         }
         return Command::SUCCESS;

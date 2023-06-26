@@ -76,7 +76,7 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
             '%s started a raid against %s! to join write !support and to defend write !defend. To start the raid write !start raid',
             $message->getUser()->getName(),
             $target->getName()
-        ));
+        ), threadId: $message->getTelegramThreadId());
     }
 
 }

@@ -43,7 +43,11 @@ class CancelRaidChatCommand extends AbstractTelegramChatCommand
         }
         $raid->setIsActive(false);
         $this->manager->flush();
-        $this->telegramService->sendText($message->getChat()->getChatId(), $this->translator->trans('telegram.raid.raidCanceled'));
+        $this->telegramService->sendText(
+            $message->getChat()->getChatId(),
+            $this->translator->trans('telegram.raid.raidCanceled'),
+            threadId: $message->getTelegramThreadId(),
+        );
     }
 
 }
