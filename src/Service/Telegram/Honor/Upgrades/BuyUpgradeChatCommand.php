@@ -61,4 +61,9 @@ class BuyUpgradeChatCommand extends AbstractTelegramChatCommand
         $this->telegramService->replyTo($message, sprintf('You bought %s', $upgradeType->getName()));
     }
 
+    public function getHelp(): string
+    {
+        return '!buy upgrade <code>     Buy an upgrade';
+    }
+
 }
