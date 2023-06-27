@@ -56,4 +56,9 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
         ));
     }
 
+    public function getHelp(): string
+    {
+        return '!withdraw <amount>   withdraw honor from your bank account';
+    }
+
 }

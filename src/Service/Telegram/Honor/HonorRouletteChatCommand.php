@@ -71,4 +71,9 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand
         }
     }
 
+    public function getHelp(): string
+    {
+        return '!roulette <amount> <bet>    Bets: red, black, 1-18, 19-36, 1-12, 13-24, 25-36, single number from 0-36';
+    }
+
 }

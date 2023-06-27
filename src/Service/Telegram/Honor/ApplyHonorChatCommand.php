@@ -101,4 +101,9 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
         return $timeSinceLastChange !== null && $timeSinceLastChange->i < self::RATE_LIMIT;
     }
 
+    public function getHelp(): string
+    {
+        return '+/- <amount> ehre @<name>   give/remove honor';
+    }
+
 }

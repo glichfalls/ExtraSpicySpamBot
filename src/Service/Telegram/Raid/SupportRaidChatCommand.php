@@ -60,4 +60,9 @@ class SupportRaidChatCommand extends AbstractTelegramChatCommand
         $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.nowSupportingRaid'));
     }
 
+    public function getHelp(): string
+    {
+        return '!support | !s   support the active raid';
+    }
+
 }

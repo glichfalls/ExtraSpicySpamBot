@@ -21,4 +21,9 @@ interface TelegramChatCommand
      */
     public function handle(Update $update, Message $message, array $matches): void;
 
+    /**
+     * Get the help text for this command
+     */
+    public function getHelp(): string;
+
 }

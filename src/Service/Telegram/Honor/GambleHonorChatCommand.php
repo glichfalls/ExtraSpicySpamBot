@@ -54,4 +54,9 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         }
     }
 
+    public function getHelp(): string
+    {
+        return '!gamble <count>   gamble honor (50% win chance)';
+    }
+
 }

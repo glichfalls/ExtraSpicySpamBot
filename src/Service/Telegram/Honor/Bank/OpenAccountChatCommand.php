@@ -46,4 +46,9 @@ class OpenAccountChatCommand extends AbstractTelegramChatCommand
         $this->telegramService->replyTo($message, 'bank account created');
     }
 
+    public function getHelp(): string
+    {
+        return '!create bank account   create a bank account';
+    }
+
 }

@@ -1,48 +1,55 @@
 <?php
 
-namespace App\Service\Telegram\Honor\Bank;
+namespace App\Service\Telegram\General;
 
 use App\Entity\Message\Message;
-use App\Repository\BankAccountRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
+use App\Service\Telegram\TelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class CheckBalanceChatCommand extends AbstractTelegramChatCommand
+class HelpChatCommand extends AbstractTelegramChatCommand
 {
+
+    /**
+     * @var iterable<TelegramChatCommand>
+     */
+    private iterable $commands;
 
     public function __construct(
         EntityManagerInterface $manager,
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private BankAccountRepository $bankAccountRepository,
+        #[TaggedIterator('telegram.chat_command')]
+        iterable $commands,
     )
     {
         parent::__construct($manager, $translator, $logger, $telegramService);
+        $this->commands = $commands;
     }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!balance$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!help$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $account = $this->bankAccountRepository->getByChatAndUser($message->getChat(), $message->getUser());
-        if ($account === null) {
-            $this->telegramService->replyTo($message, 'you dont have an account');
-            return;
+        $help = [];
+        foreach ($this->commands as $command) {
+            $help[] = $command->getHelp();
         }
-        $this->telegramService->replyTo($message, sprintf('your bank balance is %d ehre', $account->getBalance()));
+        $this->telegramService->replyTo($message, implode(PHP_EOL, $help));
     }
 
     public function getHelp(): string
     {
-        return '!help   check your bank balance';
+        return 'show this help';
     }
 
 }

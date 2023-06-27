@@ -45,4 +45,9 @@ class CreateHonorMillionsDrawChatCommand extends AbstractTelegramChatCommand
         $this->telegramService->replyTo($message, 'created draw for this chat');
     }
 
+    public function getHelp(): string
+    {
+        return '!create draw   create a draw for this chat';
+    }
+
 }

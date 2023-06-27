@@ -80,4 +80,9 @@ class SubscribeChatCommand extends AbstractTelegramChatCommand
         $this->manager->flush();
     }
 
+    public function getHelp(): string
+    {
+        return '!subscribe <type> <parameter>   subscribes to a type of subscription';
+    }
+
 }

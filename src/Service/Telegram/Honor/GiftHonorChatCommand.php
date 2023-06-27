@@ -58,4 +58,9 @@ class GiftHonorChatCommand extends AbstractTelegramChatCommand
         }
     }
 
+    public function getHelp(): string
+    {
+        return '!gift <amount> ehre @<username>     gift honor to another user';
+    }
+
 }

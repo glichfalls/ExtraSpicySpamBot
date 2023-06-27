@@ -50,4 +50,9 @@ class CancelRaidChatCommand extends AbstractTelegramChatCommand
         );
     }
 
+    public function getHelp(): string
+    {
+        return '!cancel raid   cancels the current raid';
+    }
+
 }

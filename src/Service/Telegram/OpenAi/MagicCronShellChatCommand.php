@@ -59,4 +59,9 @@ class MagicCronShellChatCommand extends AbstractTelegramChatCommand
         ];
     }
 
+    public function getHelp(): string
+    {
+        return 'magische miesmuschel <prompt>   answers your question';
+    }
+
 }

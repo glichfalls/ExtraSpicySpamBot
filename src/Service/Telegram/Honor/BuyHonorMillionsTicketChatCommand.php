@@ -64,4 +64,9 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
         ));
     }
 
+    public function getHelp(): string
+    {
+        return '!ticket <number>    buy a ticket for the honor millions draw';
+    }
+
 }

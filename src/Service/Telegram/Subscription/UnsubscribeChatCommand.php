@@ -47,4 +47,9 @@ class UnsubscribeChatCommand extends AbstractTelegramChatCommand
         $this->manager->flush();
     }
 
+    public function getHelp(): string
+    {
+        return '!unsubscribe <type>    Unsubscribe from a subscription';
+    }
+
 }

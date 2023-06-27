@@ -109,4 +109,9 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
         $this->telegramService->sendText($message->getChat()->getChatId(), $leaderboard, $message->getTelegramThreadId());
     }
 
+    public function getHelp(): string
+    {
+        return '!start raid     start the active raid';
+    }
+
 }

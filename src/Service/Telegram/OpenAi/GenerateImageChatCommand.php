@@ -101,4 +101,9 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
         return self::SIZES['s'];
     }
 
+    public function getHelp(): string
+    {
+        return 'aiimg <prompt>   generates an image based on the prompt';
+    }
+
 }

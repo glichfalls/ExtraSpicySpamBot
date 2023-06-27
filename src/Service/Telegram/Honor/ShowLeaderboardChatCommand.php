@@ -40,4 +40,9 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
         }
     }
 
+    public function getHelp(): string
+    {
+        return '!leaderboard   shows the leaderboard';
+    }
+
 }

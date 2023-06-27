@@ -71,4 +71,9 @@ class DepositChatCommand extends AbstractTelegramChatCommand
         ));
     }
 
+    public function getHelp(): string
+    {
+        return '!deposit <amount>   deposit honor into your bank account';
+    }
+
 }

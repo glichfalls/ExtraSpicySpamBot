@@ -72,4 +72,9 @@ class GenerateStickerChatCommand extends AbstractTelegramChatCommand
         }
     }
 
+    public function getHelp(): string
+    {
+        return 'aisticker <emoji> <prompt>   generates a sticker with the given prompt and emoji';
+    }
+
 }

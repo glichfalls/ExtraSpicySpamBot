@@ -60,4 +60,9 @@ class DefendRaidChatCommand extends AbstractTelegramChatCommand
         $this->telegramService->replyTo($message, 'you are now defending the raid');
     }
 
+    public function getHelp(): string
+    {
+        return '!defend   defend the current raid';
+    }
+
 }

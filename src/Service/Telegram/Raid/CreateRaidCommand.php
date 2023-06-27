@@ -88,4 +88,9 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
         return 100;
     }
 
+    public function getHelp(): string
+    {
+        return '!raid @<user>   starts a raid against the given user';
+    }
+
 }
