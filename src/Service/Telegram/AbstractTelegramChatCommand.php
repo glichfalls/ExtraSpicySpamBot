@@ -19,4 +19,14 @@ abstract class AbstractTelegramChatCommand implements TelegramChatCommand
 
     }
 
+    public function getDescription(): string
+    {
+        return 'Description not set';
+    }
+
+    public function getSyntax(): string
+    {
+        return 'Syntax not set';
+    }
+
 }

@@ -13,8 +13,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CreateSet1UpgradeCommand extends Command
 {
     public const BANK_UPGRADE_1 = 'bank 1';
+    public const BANK_UPGRADE_1_PRICE = 10_000;
     public const BANK_UPGRADE_1_MAX_BALANCE = 5_000;
     public const BANK_UPGRADE_2 = 'bank 2';
+    public const BANK_UPGRADE_2_PRICE = 25_000;
     public const BANK_UPGRADE_2_MAX_BALANCE = 10_000;
 
     public function __construct(private EntityManagerInterface $manager)
@@ -27,11 +29,11 @@ class CreateSet1UpgradeCommand extends Command
         $upgrade = new UpgradeType();
         $upgrade->setName('Bank Upgrade 1');
         $upgrade->setCode(self::BANK_UPGRADE_1);
-        $upgrade->setPrice(10_000);
+        $upgrade->setPrice(self::BANK_UPGRADE_1_PRICE);
         $this->manager->persist($upgrade);
         $upgrade->setName('Bank Upgrade 2');
         $upgrade->setCode(self::BANK_UPGRADE_2);
-        $upgrade->setPrice(25_000);
+        $upgrade->setPrice(self::BANK_UPGRADE_2_PRICE);
         $this->manager->persist($upgrade);
         $this->manager->flush();
         return Command::SUCCESS;

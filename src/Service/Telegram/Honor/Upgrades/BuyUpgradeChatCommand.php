@@ -2,6 +2,7 @@
 
 namespace App\Service\Telegram\Honor\Upgrades;
 
+use App\Command\Migrations\CreateSet1UpgradeCommand;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Honor\Upgrade\UpgradeFactory;
 use App\Entity\Message\Message;
@@ -61,9 +62,28 @@ class BuyUpgradeChatCommand extends AbstractTelegramChatCommand
         $this->telegramService->replyTo($message, sprintf('You bought %s', $upgradeType->getName()));
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!buy upgrade <code>     Buy an upgrade';
+        return '!buy upgrade <code>';
+    }
+
+    public function getDescription(): string
+    {
+        $codes = [
+            sprintf(
+                '%s: Upgrade your maximum bank balance by %d ehre (cost: %d ehre)',
+                CreateSet1UpgradeCommand::BANK_UPGRADE_1,
+                CreateSet1UpgradeCommand::BANK_UPGRADE_1_MAX_BALANCE,
+                CreateSet1UpgradeCommand::BANK_UPGRADE_1_PRICE,
+            ),
+            sprintf(
+                '%s: Upgrade your maximum bank balance by %d ehre (cost: %d ehre)',
+                CreateSet1UpgradeCommand::BANK_UPGRADE_2,
+                CreateSet1UpgradeCommand::BANK_UPGRADE_2_MAX_BALANCE,
+                CreateSet1UpgradeCommand::BANK_UPGRADE_2_PRICE,
+            ),
+        ];
+        return sprintf("Buy an upgrade. Available Codes:\n%s", implode(PHP_EOL, $codes));
     }
 
 }

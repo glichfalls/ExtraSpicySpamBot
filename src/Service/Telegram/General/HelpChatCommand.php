@@ -42,7 +42,7 @@ class HelpChatCommand extends AbstractTelegramChatCommand
     {
         $help = [];
         foreach ($this->commands as $command) {
-            $help[] = $command->getHelp();
+            $help[] = sprintf('%s: %s', $command->getSyntax(), $command->getDescription());
         }
         $this->telegramService->replyTo($message, implode(PHP_EOL, $help));
     }
