@@ -31,6 +31,7 @@ class CreateSet1UpgradeCommand extends Command
         $upgrade->setCode(self::BANK_UPGRADE_1);
         $upgrade->setPrice(self::BANK_UPGRADE_1_PRICE);
         $this->manager->persist($upgrade);
+        $upgrade = new UpgradeType();
         $upgrade->setName('Bank Upgrade 2');
         $upgrade->setCode(self::BANK_UPGRADE_2);
         $upgrade->setPrice(self::BANK_UPGRADE_2_PRICE);
