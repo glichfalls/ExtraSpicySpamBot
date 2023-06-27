@@ -44,7 +44,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'you do not have an account');
             return;
         }
-        $latestTransaction = $account->getTransactions()->last();
+        $latestTransaction = $account->getTransactions()->first();
         if ($latestTransaction && $latestTransaction->getCreatedAt()->getTimestamp() > (time() - (self::DEPOSIT_HOURS * 3600))) {
             $this->telegramService->replyTo($message, sprintf('you can only deposit every %d hours', self::DEPOSIT_HOURS));
             return;

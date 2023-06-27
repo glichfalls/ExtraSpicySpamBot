@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\OneToMany;
+use Doctrine\ORM\Mapping\OrderBy;
 
 #[Entity(repositoryClass: BankAccountRepository::class)]
 class BankAccount
@@ -24,6 +25,7 @@ class BankAccount
     private User $user;
 
     #[OneToMany(mappedBy: 'bankAccount', targetEntity: Transaction::class, cascade: ['persist'])]
+    #[OrderBy(['createdAt' => 'DESC'])]
     private Collection $transactions;
 
     public function __construct()
