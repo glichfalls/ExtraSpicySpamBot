@@ -2,11 +2,15 @@
 
 namespace App\Service\Telegram\Honor\Bank;
 
+use App\Command\Migrations\CreateSet1UpgradeCommand;
+use App\Entity\Chat\Chat;
 use App\Entity\Honor\Bank\TransactionFactory;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
+use App\Entity\User\User;
 use App\Repository\BankAccountRepository;
 use App\Repository\HonorRepository;
+use App\Repository\HonorUpgradeRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,7 +21,8 @@ use TelegramBot\Api\Types\Update;
 class DepositChatCommand extends AbstractTelegramChatCommand
 {
     private const SERVICE_FEE = 0.05;
-    private const MAX_DEPOSIT = 1_000;
+    private const MAX_DEPOSIT_PER_TRANSACTION = 1_000;
+    private const MAX_BANK_ACCOUNT_BALANCE = 2_000;
     private const DEPOSIT_HOURS = 6;
 
     public function __construct(
@@ -27,6 +32,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
         TelegramService $telegramService,
         private BankAccountRepository $bankAccountRepository,
         private HonorRepository $honorRepository,
+        private HonorUpgradeRepository $honorUpgradeRepository,
     )
     {
         parent::__construct($manager, $translator, $logger, $telegramService);
@@ -50,25 +56,50 @@ class DepositChatCommand extends AbstractTelegramChatCommand
             return;
         }
         $amount = (int) $matches['amount'];
+        if ($this->canDepositAmount($message, $amount)) {
+            $serviceFee = (int)ceil($amount * self::SERVICE_FEE);
+            $transactionAmount = $amount - $serviceFee;
+            $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$amount));
+            $account->addTransaction(TransactionFactory::create($transactionAmount));
+            $this->manager->flush();
+            $this->telegramService->replyTo($message, sprintf(
+                'deposited %d honor (-%d%% service fee)',
+                $transactionAmount,
+                self::SERVICE_FEE * 100,
+            ));
+        }
+    }
+
+    private function canDepositAmount(Message $message, int $amount): bool
+    {
         $honor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
         if ($honor < $amount) {
             $this->telegramService->replyTo($message, 'you do not have enough honor');
-            return;
+            return false;
         }
-        if ($amount > self::MAX_DEPOSIT) {
-            $this->telegramService->replyTo($message, sprintf('you can only deposit up to %d honor at once', self::MAX_DEPOSIT));
-            return;
+        if ($amount > self::MAX_DEPOSIT_PER_TRANSACTION) {
+            $this->telegramService->replyTo($message, sprintf('you can only deposit up to %d honor at once', self::MAX_DEPOSIT_PER_TRANSACTION));
+            return false;
         }
-        $serviceFee = (int) ceil($amount * self::SERVICE_FEE);
-        $transactionAmount = $amount - $serviceFee;
-        $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$amount));
-        $account->addTransaction(TransactionFactory::create($transactionAmount));
-        $this->manager->flush();
-        $this->telegramService->replyTo($message, sprintf(
-            'deposited %d honor (-%d%% service fee)',
-            $transactionAmount,
-            self::SERVICE_FEE * 100,
-        ));
+        $maxBalance = $this->getMaxBankAccountBalance($message->getChat(), $message->getUser());
+        if ($amount + $honor > $maxBalance) {
+            $this->telegramService->replyTo($message, sprintf('you can only store up to %d honor in your account', $maxBalance));
+            return false;
+        }
+        return true;
+    }
+
+    private function getMaxBankAccountBalance(Chat $chat, User $user): int
+    {
+        $upgrades = $this->honorUpgradeRepository->getUpgradesByChatAndUser($chat, $user);
+        $codes = array_map(fn($upgrade) => $upgrade->getCode(), $upgrades);
+        if (in_array(CreateSet1UpgradeCommand::BANK_UPGRADE_2, $codes)) {
+            return CreateSet1UpgradeCommand::BANK_UPGRADE_2_MAX_BALANCE;
+        }
+        if (in_array(CreateSet1UpgradeCommand::BANK_UPGRADE_1, $codes)) {
+            return CreateSet1UpgradeCommand::BANK_UPGRADE_1_MAX_BALANCE;
+        }
+        return self::MAX_BANK_ACCOUNT_BALANCE;
     }
 
     public function getHelp(): string
