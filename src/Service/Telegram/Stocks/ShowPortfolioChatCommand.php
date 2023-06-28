@@ -45,7 +45,7 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
                 $transactions->getCurrentTotal($currentPrice),
             );
         }
-        $data[] = sprintf('Total: <code>%.2f</code> (%d Ehre)', $total, $totalHonor);
+        $data[] = sprintf('Total: <code>$%.2f</code> (%d Ehre)', $total, $totalHonor);
         return implode(PHP_EOL, $data);
     }
 
