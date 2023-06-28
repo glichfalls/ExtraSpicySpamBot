@@ -13,7 +13,7 @@ class SellStockChatCommand extends AbstractStockChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/!sell stock (?<symbol>\w+) (?<amount>\d+)/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/!sell stocks (?<symbol>\w+) (?<amount>\d+)/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -25,9 +25,9 @@ class SellStockChatCommand extends AbstractStockChatCommand
             $transaction = $this->sellStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
                 'You sold %dx %s ($%.2f) for %d honor',
-                $transaction->getAmount(),
+                abs($transaction->getAmount()),
                 $transaction->getPrice()->getStock()->getDisplaySymbol(),
-                abs($transaction->getPrice()->getPrice()),
+                $transaction->getPrice()->getPrice(),
                 abs($transaction->getHonorTotal()),
             ));
         } catch (AmountZeroOrNegativeException $exception) {
