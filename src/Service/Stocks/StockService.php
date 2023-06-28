@@ -69,7 +69,7 @@ class StockService
                 $this->logger->notice(sprintf('No exact match found for symbol %s', $symbol));
                 throw new StockSymbolUpdateException($symbol, 'Failed to find exact symbol match');
             }
-            $stock = StockFactory::createFromLookupInfo($exactMatch[0]);
+            $stock = StockFactory::createFromLookupInfo(array_values($exactMatch)[0]);
             $this->manager->persist($stock);
             $this->manager->flush();
             return $stock;
