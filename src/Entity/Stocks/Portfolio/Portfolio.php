@@ -70,13 +70,7 @@ class Portfolio
 
     public function getTransactionsBySymbol(string $symbol, ?StockPrice $currentPrice = null): SymbolTransactionCollection
     {
-        return new SymbolTransactionCollection(
-            $symbol,
-            $currentPrice,
-            $this->getTransactions()->filter(
-                fn (StockTransaction $transaction) => $transaction->getPrice()->getStock()->getSymbol() === $symbol
-            ),
-        );
+        return new SymbolTransactionCollection($symbol, $currentPrice, $this->getTransactions());
     }
 
     /**

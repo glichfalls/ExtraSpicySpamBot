@@ -11,10 +11,10 @@ class SymbolTransactionCollection extends ArrayCollection
 
     public function __construct(private string $symbol, private ?StockPrice $currentPrice, Collection $transactions)
     {
-        if ($transactions->filter(fn (StockTransaction $element) => $element->getPrice()->getStock()->getSymbol() !== $this->getSymbol()) > 0) {
-            throw new \InvalidArgumentException('All elements must be of type SymbolTransaction');
-        }
-        parent::__construct($transactions->toArray());
+        parent::__construct($transactions
+            ->filter(fn (StockTransaction $element) => $element->getPrice()->getStock()->getSymbol() === $this->getSymbol())
+            ->toArray()
+        );
     }
 
     public function getSymbol(): string
