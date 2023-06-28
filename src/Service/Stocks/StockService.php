@@ -50,7 +50,7 @@ class StockService
         if ($latestPrice === null) {
             return $this->fetchCurrentPrice($stock);
         }
-        if (RateLimitUtils::getMinutesSinceNow($latestPrice->getUpdatedAt()) < self::STOCK_UPDATE_INTERVAL_MINUTES) {
+        if (RateLimitUtils::getMinutesSinceNow($latestPrice->getCreatedAt()) < self::STOCK_UPDATE_INTERVAL_MINUTES) {
             return $latestPrice;
         }
         return $this->fetchCurrentPrice($stock);

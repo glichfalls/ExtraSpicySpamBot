@@ -28,9 +28,6 @@ class StockPrice
     #[Column(type: 'float', nullable: true)]
     private ?string $changePercent = null;
 
-    #[Column(type: 'datetime', nullable: false)]
-    private \DateTime $date;
-
     public function __construct()
     {
         $this->generateId();
@@ -74,16 +71,6 @@ class StockPrice
     public function setChangePercent(?float $changePercent): void
     {
         $this->changePercent = $changePercent;
-    }
-
-    public function getDate(): \DateTime
-    {
-        return $this->date;
-    }
-
-    public function setDate(\DateTime $date): void
-    {
-        $this->date = $date;
     }
 
     public function getHonorPrice(): int
