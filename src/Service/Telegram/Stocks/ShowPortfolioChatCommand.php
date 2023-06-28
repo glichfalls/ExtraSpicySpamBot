@@ -34,7 +34,7 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
         foreach ($portfolio->getBalance() as $transactions) {
             $currentPrice = $this->getStockPrice($transactions->getSymbol());
             $data[] = sprintf(
-                '%dx <strong>%s</strong>: <code>%d Ehre</code> (<code>$%.2f</code>)',
+                '%dx <strong>%s</strong>: %d Ehre (<code>$%.2f</code>)',
                 $transactions->getTotalAmount(),
                 $transactions->getSymbol(),
                 $transactions->getCurrentHonorTotal($currentPrice),
