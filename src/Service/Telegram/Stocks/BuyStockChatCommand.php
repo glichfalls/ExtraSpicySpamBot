@@ -24,8 +24,9 @@ class BuyStockChatCommand extends AbstractStockChatCommand
             $portfolio = $this->getPortfolioByMessage($message);
             $transaction = $this->buyStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
-                'You bought %dx %s ($%.2f) for %d honor ',
+                'You bought %dx %s (%s) ($%.2f) for %d honor ',
                 $transaction->getAmount(),
+                $transaction->getPrice()->getStock()->getName(),
                 $transaction->getPrice()->getStock()->getDisplaySymbol(),
                 $transaction->getPrice()->getPrice(),
                 $transaction->getHonorTotal(),
