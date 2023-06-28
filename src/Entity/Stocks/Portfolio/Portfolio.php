@@ -3,6 +3,7 @@
 namespace App\Entity\Stocks\Portfolio;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Transaction\StockTransaction;
 use App\Entity\Stocks\Transaction\SymbolTransactionCollection;
 use App\Entity\User\User;
@@ -67,13 +68,25 @@ class Portfolio
         $this->transactions->add($transaction);
     }
 
-    public function getTransactionsBySymbol(string $symbol): SymbolTransactionCollection
+    public function getTransactionsBySymbol(string $symbol, ?StockPrice $currentPrice = null): SymbolTransactionCollection
     {
         return new SymbolTransactionCollection(
+            $symbol,
+            $currentPrice,
             $this->getTransactions()->filter(
                 fn (StockTransaction $transaction) => $transaction->getPrice()->getStock()->getSymbol() === $symbol
-            )
+            ),
         );
+    }
+
+    /**
+     * @return array<SymbolTransactionCollection>
+     */
+    public function getBalance(): array
+    {
+        $symbols = $this->getTransactions()->map(fn (StockTransaction $transaction) => $transaction->getPrice()->getStock()->getSymbol());
+        $symbols = array_unique($symbols->toArray());
+        return array_map(fn (string $symbol) => $this->getTransactionsBySymbol($symbol), $symbols);
     }
 
 }
