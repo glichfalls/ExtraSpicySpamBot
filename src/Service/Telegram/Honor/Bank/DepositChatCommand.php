@@ -22,7 +22,6 @@ use TelegramBot\Api\Types\Update;
 class DepositChatCommand extends AbstractTelegramChatCommand
 {
     private const SERVICE_FEE = 0.05;
-    private const MAX_DEPOSIT_PER_TRANSACTION = 1_000;
     private const MAX_BANK_ACCOUNT_BALANCE = 100_000;
     private const DEPOSIT_HOURS = 6;
 
@@ -76,10 +75,6 @@ class DepositChatCommand extends AbstractTelegramChatCommand
         $honor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
         if ($honor < $amount) {
             $this->telegramService->replyTo($message, 'you do not have enough honor');
-            return false;
-        }
-        if ($amount > self::MAX_DEPOSIT_PER_TRANSACTION) {
-            $this->telegramService->replyTo($message, sprintf('you can only deposit up to %d honor at once', self::MAX_DEPOSIT_PER_TRANSACTION));
             return false;
         }
         $maxBalance = $this->getMaxBankAccountBalance($message->getChat(), $message->getUser());
