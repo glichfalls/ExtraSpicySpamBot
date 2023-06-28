@@ -4,6 +4,7 @@ namespace App\Service\Telegram\Honor\Bank;
 
 use App\Command\Migrations\CreateSet1UpgradeCommand;
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Bank\BankAccount;
 use App\Entity\Honor\Bank\TransactionFactory;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
@@ -22,7 +23,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
 {
     private const SERVICE_FEE = 0.05;
     private const MAX_DEPOSIT_PER_TRANSACTION = 1_000;
-    private const MAX_BANK_ACCOUNT_BALANCE = 2_000;
+    private const MAX_BANK_ACCOUNT_BALANCE = 100_000;
     private const DEPOSIT_HOURS = 6;
 
     public function __construct(
@@ -56,7 +57,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
             return;
         }
         $amount = (int) $matches['amount'];
-        if ($this->canDepositAmount($message, $amount)) {
+        if ($this->canDepositAmount($message, $account, $amount)) {
             $serviceFee = (int)ceil($amount * self::SERVICE_FEE);
             $transactionAmount = $amount - $serviceFee;
             $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$amount));
@@ -70,7 +71,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
         }
     }
 
-    private function canDepositAmount(Message $message, int $amount): bool
+    private function canDepositAmount(Message $message, BankAccount $account, int $amount): bool
     {
         $honor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
         if ($honor < $amount) {
@@ -82,7 +83,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
             return false;
         }
         $maxBalance = $this->getMaxBankAccountBalance($message->getChat(), $message->getUser());
-        if ($amount + $honor > $maxBalance) {
+        if ($account->getBalance() + $amount > $maxBalance) {
             $this->telegramService->replyTo($message, sprintf('you can only store up to %d honor in your account', $maxBalance));
             return false;
         }
