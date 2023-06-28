@@ -16,7 +16,7 @@ class CreateSet1UpgradeCommand extends Command
     public const BANK_UPGRADE_1_PRICE = 100_000;
     public const BANK_UPGRADE_1_MAX_BALANCE = 500_000;
     public const BANK_UPGRADE_2 = 'bank 2';
-    public const BANK_UPGRADE_2_PRICE = 1_000_000;
+    public const BANK_UPGRADE_2_PRICE = 500_000;
     public const BANK_UPGRADE_2_MAX_BALANCE = 2_000_000;
 
     public function __construct(private EntityManagerInterface $manager)

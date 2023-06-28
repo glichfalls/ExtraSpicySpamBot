@@ -3,6 +3,7 @@
 namespace App\Entity\Honor\Stocks\Stock;
 
 use App\Model\Id;
+use App\Repository\Stocks\StockRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
@@ -10,7 +11,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OrderBy;
 
-#[Entity]
+#[Entity(repositoryClass: StockRepository::class)]
 class Stock
 {
     use Id;
