@@ -32,9 +32,11 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
     {
         $data = [];
         $total = 0;
+        $totalHonor = 0;
         foreach ($portfolio->getBalance() as $transactions) {
             $currentPrice = $this->getStockPrice($transactions->getSymbol());
-            $total += $transactions->getCurrentHonorTotal($currentPrice);
+            $total += $transactions->getCurrentTotal($currentPrice);
+            $totalHonor += $transactions->getCurrentHonorTotal($currentPrice);
             $data[] = sprintf(
                 '%dx <strong>%s</strong>: %d Ehre (<code>$%.2f</code>)',
                 $transactions->getTotalAmount(),
@@ -43,7 +45,7 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
                 $transactions->getCurrentTotal($currentPrice),
             );
         }
-        $data[] = sprintf('Total: %d Ehre', $total);
+        $data[] = sprintf('Total: <code>%.2f</code> (%d Ehre)', $total, $totalHonor);
         return implode(PHP_EOL, $data);
     }
 
