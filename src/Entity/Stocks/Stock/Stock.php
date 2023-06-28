@@ -29,7 +29,7 @@ class Stock
     private string $type;
 
     #[OneToMany(mappedBy: 'stock', targetEntity: StockPrice::class, cascade: ['persist'])]
-    #[OrderBy(['date' => 'DESC'])]
+    #[OrderBy(['createdAt' => 'DESC'])]
     private Collection $stockPrices;
 
     public function __construct()
