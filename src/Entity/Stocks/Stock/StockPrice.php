@@ -75,8 +75,7 @@ class StockPrice
 
     public function getHonorPrice(): int
     {
-        $price = (int) $this->getPrice();
-        return (int) round($price / 100);
+        return (int) round($this->getPrice());
     }
 
 }
