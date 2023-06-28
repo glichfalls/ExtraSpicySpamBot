@@ -22,7 +22,7 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
             $portfolio = $this->getPortfolioByMessage($message);
             $balance = $portfolio->getTransactionsBySymbol($symbol, $price);
             $this->telegramService->replyTo($message, sprintf(
-                "<strong>%s</strong> %s\n$%.2f (%d Ehre)\nYou have: %dx (total: %d Ehre)",
+                "<strong>%s</strong>\n\nSymbol: <code>%s</code>\n$<code>%.2f</code> (<code>%d Ehre</code>)\n\nYou have:%dx\ntotal: <code>%d Ehre</code>",
                 $price->getStock()->getName(),
                 $price->getStock()->getDisplaySymbol(),
                 $price->getPrice(),
