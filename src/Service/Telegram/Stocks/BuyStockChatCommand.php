@@ -24,10 +24,11 @@ class BuyStockChatCommand extends AbstractStockChatCommand
             $portfolio = $this->getPortfolioByMessage($message);
             $transaction = $this->buyStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
-                'You bought %dx %s (%s) ($%.2f) for %d honor ',
-                $transaction->getAmount(),
+                "You bought %s\n%dx %s %s\nStock Price: (<code>$%.2f</code>)\nTotal buy Price: <code>%d</code> Ehre",
                 $transaction->getPrice()->getStock()->getName(),
+                $transaction->getAmount(),
                 $transaction->getPrice()->getStock()->getDisplaySymbol(),
+                $transaction->getPrice()->getStock()->getType(),
                 $transaction->getPrice()->getPrice(),
                 $transaction->getHonorTotal(),
             ));
@@ -35,7 +36,7 @@ class BuyStockChatCommand extends AbstractStockChatCommand
             $this->telegramService->replyTo($message, $exception->getMessage());
         } catch (NotEnoughHonorException $exception) {
             $this->telegramService->replyTo($message, sprintf(
-                'You dont have enough honor to buy %dx %s (you have %d honor, you need %d honor)',
+                'You dont have enough Ehre to buy %dx %s (you have %d Ehre, you need %d Ehre)',
                 $amount,
                 $symbol,
                 $exception->getBalance(),

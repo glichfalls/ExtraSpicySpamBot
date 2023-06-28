@@ -41,7 +41,7 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
                 $transactions->getCurrentTotal($currentPrice),
             );
         }
-        return implode('<br>', $data);
+        return implode(PHP_EOL, $data);
     }
 
 }
