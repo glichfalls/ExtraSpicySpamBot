@@ -19,7 +19,7 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
     {
         try {
             $portfolio = $this->getPortfolioByMessage($message);
-            $this->telegramService->replyTo($message, $this->getBalance($portfolio));
+            $this->telegramService->replyTo($message, $this->getBalance($portfolio), parseMode: 'HTML');
         } catch (StockSymbolUpdateException $exception) {
             $this->telegramService->replyTo($message, sprintf(
                 'Failed to get portfolio price [%s]',
@@ -34,14 +34,14 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
         foreach ($portfolio->getBalance() as $transactions) {
             $currentPrice = $this->getStockPrice($transactions->getSymbol());
             $data[] = sprintf(
-                '%dx %s - %d ($%.2f)',
+                '%dx <strong>%s</strong>: <code>%d Ehre</code> (<code>$%.2f</code>)',
                 $transactions->getTotalAmount(),
                 $transactions->getSymbol(),
                 $transactions->getCurrentHonorTotal($currentPrice),
                 $transactions->getCurrentTotal($currentPrice),
             );
         }
-        return implode(PHP_EOL, $data);
+        return implode('<br>', $data);
     }
 
 }

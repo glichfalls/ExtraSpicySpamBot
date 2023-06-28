@@ -22,14 +22,14 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
             $portfolio = $this->getPortfolioByMessage($message);
             $balance = $portfolio->getTransactionsBySymbol($symbol, $price);
             $this->telegramService->replyTo($message, sprintf(
-                '%s (%s): $%d (%d Ehre), You have: %d (total: %d Ehre)',
+                '<strong>%s</strong> %s<br>$%.2f (%d Ehre)<br>You have: %dx (total: %d Ehre)',
                 $price->getStock()->getName(),
                 $price->getStock()->getDisplaySymbol(),
                 $price->getPrice(),
                 $price->getHonorPrice(),
                 $balance->getTotalAmount(),
                 $balance->getCurrentHonorTotal(),
-            ));
+            ), parseMode: 'HTML');
         } catch (StockSymbolUpdateException $exception) {
             $this->telegramService->replyTo($message, sprintf(
                 'Failed to get stock price for %s [%s]',
