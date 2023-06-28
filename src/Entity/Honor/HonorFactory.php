@@ -25,4 +25,14 @@ class HonorFactory
         return $honor;
     }
 
+    public static function createPositive(Chat $chat, User $recipient, int $amount): Honor
+    {
+        return self::create($chat, null, $recipient, $amount);
+    }
+
+    public static function createNegative(Chat $chat, User $recipient, int $amount): Honor
+    {
+        return self::create($chat, null, $recipient, -$amount);
+    }
+
 }

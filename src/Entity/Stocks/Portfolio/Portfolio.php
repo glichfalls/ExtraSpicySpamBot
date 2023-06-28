@@ -4,8 +4,10 @@ namespace App\Entity\Stocks\Portfolio;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Stocks\Transaction\StockTransaction;
+use App\Entity\Stocks\Transaction\SymbolTransactionCollection;
 use App\Entity\User\User;
 use App\Model\Id;
+use App\Repository\Stocks\PortfolioRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Entity;
@@ -13,7 +15,7 @@ use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OrderBy;
 
-#[Entity]
+#[Entity(repositoryClass: PortfolioRepository::class)]
 class Portfolio
 {
     use Id;
@@ -61,7 +63,17 @@ class Portfolio
 
     public function addTransaction(StockTransaction $transaction): void
     {
+        $transaction->setPortfolio($this);
         $this->transactions->add($transaction);
+    }
+
+    public function getTransactionsBySymbol(string $symbol): SymbolTransactionCollection
+    {
+        return new SymbolTransactionCollection(
+            $this->transactions->filter(
+                fn (StockTransaction $transaction) => $transaction->getPrice()->getStock()->getSymbol() === $symbol
+            )
+        );
     }
 
 }

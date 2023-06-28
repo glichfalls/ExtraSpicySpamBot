@@ -2,17 +2,16 @@
 
 namespace App\Entity\Stocks\Transaction;
 
-use App\Entity\Stocks\Stock\Stock;
+use App\Entity\Stocks\Stock\StockPrice;
 
 class StockTransactionFactory
 {
 
-    public static function create(Stock $stock, int $amount, int $price): StockTransaction
+    public static function create(StockPrice $price, int $amount): StockTransaction
     {
         $transaction = new StockTransaction();
-        $transaction->setStock($stock);
-        $transaction->setAmount($amount);
         $transaction->setPrice($price);
+        $transaction->setAmount($amount);
         $transaction->setCreatedAt(new \DateTime());
         $transaction->setUpdatedAt(new \DateTime());
         return $transaction;

@@ -3,15 +3,16 @@
 namespace App\Entity\Stocks\Transaction;
 
 use App\Entity\Stocks\Portfolio\Portfolio;
-use App\Entity\Stocks\Stock\Stock;
+use App\Entity\Stocks\Stock\StockPrice;
 use App\Model\Id;
+use App\Repository\Stocks\StockTransactionRepository;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[Entity]
+#[Entity(repositoryClass: StockTransactionRepository::class)]
 class StockTransaction
 {
     use Id;
@@ -21,14 +22,16 @@ class StockTransaction
     #[JoinColumn(nullable: false)]
     private Portfolio $portfolio;
 
-    #[ManyToOne(targetEntity: Stock::class)]
-    private Stock $stock;
+    #[ManyToOne(targetEntity: StockPrice::class)]
+    #[JoinColumn(nullable: false)]
+    private StockPrice $price;
 
     #[Column(type: 'integer', nullable: false)]
     private int $amount;
 
-    #[Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
-    private int $price;
+    private ?int $total = null;
+
+    private ?int $honorTotal = null;
 
     public function __construct()
     {
@@ -45,14 +48,14 @@ class StockTransaction
         $this->portfolio = $portfolio;
     }
 
-    public function getStock(): Stock
+    public function getPrice(): StockPrice
     {
-        return $this->stock;
+        return $this->price;
     }
 
-    public function setStock(Stock $stock): void
+    public function setPrice(StockPrice $price): void
     {
-        $this->stock = $stock;
+        $this->price = $price;
     }
 
     public function getAmount(): int
@@ -65,14 +68,20 @@ class StockTransaction
         $this->amount = $amount;
     }
 
-    public function getPrice(): int
+    public function getTotal(): float
     {
-        return $this->price;
+        if ($this->total === null) {
+            $this->total = $this->getPrice()->getPrice() * $this->getAmount();
+        }
+        return $this->total;
     }
 
-    public function setPrice(int $price): void
+    public function getHonorTotal(): int
     {
-        $this->price = $price;
+        if ($this->honorTotal === null) {
+            $this->honorTotal = $this->getPrice()->getHonorPrice() * $this->getAmount();
+        }
+        return $this->honorTotal;
     }
 
 }

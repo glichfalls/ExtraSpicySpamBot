@@ -19,28 +19,16 @@ class StockPrice
     #[JoinColumn(nullable: false)]
     private Stock $stock;
 
-    #[Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
-    private int $open;
+    #[Column(type: 'float', nullable: false)]
+    private float $price;
 
-    #[Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
-    private int $close;
+    #[Column(type: 'float', nullable: true)]
+    private ?float $change = null;
 
-    #[Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
-    private int $low;
+    #[Column(type: 'float', nullable: true)]
+    private ?string $changePercent = null;
 
-    #[Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
-    private int $high;
-
-    #[Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
-    private int $preMarket;
-
-    #[Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
-    private int $afterHours;
-
-    #[Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
-    private int $volume;
-
-    #[Column(type: 'date', nullable: false, options: ['unsigned' => true])]
+    #[Column(type: 'datetime', nullable: false)]
     private \DateTime $date;
 
     public function __construct()
@@ -58,74 +46,34 @@ class StockPrice
         $this->stock = $stock;
     }
 
-    public function getOpen(): int
+    public function getPrice(): float
     {
-        return $this->open;
+        return $this->price;
     }
 
-    public function setOpen(int $open): void
+    public function setPrice(float $price): void
     {
-        $this->open = $open;
+        $this->price = $price;
     }
 
-    public function getClose(): int
+    public function getChange(): ?float
     {
-        return $this->close;
+        return $this->change;
     }
 
-    public function setClose(int $close): void
+    public function setChange(?float $change): void
     {
-        $this->close = $close;
+        $this->change = $change;
     }
 
-    public function getLow(): int
+    public function getChangePercent(): ?float
     {
-        return $this->low;
+        return $this->changePercent;
     }
 
-    public function setLow(int $low): void
+    public function setChangePercent(?float $changePercent): void
     {
-        $this->low = $low;
-    }
-
-    public function getHigh(): int
-    {
-        return $this->high;
-    }
-
-    public function setHigh(int $high): void
-    {
-        $this->high = $high;
-    }
-
-    public function getPreMarket(): int
-    {
-        return $this->preMarket;
-    }
-
-    public function setPreMarket(int $preMarket): void
-    {
-        $this->preMarket = $preMarket;
-    }
-
-    public function getAfterHours(): int
-    {
-        return $this->afterHours;
-    }
-
-    public function setAfterHours(int $afterHours): void
-    {
-        $this->afterHours = $afterHours;
-    }
-
-    public function getVolume(): int
-    {
-        return $this->volume;
-    }
-
-    public function setVolume(int $volume): void
-    {
-        $this->volume = $volume;
+        $this->changePercent = $changePercent;
     }
 
     public function getDate(): \DateTime
@@ -136,6 +84,12 @@ class StockPrice
     public function setDate(\DateTime $date): void
     {
         $this->date = $date;
+    }
+
+    public function getHonorPrice(): int
+    {
+        $price = (int) $this->getPrice();
+        return (int) round($price / 100);
     }
 
 }

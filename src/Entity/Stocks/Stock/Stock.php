@@ -16,11 +16,17 @@ class Stock
 {
     use Id;
 
-    #[Column(type: 'string', unique: true, nullable: false)]
+    #[Column(type: 'string', nullable: false)]
     private string $name;
+
+    #[Column(type: 'string', nullable: false)]
+    private string $displaySymbol;
 
     #[Column(type: 'string', unique: true, nullable: false)]
     private string $symbol;
+
+    #[Column(type: 'string', nullable: false)]
+    private string $type;
 
     #[OneToMany(mappedBy: 'stock', targetEntity: StockPrice::class, cascade: ['persist'])]
     #[OrderBy(['date' => 'DESC'])]
@@ -42,6 +48,16 @@ class Stock
         $this->name = $name;
     }
 
+    public function getDisplaySymbol(): string
+    {
+        return $this->displaySymbol;
+    }
+
+    public function setDisplaySymbol(string $displaySymbol): void
+    {
+        $this->displaySymbol = $displaySymbol;
+    }
+
     public function getSymbol(): string
     {
         return $this->symbol;
@@ -50,6 +66,16 @@ class Stock
     public function setSymbol(string $symbol): void
     {
         $this->symbol = $symbol;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): void
+    {
+        $this->type = $type;
     }
 
     public function getStockPrices(): Collection
