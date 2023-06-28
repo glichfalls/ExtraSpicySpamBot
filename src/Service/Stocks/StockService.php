@@ -2,8 +2,7 @@
 
 namespace App\Service\Stocks;
 
-use App\Entity\Honor\Stocks\Stock\Stock;
-use App\Entity\Honor\Stocks\Stock\StockPrice;
+use App\Entity\Stocks\Stock\Stock;
 use App\Repository\Stocks\StockRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Finnhub\Api\DefaultApi;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Honor\Stocks\Portfolio;
+namespace App\Entity\Stocks\Portfolio;
 
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;

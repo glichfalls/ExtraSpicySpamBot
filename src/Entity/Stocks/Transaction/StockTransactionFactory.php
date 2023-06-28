@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Entity\Honor\Stocks\Transaction;
+namespace App\Entity\Stocks\Transaction;
 
-use App\Entity\Honor\Stocks\Stock\Stock;
+use App\Entity\Stocks\Stock\Stock;
 
-class TransactionFactory
+class StockTransactionFactory
 {
 
-    public static function create(Stock $stock, int $amount, int $price): Transaction
+    public static function create(Stock $stock, int $amount, int $price): StockTransaction
     {
-        $transaction = new Transaction();
+        $transaction = new StockTransaction();
         $transaction->setStock($stock);
         $transaction->setAmount($amount);
         $transaction->setPrice($price);

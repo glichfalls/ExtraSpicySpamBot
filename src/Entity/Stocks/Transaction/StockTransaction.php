@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Entity\Honor\Stocks\Transaction;
+namespace App\Entity\Stocks\Transaction;
 
-use App\Entity\Honor\Stocks\Portfolio\Portfolio;
-use App\Entity\Honor\Stocks\Stock\Stock;
+use App\Entity\Stocks\Portfolio\Portfolio;
+use App\Entity\Stocks\Stock\Stock;
 use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity]
-class Transaction
+class StockTransaction
 {
     use Id;
     use TimestampableEntity;

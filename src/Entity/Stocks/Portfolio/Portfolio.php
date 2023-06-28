@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Entity\Honor\Stocks\Portfolio;
+namespace App\Entity\Stocks\Portfolio;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Honor\Stocks\Transaction\Transaction;
+use App\Entity\Stocks\Transaction\StockTransaction;
 use App\Entity\User\User;
 use App\Model\Id;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -24,7 +24,7 @@ class Portfolio
     #[ManyToOne(targetEntity: User::class)]
     private User $user;
 
-    #[OneToMany(mappedBy: 'portfolio', targetEntity: Transaction::class, cascade: ['persist'])]
+    #[OneToMany(mappedBy: 'portfolio', targetEntity: StockTransaction::class, cascade: ['persist'])]
     #[OrderBy(['createdAt' => 'DESC'])]
     private Collection $transactions;
 
@@ -59,7 +59,7 @@ class Portfolio
         return $this->transactions;
     }
 
-    public function addTransaction(Transaction $transaction): void
+    public function addTransaction(StockTransaction $transaction): void
     {
         $this->transactions->add($transaction);
     }

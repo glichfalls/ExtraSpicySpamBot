@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Honor\Stocks\Stock;
+namespace App\Entity\Stocks\Stock;
 
 use App\Model\Id;
 use App\Repository\Stocks\StockRepository;

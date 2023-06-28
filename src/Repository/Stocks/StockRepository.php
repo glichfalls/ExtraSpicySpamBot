@@ -2,7 +2,7 @@
 
 namespace App\Repository\Stocks;
 
-use App\Entity\Honor\Stocks\Stock\Stock;
+use App\Entity\Stocks\Stock\Stock;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
