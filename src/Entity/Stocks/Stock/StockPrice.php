@@ -23,7 +23,7 @@ class StockPrice
     private float $price;
 
     #[Column(type: 'float', nullable: true)]
-    private ?float $change = null;
+    private ?float $changeAbsolute = null;
 
     #[Column(type: 'float', nullable: true)]
     private ?string $changePercent = null;
@@ -53,14 +53,14 @@ class StockPrice
         $this->price = $price;
     }
 
-    public function getChange(): ?float
+    public function getChangeAbsolute(): ?float
     {
-        return $this->change;
+        return $this->changeAbsolute;
     }
 
-    public function setChange(?float $change): void
+    public function setChangeAbsolute(?float $changeAbsolute): void
     {
-        $this->change = $change;
+        $this->changeAbsolute = $changeAbsolute;
     }
 
     public function getChangePercent(): ?float

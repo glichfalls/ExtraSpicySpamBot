@@ -20,7 +20,7 @@ class StockPriceFactory
     {
         $price = self::create($stock);
         $price->setPrice($quote->getC());
-        $price->setChange($quote->getD());
+        $price->setChangeAbsolute($quote->getD());
         $price->setChangePercent($quote->getDp());
         return $price;
     }
