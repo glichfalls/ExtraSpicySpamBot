@@ -6,6 +6,7 @@ use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Entity\Stocks\Portfolio\PortfolioFactory;
+use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Transaction\StockTransaction;
 use App\Entity\Stocks\Transaction\StockTransactionFactory;
 use App\Exception\AmountZeroOrNegativeException;
@@ -46,6 +47,11 @@ abstract class AbstractStockChatCommand extends AbstractTelegramChatCommand
         $transaction = StockTransactionFactory::create($price, $amount);
         $portfolio->addTransaction($transaction);
         return $transaction;
+    }
+
+    protected function getStockPrice(string $symbol): StockPrice
+    {
+        return $this->stockService->getPriceBySymbol($symbol);
     }
 
     protected function getPortfolioByMessage(Message $message): Portfolio

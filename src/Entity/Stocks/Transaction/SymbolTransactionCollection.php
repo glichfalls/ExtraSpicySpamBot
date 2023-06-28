@@ -3,16 +3,17 @@
 namespace App\Entity\Stocks\Transaction;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 class SymbolTransactionCollection extends ArrayCollection
 {
 
-    public function __construct(private string $symbol, array $elements = [])
+    public function __construct(private string $symbol, Collection $transactions = null)
     {
-        if (array_filter($elements, fn (StockTransaction $element) => $element->getSymbol() !== $this->getSymbol()) > 0) {
+        if ($transactions->filter(fn (StockTransaction $element) => $element->getPrice()->getStock()->getSymbol() !== $this->getSymbol()) > 0) {
             throw new \InvalidArgumentException('All elements must be of type SymbolTransaction');
         }
-        parent::__construct($elements);
+        parent::__construct($transactions->toArray());
     }
 
     public function getSymbol(): string

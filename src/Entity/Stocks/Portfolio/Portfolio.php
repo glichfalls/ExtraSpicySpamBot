@@ -70,7 +70,7 @@ class Portfolio
     public function getTransactionsBySymbol(string $symbol): SymbolTransactionCollection
     {
         return new SymbolTransactionCollection(
-            $this->transactions->filter(
+            $this->getTransactions()->filter(
                 fn (StockTransaction $transaction) => $transaction->getPrice()->getStock()->getSymbol() === $symbol
             )
         );
