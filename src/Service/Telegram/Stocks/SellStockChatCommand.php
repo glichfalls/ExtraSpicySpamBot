@@ -27,8 +27,8 @@ class SellStockChatCommand extends AbstractStockChatCommand
                 'You sold %dx %s ($%.2f) for %d honor',
                 $transaction->getAmount(),
                 $transaction->getPrice()->getStock()->getDisplaySymbol(),
-                $transaction->getPrice()->getPrice(),
-                $transaction->getHonorTotal(),
+                abs($transaction->getPrice()->getPrice()),
+                abs($transaction->getHonorTotal()),
             ));
         } catch (AmountZeroOrNegativeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());
