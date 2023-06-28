@@ -10,6 +10,7 @@ services:
             string $telegramToken: '%env(TELEGRAM_BOT_TOKEN)%'
             string $extraSpicySpamChatId: '%env(EXTRA_SPICY_SPAM_CHAT_ID)%'
             string $openAiApiKey: '%env(OPENAI_API_KEY)%'
+            string $finnhubApiKey: '%env(FINNHUB_API_KEY)%'
 
     App\:
         resource: '../src/'
