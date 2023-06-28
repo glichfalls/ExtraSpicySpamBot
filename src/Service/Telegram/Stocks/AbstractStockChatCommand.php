@@ -100,7 +100,7 @@ abstract class AbstractStockChatCommand extends AbstractTelegramChatCommand
         $this->manager->persist(HonorFactory::createPositive(
             $portfolio->getChat(),
             $portfolio->getUser(),
-            $transaction->getHonorTotal(),
+            $transaction->getHonorTotal() * -1,
         ));
         $this->manager->flush();
         return $transaction;
