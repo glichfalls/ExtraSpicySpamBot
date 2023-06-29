@@ -60,4 +60,40 @@ class SymbolTransactionCollection extends ArrayCollection
         return $currentPrice->getHonorPrice() * $this->getTotalAmount();
     }
 
+    public function getTotalProfit(?StockPrice $stockPrice = null): float
+    {
+        return $this->getCurrentTotal($stockPrice) - $this->getTotalBuyPrice();
+    }
+
+    public function getTotalHonorProfit(?StockPrice $stockPrice = null): float
+    {
+        return $this->getCurrentHonorTotal($stockPrice) - $this->getTotalHonorBuyPrice();
+    }
+
+    public function getAverageBuyPrice(): float
+    {
+        return $this->getTotalBuyPrice() / $this->getTotalAmount();
+    }
+
+    public function getAverageHonorBuyPrice(): float
+    {
+        return $this->getTotalHonorBuyPrice() / $this->getTotalAmount();
+    }
+
+    public function getDailyProfit(?StockPrice $stockPrice = null): float
+    {
+        if ($this->getCurrentPrice() === null && $stockPrice === null) {
+            return 0;
+        }
+        return $this->getTotalAmount() * $stockPrice->getChangeAbsolute();
+    }
+
+    public function getDailyProfitPercent(?StockPrice $stockPrice = null): float
+    {
+        if ($this->getCurrentPrice() === null && $stockPrice === null) {
+            return 0;
+        }
+        return $stockPrice->getChangePercent();
+    }
+
 }

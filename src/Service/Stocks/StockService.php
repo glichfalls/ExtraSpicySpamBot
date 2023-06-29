@@ -50,10 +50,25 @@ class StockService
         if ($latestPrice === null) {
             return $this->fetchCurrentPrice($stock);
         }
-        if (RateLimitUtils::getMinutesSinceNow($latestPrice->getCreatedAt()) < self::STOCK_UPDATE_INTERVAL_MINUTES) {
-            return $latestPrice;
+        if ($this->shouldFetchNewPrice($latestPrice)) {
+            return $this->fetchCurrentPrice($stock);
         }
-        return $this->fetchCurrentPrice($stock);
+        return $latestPrice;
+    }
+
+    private function shouldFetchNewPrice(StockPrice $stockPrice): bool
+    {
+        $now = new \DateTime();
+        if (RateLimitUtils::getDaysFrom($stockPrice->getCreatedAt()) > 0) {
+            return true;
+        }
+        if ($now->format('H') >= 15 || $now->format('H') <= 23) {
+            return RateLimitUtils::getMinutesFrom($stockPrice->getCreatedAt()) >= self::STOCK_UPDATE_INTERVAL_MINUTES;
+        }
+        if ($stockPrice->getCreatedAt()->format('H') < 23 || $stockPrice->getCreatedAt()->format('H') > 15) {
+            return true;
+        }
+        return false;
     }
 
     private function fetchExactSymbol(string $symbol): Stock

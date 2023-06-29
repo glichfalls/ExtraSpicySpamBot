@@ -5,17 +5,22 @@ namespace App\Utils;
 class RateLimitUtils
 {
 
-    public static function getHoursSinceNow(\DateTime $date): int
+    public static function getDaysFrom(\DateTime $date): int
     {
-        return floor(self::getMinutesSinceNow($date) / 60);
+        return floor(self::getHoursFrom($date) / 24);
     }
 
-    public static function getMinutesSinceNow(\DateTime $date): int
+    public static function getHoursFrom(\DateTime $date): int
     {
-        return floor(self::getSecondsSinceNow($date) / 60);
+        return floor(self::getMinutesFrom($date) / 60);
     }
 
-    public static function getSecondsSinceNow(\DateTime $date): int
+    public static function getMinutesFrom(\DateTime $date): int
+    {
+        return floor(self::getSecondsFrom($date) / 60);
+    }
+
+    public static function getSecondsFrom(\DateTime $date): int
     {
         return abs(time() - $date->getTimestamp());
     }
