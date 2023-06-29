@@ -59,7 +59,7 @@ class StockService
     private function fetchExactSymbol(string $symbol): Stock
     {
         try {
-            $lookup = $this->client->symbolSearch($symbol);
+            $lookup = @$this->client->symbolSearch($symbol);
             if ($lookup->getCount() === 0 || $lookup->getResult() === null) {
                 $this->logger->notice(sprintf('No results found for symbol %s', $symbol));
                 throw new StockSymbolUpdateException($symbol, 'Symbol not found');
@@ -82,7 +82,7 @@ class StockService
     private function fetchCurrentPrice(Stock $stock): StockPrice
     {
         try {
-            $quote = $this->client->quote($stock->getSymbol());
+            $quote = @$this->client->quote($stock->getSymbol());
             $price = StockPriceFactory::createFromQuote($stock, $quote);
             $stock->addStockPrice($price);
             $this->manager->flush();
