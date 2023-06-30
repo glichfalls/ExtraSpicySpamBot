@@ -20,6 +20,19 @@ class UserRepository extends ServiceEntityRepository
         return $this->findOneBy(['telegramUserId' => $telegramUserId]);
     }
 
+    public function getByFirstName(Chat $chat, string $firstName): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->join('u.messages', 'm')
+            ->join('m.chat', 'c')
+            ->where('c.id = :id')
+            ->andWhere('u.firstName = :firstName')
+            ->setParameter('id', $chat->getId())
+            ->setParameter('firstName', $firstName)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function getUsersByChat(Chat $chat): array
     {
         return $this->createQueryBuilder('u')

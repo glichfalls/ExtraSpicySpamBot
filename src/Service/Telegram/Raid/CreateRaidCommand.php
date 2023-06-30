@@ -6,6 +6,7 @@ use App\Entity\Honor\Raid\RaidFactory;
 use App\Entity\Message\Message;
 use App\Repository\HonorRepository;
 use App\Repository\RaidRepository;
+use App\Repository\UserRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,6 +24,7 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
         TelegramService         $telegramService,
         private HonorRepository $honorRepository,
         private RaidRepository  $raidRepository,
+        private UserRepository $userRepository,
     )
     {
         parent::__construct($manager, $translator, $logger, $telegramService);
@@ -37,9 +39,18 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
     {
         $name = $matches['name'];
         $targets = $this->telegramService->getUsersFromMentions($update);
-        if (count($targets) !== 1) {
+        if (count($targets) > 1) {
             $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.onlyOneUserCanBeRaided'));
             return;
+        }
+        if (count($targets) === 0) {
+            $target = $this->userRepository->getByFirstName($message->getChat(), $name);
+            if ($target === null) {
+                $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.userNotFound', [
+                    'user' => $name
+                ]));
+                return;
+            }
         }
         $target = $targets[0];
         if ($target === null) {
