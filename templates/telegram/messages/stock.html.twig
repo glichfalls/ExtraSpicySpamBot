@@ -1,9 +1,9 @@
 <strong>{{ price.stock.name }}</strong><br>
 <strong>{{ price.stock.symbol }}</strong> | {{ price.stock.type }}<br>
 {% if price.changeAbsolute > 0 %}📈{% else %}📉{% endif %}
-{{ price.stock.change|currency }} {{ price.stock.changePercent }}%<br>
+<code>${{ price.stock.change }}</code> {{ price.stock.changePercent }}%<br>
 <br>
-{{ balance.totalAmount }}x <code>{{ price.stock.price|currency }}</code> ({{ price.stock.honorPrice }} Ehre)<br>
-{{ balance.currentTotal|currency }} ({{ balance.currentHonorTotal }} Ehre)<br>
+{{ balance.totalAmount }}x <code>${{ price.stock.price }}</code> ({{ price.stock.honorPrice }} Ehre)<br>
+<code>${{ balance.currentTotal }}</code> ({{ balance.currentHonorTotal }} Ehre)<br>
 <br>
-W/L {{ balance.profit|currency }} ({{ balance.honorProfit }} Ehre)<br>
+W/L <code>${{ balance.profit }}</code> ({{ balance.honorProfit }} Ehre)<br>
