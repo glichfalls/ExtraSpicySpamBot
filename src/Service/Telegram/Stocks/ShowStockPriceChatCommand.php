@@ -21,22 +21,10 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
             $price = $this->getStockPrice($symbol);
             $portfolio = $this->getPortfolioByMessage($message);
             $balance = $portfolio->getTransactionsBySymbol($symbol, $price);
-            $this->telegramService->replyTo($message, sprintf(
-                "<strong>%s</strong>\n%s\nSymbol: <strong>%s</strong>\n\n<code>$%.2f</code> (%d Ehre)\n%s $%.2f (%.2f%%)\n\nYou have %d\ntotal: <code>$%.2f</code> (%d Ehre)\nprofit: <code>$%.2f</code> (%d Ehre)",
-                $price->getStock()->getName(),
-                $price->getStock()->getType(),
-                $price->getStock()->getDisplaySymbol(),
-                $price->getPrice(),
-                $price->getHonorPrice(),
-                $price->getChangeAbsolute() > 0 ? '📈' : '📉',
-                $price->getChangeAbsolute(),
-                $price->getChangePercent(),
-                $balance->getTotalAmount(),
-                $balance->getCurrentTotal(),
-                $balance->getCurrentHonorTotal(),
-                $balance->getTotalProfit(),
-                $balance->getTotalHonorProfit()
-            ), parseMode: 'HTML');
+            $this->telegramService->renderReplyTo($message, 'stock', [
+                'price' => $price,
+                'balance' => $balance,
+            ]);
         } catch (StockSymbolUpdateException $exception) {
             $this->telegramService->replyTo($message, sprintf(
                 'Failed to get stock price for %s [%s]',

@@ -30,6 +30,7 @@ use TelegramBot\Api\Types\Message as TelegramMessage;
 use TelegramBot\Api\Types\MessageEntity;
 use TelegramBot\Api\Types\ReplyKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
+use Twig\Environment;
 
 class TelegramService
 {
@@ -38,6 +39,7 @@ class TelegramService
         private KernelInterface $kernel,
         protected BotApi $bot,
         protected LoggerInterface $logger,
+        protected Environment $twig,
         protected UserService $userService,
         protected EntityManagerInterface $manager,
         protected ChatRepository $chatRepository,
@@ -252,6 +254,22 @@ class TelegramService
         $this->manager->persist($message);
         $this->manager->flush();
         return $message;
+    }
+
+    public function renderMessage(string $template, array $context = []): string
+    {
+        try {
+            $message = $this->twig->render(sprintf('telegram/messages/%s.html.twig', $template), $context);
+            return str_replace('<br>', PHP_EOL, $message);
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+            return 'failed to render message';
+        }
+    }
+
+    public function renderReplyTo(Message $message, string $template, array $context = []): void
+    {
+        $this->replyTo($message, $this->renderMessage($template, $context), parseMode: 'HTML');
     }
 
     private function getChatFromUpdate(Update $update): ?Chat
