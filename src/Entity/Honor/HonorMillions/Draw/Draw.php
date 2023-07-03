@@ -130,7 +130,7 @@ class Draw
 
     public function getTicketByUser(User $user): ?Ticket
     {
-        return $this->getTickets()->filter(fn(Ticket $ticket) => $ticket->getUser() === $user)->first();
+        return $this->getTickets()->filter(fn(Ticket $ticket) => $ticket->getUser() === $user)->first() ?: null;
     }
 
     public function addTicket(Ticket $ticket): void
