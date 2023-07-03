@@ -53,6 +53,10 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
             $draw->getTickets()->add($ticket);
             $this->manager->persist($ticket);
         }
+        if (in_array($number, $ticket->getNumbers())) {
+            $this->telegramService->replyTo($message, sprintf('you already have the number %d', $number));
+            return;
+        }
         $ticketPrice = $this->getTicketPrice($ticket);
         if ($ticketPrice !== 0) {
             $honor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
