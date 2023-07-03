@@ -50,6 +50,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
         $ticket = $draw->getTicketByUser($message->getUser());
         if ($ticket === null) {
             $ticket = TicketFactory::create($message->getUser(), $draw);
+            $draw->getTickets()->add($ticket);
             $this->manager->persist($ticket);
         }
         $ticketPrice = $this->getTicketPrice($ticket);
@@ -65,7 +66,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
             }
             $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$ticketPrice));
         }
-        $draw->getTickets()->add($ticket);
+        $ticket->addNumber($number);
         $this->manager->flush();
         $this->telegramService->replyTo($message, sprintf(
             'ticket bought with number %d for %d ehre. You now have %d tickets. Your next ticket will cost %d ehre.',
