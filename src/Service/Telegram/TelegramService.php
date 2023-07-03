@@ -259,8 +259,11 @@ class TelegramService
     public function renderMessage(string $template, array $context = []): string
     {
         try {
-            $message = $this->twig->render(sprintf('telegram/messages/%s.html.twig', $template), $context);
-            return str_replace('<br>', PHP_EOL, $message);
+            $html = $this->twig->render(sprintf('telegram/messages/%s.html.twig', $template), $context);
+            // remove all line breaks and tabs
+            $html = str_replace([PHP_EOL, "\t"], '', $html);
+            // replace <br> with \n
+            return str_replace('<br>', PHP_EOL, $html);
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
             return 'failed to render message';

@@ -37,11 +37,6 @@ class SymbolTransactionCollection extends ArrayCollection
         return array_reduce($this->toArray(), fn (float $carry, StockTransaction $element) => $carry + $element->getTotal(), 0);
     }
 
-    public function getTotalHonorBuyPrice(): float
-    {
-        return array_reduce($this->toArray(), fn (float $carry, StockTransaction $element) => $carry + $element->getHonorTotal(), 0);
-    }
-
     public function getCurrentTotal(?StockPrice $stockPrice = null): float
     {
         if ($this->getCurrentPrice() === null && $stockPrice === null) {
@@ -65,19 +60,9 @@ class SymbolTransactionCollection extends ArrayCollection
         return $this->getCurrentTotal($stockPrice) - $this->getTotalBuyPrice();
     }
 
-    public function getTotalHonorProfit(?StockPrice $stockPrice = null): float
-    {
-        return $this->getCurrentHonorTotal($stockPrice) - $this->getTotalHonorBuyPrice();
-    }
-
     public function getAverageBuyPrice(): float
     {
         return $this->getTotalBuyPrice() / $this->getTotalAmount();
-    }
-
-    public function getAverageHonorBuyPrice(): float
-    {
-        return $this->getTotalHonorBuyPrice() / $this->getTotalAmount();
     }
 
     public function getDailyProfit(?StockPrice $stockPrice = null): float
