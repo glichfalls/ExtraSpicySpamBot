@@ -42,31 +42,57 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'there is no draw for this chat');
             return;
         }
-        if ($draw->getTickets()->filter(fn(Ticket $ticket) => $ticket->getUser()->getId() === $message->getUser()->getId())->count() > 0) {
-            $this->telegramService->replyTo($message, 'you already have a ticket');
-            return;
-        }
         $number = (int) $matches['number'];
         if ($number < 1 || $number > 100) {
             $this->telegramService->replyTo($message, sprintf('%d is not in range. number must be between 1 and 100', $number));
             return;
         }
-        $ticket = TicketFactory::create($message->getUser(), $draw, $number);
+        $ticket = $draw->getTicketByUser($message->getUser());
+        if ($ticket === null) {
+            $ticket = TicketFactory::create($message->getUser(), $draw);
+            $this->manager->persist($ticket);
+        }
+        $ticketPrice = $this->getTicketPrice($ticket);
+        if ($ticketPrice !== 0) {
+            $honor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
+            if ($ticketPrice > $honor) {
+                $this->telegramService->replyTo($message, sprintf(
+                    'you need %d ehre to buy a ticket, but you only have %d ehre',
+                    $ticketPrice,
+                    $honor,
+                ));
+                return;
+            }
+            $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$ticketPrice));
+        }
         $draw->getTickets()->add($ticket);
-        $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -Ticket::TICKET_PRICE));
-        $this->manager->persist($ticket);
         $this->manager->flush();
         $this->telegramService->replyTo($message, sprintf(
-            'ticket bought with number %d for %d ehre. The jackpot is now %d ehre',
+            'ticket bought with number %d for %d ehre. You now have %d tickets. Your next ticket will cost %d ehre.',
             $number,
-            Ticket::TICKET_PRICE,
-            $draw->getJackpot(),
+            $ticketPrice,
+            count($ticket->getNumbers()),
+            $this->getTicketPrice($ticket),
         ));
     }
 
-    public function getHelp(): string
+    private function getTicketPrice(Ticket $ticket): int
     {
-        return '!ticket <number>    buy a ticket for the honor millions draw';
+        $numberOfTickets = count($ticket->getNumbers());
+        if ($numberOfTickets === 0) {
+            return 0;
+        }
+        return pow(10, $numberOfTickets + 2);
+    }
+
+    public function getSyntax(): string
+    {
+        return '!ticket <number>';
+    }
+
+    public function getDescription(): string
+    {
+        return 'buy a ticket for the ehre millions draw';
     }
 
 }

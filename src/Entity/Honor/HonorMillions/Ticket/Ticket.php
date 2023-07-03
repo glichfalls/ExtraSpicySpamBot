@@ -15,16 +15,14 @@ class Ticket
 {
     use Id;
 
-    public const TICKET_PRICE = 100;
-
     #[ManyToOne(targetEntity: User::class)]
     private User $user;
 
     #[ManyToOne(targetEntity: Draw::class, inversedBy: 'tickets')]
     private Draw $draw;
 
-    #[Column(type: 'integer')]
-    private int $number;
+    #[Column(type: 'json')]
+    private array $numbers = [];
 
     public function __construct()
     {
@@ -51,14 +49,27 @@ class Ticket
         return $this->draw;
     }
 
-    public function setNumber(int $number): void
+    public function addNumber(int $number): void
     {
-        $this->number = $number;
+        $this->numbers[] = $number;
     }
 
-    public function getNumber(): int
+    public function getNumbers(): array
     {
-        return $this->number;
+        return $this->numbers;
+    }
+
+    public function getTotalTicketCost(): int
+    {
+        $ticketCount = count($this->numbers);
+        if ($ticketCount <= 1) {
+            return 0;
+        }
+        $total = 0;
+        for ($i = 1; $i < $ticketCount; $i++) {
+            $total += pow(10, $i + 1);
+        }
+        return $total;
     }
 
 }

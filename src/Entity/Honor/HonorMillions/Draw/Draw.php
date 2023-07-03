@@ -4,6 +4,7 @@ namespace App\Entity\Honor\HonorMillions\Draw;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\HonorMillions\Ticket\Ticket;
+use App\Entity\User\User;
 use App\Model\Id;
 use App\Repository\DrawRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -127,6 +128,11 @@ class Draw
         return $this->tickets;
     }
 
+    public function getTicketByUser(User $user): ?Ticket
+    {
+        return $this->getTickets()->filter(fn(Ticket $ticket) => $ticket->getUser() === $user)->first();
+    }
+
     public function addTicket(Ticket $ticket): void
     {
         $this->tickets->add($ticket);
@@ -134,9 +140,11 @@ class Draw
 
     public function getJackpot(): int
     {
-        $jackpot = $this->getPreviousJackpot() + $this->getGamblingLosses();
-        $jackpot += $this->getTickets()->count() * Ticket::TICKET_PRICE;
-        return $jackpot;
+        return array_reduce(
+            $this->getTickets()->toArray(),
+            fn(int $carry, Ticket $ticket) => $carry + $ticket->getTotalTicketCost(),
+            $this->getPreviousJackpot() + $this->getGamblingLosses(),
+        );
     }
 
 }
