@@ -82,7 +82,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
         if ($numberOfTickets === 0) {
             return 0;
         }
-        return pow(10, $numberOfTickets + 2);
+        return pow(10, $numberOfTickets + 1);
     }
 
     public function getSyntax(): string
