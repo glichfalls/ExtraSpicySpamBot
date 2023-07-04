@@ -52,7 +52,7 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
                 if ($update->getMessage() && $update->getMessage()->getChat()) {
                     $this->bot->sendMessage(
                         $update->getMessage()->getChat()->getId(),
-                        'sadge',
+                        '💀',
                         replyToMessageId: $update->getMessage()->getMessageId()
                     );
                 }
