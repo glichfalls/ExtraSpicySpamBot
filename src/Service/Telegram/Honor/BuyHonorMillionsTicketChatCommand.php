@@ -97,7 +97,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
 
     public function getDescription(): string
     {
-        return 'buy a ticket for the ehre millions draw';
+        return 'buy a ticket for the ehre millions draw, first ticket is free, next ticket costs 100 ehre, then 1k, then 10k, etc.';
     }
 
 }
