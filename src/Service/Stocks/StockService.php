@@ -9,6 +9,8 @@ use App\Entity\Stocks\Stock\StockPriceFactory;
 use App\Exception\StockSymbolUpdateException;
 use App\Repository\Stocks\StockRepository;
 use App\Utils\RateLimitUtils;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Finnhub\Api\DefaultApi;
 use Finnhub\ApiException;
@@ -76,6 +78,39 @@ class StockService
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param string $symbol
+     * @return Collection<Stock>
+     */
+    public function fetchSymbol(string $symbol): Collection
+    {
+        try {
+            $lookup = @$this->client->symbolSearch($symbol);
+            if ($lookup->getCount() === 0 || $lookup->getResult() === null) {
+                $this->logger->notice(sprintf('No results found for symbol %s', $symbol));
+                throw new StockSymbolUpdateException($symbol, 'Symbol not found');
+            }
+            $matches = array_filter(
+                $lookup->getResult(),
+                fn(SymbolLookupInfo $info) => strstr(strtolower($info->getSymbol()), strtolower($symbol))
+            );
+            if (count($matches) === 0) {
+                $this->logger->notice(sprintf('No match found for symbol %s', $symbol));
+                throw new StockSymbolUpdateException($symbol, 'Failed to find symbol match');
+            }
+            $stocks = array_map(function (SymbolLookupInfo $info) {
+                $stock = StockFactory::createFromLookupInfo($info);
+                $this->manager->persist($stock);
+                return $stock;
+            }, $matches);
+            $this->manager->flush();
+            return new ArrayCollection($stocks);
+        } catch (ApiException $exception) {
+            $this->logger->error($exception->getMessage());
+            throw new StockSymbolUpdateException($symbol, $exception);
+        }
     }
 
     private function fetchExactSymbol(string $symbol): Stock
