@@ -27,8 +27,8 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
                     'Stock symbol %s not found. Did you mean one of:%s %s?',
                     $symbol,
                     PHP_EOL,
-                    implode(', ', $searchResult
-                        ->map(fn(Stock $stock) => sprintf('%s: %s%s', $stock->getSymbol(), $stock->getName(), PHP_EOL))
+                    implode(PHP_EOL, $searchResult
+                        ->map(fn(Stock $stock) => sprintf('<code>%s</code>: %s', $stock->getSymbol(), $stock->getName()))
                         ->slice(0, 10)
                     ),
                 ));
