@@ -102,6 +102,10 @@ class StockService
             }
             $stocks = array_map(function (SymbolLookupInfo $info) {
                 $stock = StockFactory::createFromLookupInfo($info);
+                $existing = $this->stockRepository->getBySymbol($stock->getSymbol());
+                if ($existing !== null) {
+                    return $existing;
+                }
                 $this->manager->persist($stock);
                 return $stock;
             }, $matches);
