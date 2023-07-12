@@ -12,7 +12,7 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/!stock (?<symbol>[.\w]+)/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/!stock (?<symbol>.+)/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -31,6 +31,7 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
                         ->getValues()
                     ),
                 ));
+                return;
             }
             $portfolio = $this->getPortfolioByMessage($message);
             $balance = $portfolio->getTransactionsBySymbol($symbol, $price);
