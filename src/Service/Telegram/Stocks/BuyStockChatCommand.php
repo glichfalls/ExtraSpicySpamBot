@@ -31,6 +31,8 @@ class BuyStockChatCommand extends AbstractStockChatCommand
                 ));
                 return;
             }
+        } else {
+            $amount = (int) $amount;
         }
         try {
             $portfolio = $this->getPortfolioByMessage($message);
