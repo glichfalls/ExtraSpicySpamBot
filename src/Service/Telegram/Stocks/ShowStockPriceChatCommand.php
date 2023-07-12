@@ -31,7 +31,7 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
                         ->map(fn(Stock $stock) => sprintf('<code>%s</code>: %s', $stock->getSymbol(), $stock->getName()))
                         ->slice(0, 10)
                     ),
-                ));
+                ), parseMode: 'HTML');
                 return;
             }
             $portfolio = $this->getPortfolioByMessage($message);
