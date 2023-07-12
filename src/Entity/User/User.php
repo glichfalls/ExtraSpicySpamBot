@@ -87,4 +87,14 @@ class User
         $this->lastName = $lastName;
     }
 
+    public function getSentHonor(): Collection
+    {
+        return $this->sentHonor;
+    }
+
+    public function getReceivedHonor(): Collection
+    {
+        return $this->receivedHonor;
+    }
+
 }
