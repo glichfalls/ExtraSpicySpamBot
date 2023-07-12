@@ -24,11 +24,12 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
             } catch (StockSymbolUpdateException) {
                 $searchResult = $this->searchStock($symbol);
                 $this->telegramService->replyTo($message, sprintf(
-                    'Stock symbol %s not found. Did you mean one of %s?',
+                    'Stock symbol %s not found. Did you mean one of:%s %s?',
                     $symbol,
-                    implode(',', $searchResult
-                        ->map(fn(Stock $stock) => $stock->getSymbol())
-                        ->getValues()
+                    PHP_EOL,
+                    implode(', ', $searchResult
+                        ->map(fn(Stock $stock) => sprintf('%s: %s%s', $stock->getSymbol(), $stock->getName(), PHP_EOL))
+                        ->slice(0, 10)
                     ),
                 ));
                 return;
