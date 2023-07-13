@@ -34,6 +34,9 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
         $total = 0;
         $totalHonor = 0;
         foreach ($portfolio->getBalance() as $transactions) {
+            if ($transactions->getTotalAmount() === 0) {
+                continue;
+            }
             $currentPrice = $this->getStockPrice($transactions->getSymbol());
             $total += $transactions->getCurrentTotal($currentPrice);
             $totalHonor += $transactions->getCurrentHonorTotal($currentPrice);

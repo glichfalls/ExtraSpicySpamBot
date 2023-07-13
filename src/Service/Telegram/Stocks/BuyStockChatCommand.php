@@ -13,13 +13,27 @@ class BuyStockChatCommand extends AbstractStockChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/!buy stocks? (?<symbol>[.\w]+) (?<amount>\d+)/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/!buy stocks? (?<symbol>[.\w]+) (?<amount>\d+|max)/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
     {
         $symbol = $matches['symbol'];
-        $amount = (int) $matches['amount'];
+        $amount = $matches['amount'];
+        if ($amount === 'max') {
+            $price = $this->stockService->getPriceBySymbol($symbol);
+            $honor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
+            $amount = floor($honor / $price->getHonorPrice());
+            if ($amount <= 0) {
+                $this->telegramService->replyTo($message, sprintf(
+                    'You dont have enough Ehre to buy %s',
+                    $symbol,
+                ));
+                return;
+            }
+        } else {
+            $amount = (int) $amount;
+        }
         try {
             $portfolio = $this->getPortfolioByMessage($message);
             $transaction = $this->buyStock($portfolio, $symbol, $amount);

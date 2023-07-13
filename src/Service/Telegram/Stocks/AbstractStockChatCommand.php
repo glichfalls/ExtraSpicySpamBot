@@ -6,6 +6,7 @@ use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Entity\Stocks\Portfolio\PortfolioFactory;
+use App\Entity\Stocks\Stock\Stock;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Transaction\StockTransaction;
 use App\Entity\Stocks\Transaction\StockTransactionFactory;
@@ -19,6 +20,7 @@ use App\Service\HonorService;
 use App\Service\Stocks\StockService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -104,6 +106,15 @@ abstract class AbstractStockChatCommand extends AbstractTelegramChatCommand
         ));
         $this->manager->flush();
         return $transaction;
+    }
+
+    /**
+     * @param string $symbol
+     * @return Collection<Stock>
+     */
+    protected function searchStock(string $symbol): Collection
+    {
+        return $this->stockService->fetchSymbol($symbol);
     }
 
 }
