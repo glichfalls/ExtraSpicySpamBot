@@ -80,12 +80,12 @@ class Draw
         $this->date = $date;
     }
 
-    public function getWinningNumber(): int
+    public function getWinningNumber(): ?int
     {
         return $this->winningNumber;
     }
 
-    public function setWinningNumber(int $winningNumber): void
+    public function setWinningNumber(?int $winningNumber): void
     {
         $this->winningNumber = $winningNumber;
     }
