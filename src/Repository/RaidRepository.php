@@ -36,7 +36,7 @@ class RaidRepository extends ServiceEntityRepository
             ->andWhere('r.isActive = true')
             ->andWhere('r.createdAt > :date')
             ->setParameter('chat', $chat)
-            ->setParameter('date', new \DateTime('-5 minutes'))
+            ->setParameter('date', new \DateTime('-15 minutes'))
             ->getQuery()
             ->getOneOrNullResult();
     }
