@@ -28,14 +28,16 @@ class HonorMillionsDrawCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         foreach ($this->drawRepository->getDrawsByDate(new \DateTime()) as $draw) {
-            $number = random_int(1, 100);
+            // use the winning number from the draw if it exists, otherwise generate a random number
+            // this is useful to re-run the command if something went wrong without changing the winning number
+            $number = $draw->getWinningNumber() ?? random_int(1, 100);
             $this->telegramService->sendText(
                 $draw->getChat()->getChatId(),
                 sprintf('The ehre Millions draw has been made! The winning number is %d', $number),
                 $draw->getTelegramThreadId(),
             );
             $draw->setWinningNumber($number);
-            $winners = $draw->getTickets()->filter(fn($ticket) => in_array($number, $ticket->getNumbers()));
+            $winners = $draw->getWinners();
             if ($winners->count() === 0) {
                 $this->telegramService->sendText(
                     $draw->getChat()->getChatId(),
@@ -51,7 +53,7 @@ class HonorMillionsDrawCommand extends Command
                 foreach ($winners as $winner) {
                     $this->telegramService->sendText(
                         $draw->getChat()->getChatId(),
-                        sprintf('Congratulations %s, you have won %d ehre!', $winner->getUser()->getUsername(), $amountPerWinner),
+                        sprintf('Congratulations %s, you have won %d ehre!', $winner->getUser()->getName(), $amountPerWinner),
                         $draw->getTelegramThreadId(),
                     );
                     $this->manager->persist(HonorFactory::create($draw->getChat(), null, $winner->getUser(), $amountPerWinner));

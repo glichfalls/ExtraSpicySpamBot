@@ -147,4 +147,15 @@ class Draw
         );
     }
 
+    /**
+     * @return Collection<Ticket>
+     */
+    public function getWinners(): Collection
+    {
+        if ($this->getWinningNumber() === null) {
+            return new ArrayCollection();
+        }
+        return $this->getTickets()->filter(fn($ticket) => in_array($this->getWinningNumber(), $ticket->getNumbers()));
+    }
+
 }
