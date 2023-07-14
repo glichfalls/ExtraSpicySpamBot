@@ -29,6 +29,7 @@ class DefendRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
             $this->telegramService->sendText(
                 $chat->getChatId(),
                 sprintf('%s is now defending the raid', $user->getName()),
+                threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             );
             $this->telegramService->answerCallbackQuery(
                 $update->getCallbackQuery(),
