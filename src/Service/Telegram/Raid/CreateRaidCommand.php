@@ -113,11 +113,11 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
             ],
             [
                 [
-                    'text' => 'start the raid',
+                    'text' => 'start',
                     'callback_data' => StartRaidChatCommand::CALLBACK_KEYWORD,
                 ],
                 [
-                    'text' => 'cancel the raid',
+                    'text' => 'cancel',
                     'callback_data' => CancelRaidChatCommand::CALLBACK_KEYWORD,
                 ],
             ],

@@ -71,7 +71,7 @@ class CancelRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
         if ($raid->getLeader()->getTelegramUserId() !== $user->getTelegramUserId()) {
             throw new \RuntimeException($this->translator->trans('telegram.raid.notLeaderError'));
         }
-        $raid->setIsActive(false);
+        $this->manager->remove($raid);
         $this->manager->flush();
     }
 
