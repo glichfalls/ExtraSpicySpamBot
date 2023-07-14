@@ -12,16 +12,17 @@ use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
 class CreateRaidCommand extends AbstractTelegramChatCommand
 {
 
     public function __construct(
-        EntityManagerInterface  $manager,
-        TranslatorInterface     $translator,
-        LoggerInterface         $logger,
-        TelegramService         $telegramService,
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
         private HonorRepository $honorRepository,
         private RaidRepository  $raidRepository,
         private UserRepository $userRepository,
@@ -84,11 +85,43 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
         $this->manager->persist($raid);
         $this->manager->flush();
         $this->telegramService->videoReplyTo($message, 'https://extra-spicy-spam.portner.dev/assets/video/raid.mp4');
-        $this->telegramService->sendText($chat->getChatId(), sprintf(
-            '%s started a raid against %s! to join write !support and to defend write !defend. To start the raid write !start raid',
-            $message->getUser()->getName(),
-            $target->getName()
-        ), $message->getTelegramThreadId());
+        $this->telegramService->sendText(
+            $chat->getChatId(),
+            sprintf(
+                '%s started a raid against %s! %s honor will be raided.',
+                $message->getUser()->getName(),
+                $target->getName(),
+                $raidAmount,
+            ),
+            threadId: $message->getTelegramThreadId(),
+            replyMarkup: $this->getRaidKeyboard(),
+        );
+    }
+
+    private function getRaidKeyboard(): InlineKeyboardMarkup
+    {
+        return new InlineKeyboardMarkup([
+            [
+                [
+                    'text' => 'support',
+                    'callback_data' => SupportRaidChatCommand::CALLBACK_KEYWORD,
+                ],
+                [
+                    'text' => 'defend',
+                    'callback_data' => DefendRaidChatCommand::CALLBACK_KEYWORD,
+                ],
+            ],
+            [
+                [
+                    'text' => 'start the raid',
+                    'callback_data' => StartRaidChatCommand::CALLBACK_KEYWORD,
+                ],
+                [
+                    'text' => 'cancel the raid',
+                    'callback_data' => CancelRaidChatCommand::CALLBACK_KEYWORD,
+                ],
+            ],
+        ]);
     }
 
     private function getRaidAmount(int $targetHonorAmount): int
@@ -99,9 +132,14 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
         return 100;
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!raid @<user>   starts a raid against the given user';
+        return '!raid @<user>';
+    }
+
+    public function getDescription(): string
+    {
+        return 'starts a raid against the given user';
     }
 
 }

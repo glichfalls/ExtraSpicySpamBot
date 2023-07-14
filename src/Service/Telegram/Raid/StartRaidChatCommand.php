@@ -2,32 +2,51 @@
 
 namespace App\Service\Telegram\Raid;
 
+use App\Entity\Chat\Chat;
 use App\Entity\Honor\HonorFactory;
+use App\Entity\Honor\Raid\Raid;
 use App\Entity\Message\Message;
-use App\Repository\HonorRepository;
-use App\Repository\RaidRepository;
-use App\Service\HonorService;
-use App\Service\Telegram\AbstractTelegramChatCommand;
-use App\Service\Telegram\TelegramService;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Entity\User\User;
+use App\Service\Telegram\TelegramCallbackQueryListener;
 use TelegramBot\Api\Types\Update;
 
-class StartRaidChatCommand extends AbstractTelegramChatCommand
+class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCallbackQueryListener
 {
+    public const CALLBACK_KEYWORD = 'raid:start';
 
-    public function __construct(
-        EntityManagerInterface  $manager,
-        TranslatorInterface     $translator,
-        LoggerInterface         $logger,
-        TelegramService         $telegramService,
-        private RaidRepository  $raidRepository,
-        private HonorRepository $honorRepository,
-        private HonorService    $honorService,
-    )
+    public function getCallbackKeyword(): string
     {
-        parent::__construct($manager, $translator, $logger, $telegramService);
+        return self::CALLBACK_KEYWORD;
+    }
+
+    public function handleCallback(Update $update, Chat $chat, User $user): void
+    {
+        try {
+            $raid = $this->getActiveRaid($chat);
+            $this->canStartRaid($raid, $user);
+            if ($this->isSuccessful()) {
+                $this->success($raid);
+                $this->telegramService->sendText(
+                    $chat->getChatId(),
+                    $this->translator->trans('telegram.raid.raidSuccessful', [
+                        'target' => $raid->getTarget()->getName(),
+                        'honorCount' => $raid->getAmount(),
+                    ]),
+                    threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+                );
+            } else {
+                $this->failure($raid);
+                $this->telegramService->sendText(
+                    $chat->getChatId(),
+                    $this->translator->trans('telegram.raid.raidFailed', [
+                        'target' => $raid->getTarget()->getName(),
+                    ]),
+                    threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+                );
+            }
+        } catch (\RuntimeException $exception) {
+            $this->logger->info($exception->getMessage());
+        }
     }
 
     public function matches(Update $update, Message $message, array &$matches): bool
@@ -37,81 +56,98 @@ class StartRaidChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $raid = $this->raidRepository->getActiveRaid($message->getChat());
-        if ($raid === null) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.noActiveRaid'));
-            return;
-        }
-        if ($raid->getLeader()->getTelegramUserId() !== $message->getUser()->getTelegramUserId()) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.noLeaderError'));
-            return;
-        }
-
-        $supporterCount = $raid->getSupporters()->count();
-        $defenderCount = $raid->getDefenders()->count();
-
-        if ($supporterCount + $defenderCount === 0) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.noSupportersOrDefendersError'));
-            return;
-        }
-
-        if (random_int(1, 10) <= 6) {
-            $this->telegramService->replyTo(
-                $message,
-                $this->translator->trans('telegram.raid.raidSuccessful', [
-                    'target' => $raid->getTarget()->getName(),
-                    'honorCount' => $raid->getAmount(),
-                ]),
-            );
-            $raid->setIsActive(false);
-            $raid->setIsSuccessful(true);
-            $honorPerSupporter = $raid->getAmount() / ($supporterCount + 1);
-            // add honor to leader
-            $this->manager->persist(HonorFactory::create($message->getChat(), null, $raid->getLeader(), $honorPerSupporter));
-            // add honor to supporters
-            foreach ($raid->getSupporters() as $supporter) {
-                $this->manager->persist(HonorFactory::create($message->getChat(), null, $supporter, $honorPerSupporter));
+        try {
+            $raid = $this->getActiveRaid($message->getChat());
+            $this->canStartRaid($raid, $message->getUser());
+            if ($this->isSuccessful()) {
+                $this->success($raid);
+                $this->telegramService->replyTo(
+                    $message,
+                    $this->translator->trans('telegram.raid.raidSuccessful', [
+                        'target' => $raid->getTarget()->getName(),
+                        'honorCount' => $raid->getAmount(),
+                    ]),
+                );
+            } else {
+                $this->failure($raid);
+                $this->telegramService->replyTo(
+                    $message,
+                    $this->translator->trans('telegram.raid.raidFailed', [
+                        'target' => $raid->getTarget()->getName(),
+                    ]),
+                );
             }
-            // remove honor from target
-            $this->manager->persist(HonorFactory::create($message->getChat(), null, $raid->getTarget(), -$raid->getAmount()));
-            // remove honor from defenders
-            foreach ($raid->getDefenders() as $defender) {
-                $this->manager->persist(HonorFactory::create($message->getChat(), null, $defender, -$honorPerSupporter));
-            }
-        } else {
-            $totalHonor = $this->honorRepository->getHonorCount($raid->getLeader(), $message->getChat()) / 2;
-            $this->manager->persist(HonorFactory::create($message->getChat(), null, $raid->getLeader(), -$totalHonor));
-            foreach ($raid->getSupporters() as $supporter) {
-                $currentSupporterHonor = ceil(abs($this->honorRepository->getHonorCount($supporter, $message->getChat())) / 4);
-                $totalHonor += $currentSupporterHonor;
-                $this->manager->persist(HonorFactory::create($message->getChat(), null, $supporter, -$currentSupporterHonor));
-            }
-            $raid->setIsActive(false);
-            $raid->setIsSuccessful(false);
-            $honorPerDefender = ceil($totalHonor / ($defenderCount + 1));
-            $this->telegramService->replyTo(
-                $message,
-                $this->translator->trans('telegram.raid.raidFailed', [
-                    'target' => $raid->getTarget()->getName(),
-                    'totalHonor' => $totalHonor,
-                    'honorPerDefender' => $honorPerDefender,
-                ]),
-            );
-            foreach ($raid->getDefenders() as $defender) {
-                // add honor to defenders
-                $this->manager->persist(HonorFactory::create($message->getChat(), null, $defender, $honorPerDefender));
-            }
-            // add honor to target
-            $this->manager->persist(HonorFactory::create($message->getChat(), null, $raid->getTarget(), $honorPerDefender));
+        } catch (\RuntimeException $exception) {
+            $this->telegramService->replyTo($message, $exception->getMessage());
         }
-        $this->manager->flush();
-        $leaderboard = $this->honorService->getLeaderboardByChat($message->getChat());
-        $this->telegramService->sendText($message->getChat()->getChatId(), $leaderboard, $message->getTelegramThreadId());
     }
 
-    public function getHelp(): string
+    private function canStartRaid(Raid $raid, User $user): void
     {
-        return '!start raid     start the active raid';
+        if ($raid->getLeader()->getTelegramUserId() !== $user->getTelegramUserId()) {
+            throw new \RuntimeException($this->translator->trans('telegram.raid.noLeaderError'));
+        }
+        $supporterCount = $raid->getSupporters()->count();
+        $defenderCount = $raid->getDefenders()->count();
+        if ($supporterCount + $defenderCount === 0) {
+            throw new \RuntimeException($this->translator->trans('telegram.raid.noSupportersOrDefendersError'));
+        }
+    }
+
+    private function isSuccessful(): bool
+    {
+        return random_int(1, 10) <= 6;
+    }
+
+    private function success(Raid $raid): void
+    {
+        $raid->setIsActive(false);
+        $raid->setIsSuccessful(true);
+        $honorPerSupporter = $raid->getAmount() / ($raid->getSupporters()->count() + 1);
+        // add honor to leader
+        $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getLeader(), $honorPerSupporter));
+        // add honor to supporters
+        foreach ($raid->getSupporters() as $supporter) {
+            $this->manager->persist(HonorFactory::create($raid->getChat(), null, $supporter, $honorPerSupporter));
+        }
+        // remove honor from target
+        $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getTarget(), -$raid->getAmount()));
+        // remove honor from defenders
+        foreach ($raid->getDefenders() as $defender) {
+            $this->manager->persist(HonorFactory::create($raid->getChat(), null, $defender, -$honorPerSupporter));
+        }
+        $this->manager->flush();
+    }
+
+    private function failure(Raid $raid): void
+    {
+        $totalHonor = $this->honorRepository->getHonorCount($raid->getLeader(), $raid->getChat()) / 2;
+        $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getLeader(), -$totalHonor));
+        foreach ($raid->getSupporters() as $supporter) {
+            $currentSupporterHonor = ceil(abs($this->honorRepository->getHonorCount($supporter, $raid->getChat())) / 4);
+            $totalHonor += $currentSupporterHonor;
+            $this->manager->persist(HonorFactory::create($raid->getChat(), null, $supporter, -$currentSupporterHonor));
+        }
+        $raid->setIsActive(false);
+        $raid->setIsSuccessful(false);
+        $honorPerDefender = ceil($totalHonor / ($raid->getDefenders()->count() + 1));
+        foreach ($raid->getDefenders() as $defender) {
+            // add honor to defenders
+            $this->manager->persist(HonorFactory::create($raid->getChat(), null, $defender, $honorPerDefender));
+        }
+        // add honor to target
+        $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getTarget(), $honorPerDefender));
+        $this->manager->flush();
+    }
+
+    public function getSyntax(): string
+    {
+        return '!start raid';
+    }
+
+    public function getDescription(): string
+    {
+        return 'start the active raid';
     }
 
 }

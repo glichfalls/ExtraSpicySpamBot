@@ -2,27 +2,39 @@
 
 namespace App\Service\Telegram\Raid;
 
+use App\Entity\Chat\Chat;
+use App\Entity\Honor\Raid\Raid;
 use App\Entity\Message\Message;
-use App\Repository\RaidRepository;
-use App\Service\Telegram\AbstractTelegramChatCommand;
-use App\Service\Telegram\TelegramService;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Entity\User\User;
+use App\Service\Telegram\TelegramCallbackQueryListener;
 use TelegramBot\Api\Types\Update;
 
-class CancelRaidChatCommand extends AbstractTelegramChatCommand
+class CancelRaidChatCommand extends AbstractRaidChatCommand implements TelegramCallbackQueryListener
 {
+    public const CALLBACK_KEYWORD = 'raid:cancel';
 
-    public function __construct(
-        EntityManagerInterface $manager,
-        TranslatorInterface    $translator,
-        LoggerInterface        $logger,
-        TelegramService        $telegramService,
-        private RaidRepository $raidRepository,
-    )
+    public function getCallbackKeyword(): string
     {
-        parent::__construct($manager, $translator, $logger, $telegramService);
+        return self::CALLBACK_KEYWORD;
+    }
+
+    public function handleCallback(Update $update, Chat $chat, User $user): void
+    {
+        try {
+            $raid = $this->getActiveRaid($chat);
+            $this->cancelRaid($raid, $user);
+            $this->telegramService->sendText(
+                $chat->getChatId(),
+                $this->translator->trans('telegram.raid.raidCanceled'),
+                threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+            );
+        } catch (\RuntimeException $exception) {
+            $this->telegramService->sendText(
+                $chat->getChatId(),
+                $exception->getMessage(),
+                threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+            );
+        }
     }
 
     public function matches(Update $update, Message $message, array &$matches): bool
@@ -32,27 +44,40 @@ class CancelRaidChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $raid = $this->raidRepository->getActiveRaid($message->getChat());
-        if ($raid === null) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.noActiveRaid'));
-            return;
+        try {
+            $raid = $this->getActiveRaid($message->getChat());
+            $this->cancelRaid($raid, $message->getUser());
+            $this->telegramService->sendText(
+                $message->getChat()->getChatId(),
+                $this->translator->trans('telegram.raid.raidCanceled'),
+                threadId: $message->getTelegramThreadId(),
+            );
+        } catch (\RuntimeException $exception) {
+            $this->telegramService->sendText(
+                $message->getChat()->getChatId(),
+                $exception->getMessage(),
+                threadId: $message->getTelegramThreadId(),
+            );
         }
-        if ($raid->getLeader()->getTelegramUserId() !== $message->getUser()->getTelegramUserId()) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.notLeaderError'));
-            return;
+    }
+
+    private function cancelRaid(Raid $raid, User $user): void
+    {
+        if ($raid->getLeader()->getTelegramUserId() !== $user->getTelegramUserId()) {
+            throw new \RuntimeException($this->translator->trans('telegram.raid.notLeaderError'));
         }
         $raid->setIsActive(false);
         $this->manager->flush();
-        $this->telegramService->sendText(
-            $message->getChat()->getChatId(),
-            $this->translator->trans('telegram.raid.raidCanceled'),
-            threadId: $message->getTelegramThreadId(),
-        );
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!cancel raid   cancels the current raid';
+        return '!cancel raid';
+    }
+
+    public function getDescription(): string
+    {
+        return 'cancels the active raid';
     }
 
 }

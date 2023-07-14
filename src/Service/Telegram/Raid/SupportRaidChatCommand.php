@@ -2,28 +2,39 @@
 
 namespace App\Service\Telegram\Raid;
 
+use App\Entity\Chat\Chat;
+use App\Entity\Honor\Raid\Raid;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
-use App\Repository\RaidRepository;
-use App\Service\Telegram\AbstractTelegramChatCommand;
-use App\Service\Telegram\TelegramService;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\Telegram\TelegramCallbackQueryListener;
 use TelegramBot\Api\Types\Update;
 
-class SupportRaidChatCommand extends AbstractTelegramChatCommand
+class SupportRaidChatCommand extends AbstractRaidChatCommand implements TelegramCallbackQueryListener
 {
+    public const CALLBACK_KEYWORD = 'raid:support';
 
-    public function __construct(
-        EntityManagerInterface $manager,
-        TranslatorInterface    $translator,
-        LoggerInterface        $logger,
-        TelegramService        $telegramService,
-        private RaidRepository $raidRepository,
-    )
+    public function getCallbackKeyword(): string
     {
-        parent::__construct($manager, $translator, $logger, $telegramService);
+        return self::CALLBACK_KEYWORD;
+    }
+
+    public function handleCallback(Update $update, Chat $chat, User $user): void
+    {
+        try {
+            $raid = $this->getActiveRaid($chat);
+            $this->canSupportRaid($raid, $user);
+            $raid->getSupporters()->add($user);
+            $this->manager->persist($raid);
+            $this->manager->flush();
+            $this->telegramService->sendText(
+                $chat->getChatId(),
+                $this->translator->trans('telegram.raid.userSupportingRaid', [
+                    'user' => $user->getName(),
+                ]),
+            );
+        } catch (\RuntimeException $exception) {
+            $this->logger->info($exception->getMessage());
+        }
     }
 
     public function matches(Update $update, Message $message, array &$matches): bool
@@ -33,36 +44,42 @@ class SupportRaidChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $raid = $this->raidRepository->getActiveRaid($message->getChat());
-        if ($raid === null) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.noActiveRaid'));
-            return;
+        try {
+            $raid = $this->getActiveRaid($message->getChat());
+            $this->canSupportRaid($raid, $message->getUser());
+            $raid->getSupporters()->add($message->getUser());
+            $this->manager->persist($raid);
+            $this->manager->flush();
+            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.nowSupportingRaid'));
+        } catch (\RuntimeException $exception) {
+            $this->telegramService->replyTo($message, $exception->getMessage());
         }
-        if ($raid->getTarget()->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.cannotSupportOwnRaid'));
-            return;
-        }
-        if ($raid->getLeader()->getTelegramUserId() === $message->getUser()->getTelegramUserId()) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.raidLeaderAutomaticallySupportsRaid'));
-            return;
-        }
-        if ($raid->getSupporters()->filter(fn(User $user) => $user->getTelegramUserId() === $message->getUser()->getTelegramUserId())->count() > 0) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.alreadySupportRaid'));
-            return;
-        }
-        if ($raid->getDefenders()->filter(fn(User $user) => $user->getTelegramUserId() === $message->getUser()->getTelegramUserId())->count() > 0) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.cannotSupportAndDefend'));
-            return;
-        }
-        $raid->getSupporters()->add($message->getUser());
-        $this->manager->persist($raid);
-        $this->manager->flush();
-        $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.nowSupportingRaid'));
     }
 
-    public function getHelp(): string
+    private function canSupportRaid(Raid $raid, User $supporter): void
     {
-        return '!support | !s   support the active raid';
+        if ($raid->getTarget()->getTelegramUserId() === $supporter->getTelegramUserId()) {
+            throw new \RuntimeException($this->translator->trans('telegram.raid.cannotSupportOwnRaid'));
+        }
+        if ($raid->getLeader()->getTelegramUserId() === $supporter->getTelegramUserId()) {
+            throw new \RuntimeException($this->translator->trans('telegram.raid.raidLeaderAutomaticallySupportsRaid'));
+        }
+        if ($raid->getSupporters()->filter(fn(User $user) => $user->getTelegramUserId() === $supporter->getTelegramUserId())->count() > 0) {
+            throw new \RuntimeException($this->translator->trans('telegram.raid.alreadySupportRaid'));
+        }
+        if ($raid->getDefenders()->filter(fn(User $user) => $user->getTelegramUserId() === $supporter->getTelegramUserId())->count() > 0) {
+            throw new \RuntimeException($this->translator->trans('telegram.raid.cannotSupportAndDefend'));
+        }
+    }
+
+    public function getSyntax(): string
+    {
+        return '!support or !s';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Support the active raid';
     }
 
 }
