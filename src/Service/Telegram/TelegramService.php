@@ -365,4 +365,17 @@ class TelegramService
         );
     }
 
+    public function changeInlineKeyboard(
+        string $chatId,
+        string $inlineMessageId,
+        mixed $replyMarkup,
+    ): void
+    {
+        $this->bot->call('editMessageReplyMarkup', [
+            'chat_id' => $chatId,
+            'inline_message_id' => $inlineMessageId,
+            'reply_markup' => is_null($replyMarkup) ? $replyMarkup : $replyMarkup->toJson(),
+        ]);
+    }
+
 }

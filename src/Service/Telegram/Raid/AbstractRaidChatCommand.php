@@ -13,6 +13,7 @@ use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 
 abstract class AbstractRaidChatCommand extends AbstractTelegramChatCommand
 {
@@ -38,6 +39,32 @@ abstract class AbstractRaidChatCommand extends AbstractTelegramChatCommand
             throw new \RuntimeException('no active raid');
         }
         return $raid;
+    }
+
+    protected function getRaidKeyboard(Raid $raid): InlineKeyboardMarkup
+    {
+        return new InlineKeyboardMarkup([
+            [
+                [
+                    'text' => sprintf('⚔️ support (%d)', $raid->getSupporters()->count()),
+                    'callback_data' => SupportRaidChatCommand::CALLBACK_KEYWORD,
+                ],
+                [
+                    'text' => sprintf('🛡️ defend (%d)', $raid->getDefenders()->count()),
+                    'callback_data' => DefendRaidChatCommand::CALLBACK_KEYWORD,
+                ],
+            ],
+            [
+                [
+                    'text' => 'start',
+                    'callback_data' => StartRaidChatCommand::CALLBACK_KEYWORD,
+                ],
+                [
+                    'text' => 'cancel',
+                    'callback_data' => CancelRaidChatCommand::CALLBACK_KEYWORD,
+                ],
+            ],
+        ]);
     }
 
 }

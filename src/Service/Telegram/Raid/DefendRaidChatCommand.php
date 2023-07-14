@@ -36,6 +36,11 @@ class DefendRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
                 'You are now defending the raid',
                 false,
             );
+            $this->telegramService->changeInlineKeyboard(
+                $chat->getChatId(),
+                $update->getCallbackQuery()->getInlineMessageId(),
+                $this->getRaidKeyboard($raid),
+            );
         } catch (\RuntimeException $exception) {
             $this->logger->info(sprintf('failed to handle callback query [%s]', $exception->getMessage()));
             $this->telegramService->answerCallbackQuery(

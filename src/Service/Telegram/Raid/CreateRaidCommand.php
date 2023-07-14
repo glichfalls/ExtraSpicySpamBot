@@ -4,32 +4,10 @@ namespace App\Service\Telegram\Raid;
 
 use App\Entity\Honor\Raid\RaidFactory;
 use App\Entity\Message\Message;
-use App\Repository\HonorRepository;
-use App\Repository\RaidRepository;
-use App\Repository\UserRepository;
-use App\Service\Telegram\AbstractTelegramChatCommand;
-use App\Service\Telegram\TelegramService;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-class CreateRaidCommand extends AbstractTelegramChatCommand
+class CreateRaidCommand extends AbstractRaidChatCommand
 {
-
-    public function __construct(
-        EntityManagerInterface $manager,
-        TranslatorInterface $translator,
-        LoggerInterface $logger,
-        TelegramService $telegramService,
-        private HonorRepository $honorRepository,
-        private RaidRepository  $raidRepository,
-        private UserRepository $userRepository,
-    )
-    {
-        parent::__construct($manager, $translator, $logger, $telegramService);
-    }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
@@ -94,34 +72,8 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
                 $raidAmount,
             ),
             threadId: $message->getTelegramThreadId(),
-            replyMarkup: $this->getRaidKeyboard(),
+            replyMarkup: $this->getRaidKeyboard($raid),
         );
-    }
-
-    private function getRaidKeyboard(): InlineKeyboardMarkup
-    {
-        return new InlineKeyboardMarkup([
-            [
-                [
-                    'text' => '⚔️ support ',
-                    'callback_data' => SupportRaidChatCommand::CALLBACK_KEYWORD,
-                ],
-                [
-                    'text' => '🛡️ defend',
-                    'callback_data' => DefendRaidChatCommand::CALLBACK_KEYWORD,
-                ],
-            ],
-            [
-                [
-                    'text' => 'start',
-                    'callback_data' => StartRaidChatCommand::CALLBACK_KEYWORD,
-                ],
-                [
-                    'text' => 'cancel',
-                    'callback_data' => CancelRaidChatCommand::CALLBACK_KEYWORD,
-                ],
-            ],
-        ]);
     }
 
     private function getRaidAmount(int $targetHonorAmount): int

@@ -38,6 +38,11 @@ class SupportRaidChatCommand extends AbstractRaidChatCommand implements Telegram
                 'You are now supporting the raid',
                 false,
             );
+            $this->telegramService->changeInlineKeyboard(
+                $chat->getChatId(),
+                $update->getCallbackQuery()->getInlineMessageId(),
+                $this->getRaidKeyboard($raid),
+            );
         } catch (\RuntimeException $exception) {
             $this->logger->info($exception->getMessage());
             $this->telegramService->answerCallbackQuery(
