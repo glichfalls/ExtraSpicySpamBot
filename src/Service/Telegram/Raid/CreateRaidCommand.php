@@ -103,11 +103,11 @@ class CreateRaidCommand extends AbstractTelegramChatCommand
         return new InlineKeyboardMarkup([
             [
                 [
-                    'text' => 'support',
+                    'text' => '⚔️ support ',
                     'callback_data' => SupportRaidChatCommand::CALLBACK_KEYWORD,
                 ],
                 [
-                    'text' => 'defend',
+                    'text' => '🛡️ defend',
                     'callback_data' => DefendRaidChatCommand::CALLBACK_KEYWORD,
                 ],
             ],
