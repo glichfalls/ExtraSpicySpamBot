@@ -56,10 +56,18 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
             $this->telegramService->sendText(
                 $chat->getChatId(),
                 'Accepted! Chose your number',
-                threadId: $update->getCallbackQuery()->getMessage()->getMessageId(),
+                threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
                 replyMarkup: $this->getKeyboard($round),
             );
+            $this->telegramService->deleteMessage(
+                $chat->getChatId(),
+                $update->getCallbackQuery()->getMessage()->getMessageId(),
+            );
             $this->manager->flush();
+            return;
+        }
+        if ($round->getWinner() !== null) {
+            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'game is finished', false);
             return;
         }
         if (
@@ -95,23 +103,27 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
                     $round->getOpponent()->getName(),
                     $round->getOpponentNumber(),
                 ),
-                threadId: $update->getCallbackQuery()->getMessage()->getMessageId(),
+                threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             );
             if ($round->getOpponentNumber() === $round->getChallengerNumber()) {
                 $round->setWinner($round->getChallenger());
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf('@%s won!', $round->getChallenger()->getName()),
-                    threadId: $update->getCallbackQuery()->getMessage()->getMessageId(),
+                    threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
                 );
             } else {
                 $round->setWinner($round->getOpponent());
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf('@%s won!', $round->getOpponent()->getName()),
-                    threadId: $update->getCallbackQuery()->getMessage()->getMessageId(),
+                    threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
                 );
             }
+            $this->telegramService->deleteMessage(
+                $chat->getChatId(),
+                $update->getCallbackQuery()->getMessage()->getMessageId(),
+            );
         }
         $this->manager->flush();
     }
@@ -144,15 +156,17 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
     {
         $data = [];
         if (!$round->isAccepted()) {
-            for ($i = 2; $i <= $round->getRange(); $i+=5) {
-                $row = [];
-                for ($j = 1; $j <= 5; $j++) {
-                    $row[] = [
-                        'text' => $i,
-                        'callback_data' => sprintf('%s:%s:%d', self::CALLBACK_KEYWORD, $round->getId(), $i),
-                    ];
+            $range = $round->getRange();
+            $row = [];
+            for ($i = 2; $i <= $range; $i++) {
+                $row[] = [
+                    'text' => $i,
+                    'callback_data' => sprintf('%s:%s:%d', self::CALLBACK_KEYWORD, $round->getId(), $i),
+                ];
+                if (count($row) == 5 || $i == $range) {
+                    $data[] = $row;
+                    $row = [];
                 }
-                $data[] = $row;
             }
         } else {
             $range = $round->getRange();

@@ -378,4 +378,12 @@ class TelegramService
         ]);
     }
 
+    public function deleteMessage(string $chatId, string $messageId): void
+    {
+        $this->bot->deleteMessage(
+            $chatId,
+            $messageId,
+        );
+    }
+
 }
