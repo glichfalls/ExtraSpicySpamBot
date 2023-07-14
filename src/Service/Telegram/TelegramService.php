@@ -24,6 +24,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use TelegramBot\Api\BotApi;
+use TelegramBot\Api\Types\CallbackQuery;
 use TelegramBot\Api\Types\InputMedia\ArrayOfInputMedia;
 use TelegramBot\Api\Types\InputMedia\InputMediaVideo;
 use TelegramBot\Api\Types\Message as TelegramMessage;
@@ -289,31 +290,79 @@ class TelegramService
         return $chat;
     }
 
+    public function getChatFromMessage(TelegramMessage $message): ?Chat
+    {
+        if ($message->getChat()?->getId() === null) {
+            return null;
+        }
+        $chat = $this->chatRepository->getChatByTelegramId($message->getChat()->getId());
+        if (!$chat) {
+            $chat = ChatFactory::createFromMessage($message);
+            $this->manager->persist($chat);
+            $this->manager->flush();
+        }
+        return $chat;
+    }
+
     public function getSenderFromUpdate(Update $update): ?User
     {
         if ($update->getMessage()?->getFrom()?->getId() === null) {
             return null;
         }
+        return $this->getUserFromMessage($update->getMessage());
+    }
+
+    public function getUserFromCallbackQuery(CallbackQuery $callbackQuery): ?User
+    {
+        if ($callbackQuery->getFrom()?->getId() === null) {
+            return null;
+        }
+        return $this->createUser($callbackQuery->getFrom());
+    }
+
+    public function getUserFromMessage(TelegramMessage $message): ?User
+    {
+        if ($message->getFrom()?->getId() === null) {
+            return null;
+        }
+        return $this->createUser($message->getFrom());
+    }
+
+    private function createUser(\TelegramBot\Api\Types\User $telegramUser): ?User
+    {
         /** @var User|null $user */
-        $user = $this->userRepository->getByTelegramId($update->getMessage()->getFrom()->getId());
+        $user = $this->userRepository->getByTelegramId($telegramUser->getId());
         if (!$user) {
-            $user = UserFactory::createFromTelegramUser($update->getMessage()->getFrom());
+            $user = UserFactory::createFromTelegramUser($telegramUser);
             $this->manager->persist($user);
             return $user;
         }
-        if ($user->getName() !== $update->getMessage()->getFrom()->getUsername()) {
-            $user->setName($update->getMessage()->getFrom()->getUsername());
+        if ($user->getName() !== $telegramUser->getUsername()) {
+            $user->setName($telegramUser->getUsername());
             $this->manager->flush();
         }
-        if ($user->getFirstName() !== $update->getMessage()->getFrom()->getFirstName()) {
-            $user->setFirstName($update->getMessage()->getFrom()->getFirstName());
+        if ($user->getFirstName() !== $telegramUser->getFirstName()) {
+            $user->setFirstName($telegramUser->getFirstName());
             $this->manager->flush();
         }
-        if ($user->getLastName() !== $update->getMessage()->getFrom()->getLastName()) {
-            $user->setLastName($update->getMessage()->getFrom()->getLastName());
+        if ($user->getLastName() !== $telegramUser->getLastName()) {
+            $user->setLastName($telegramUser->getLastName());
             $this->manager->flush();
         }
         return $user;
+    }
+
+    public function answerCallbackQuery(
+        CallbackQuery $callbackQuery,
+        string $text,
+        bool $showAlert,
+    ): void
+    {
+        $this->bot->answerCallbackQuery(
+            $callbackQuery->getId(),
+            $text,
+            showAlert: $showAlert,
+        );
     }
 
 }

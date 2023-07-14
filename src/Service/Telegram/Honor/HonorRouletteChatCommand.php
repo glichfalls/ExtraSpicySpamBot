@@ -12,6 +12,7 @@ use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
+use JetBrains\PhpStorm\ArrayShape;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
@@ -43,14 +44,42 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         $callbackQuery = $update->getCallbackQuery();
         $data = explode(';', $callbackQuery->getData());
         if (count($data) === 3) {
-            $bet = $data[1];
-            $amount = (int) $data[2];
-            $result = $this->roll($chat, $user, $bet, $amount);
-            $this->telegramService->sendText(
-                $chat->getChatId(),
-                $result,
-                threadId: $callbackQuery->getMessage()->getMessageThreadId(),
-            );
+            $amount = (int) $data[1];
+            $currentHonor = $this->honorRepository->getHonorCount($user, $chat);
+            if ($currentHonor < $amount) {
+                $this->telegramService->answerCallbackQuery(
+                    $callbackQuery,
+                    sprintf('you dont have enough Ehre to bet %d Ehre', $amount),
+                    true,
+                );
+            } else {
+                $bet = $data[2];
+                $result = $this->roll($chat, $user, $bet, $amount);
+                $this->telegramService->sendText(
+                    $chat->getChatId(),
+                    sprintf(
+                        '%s %s %d Ehre (%s -> %d %s)',
+                        $user->getName(),
+                        $result['amount'] > 0 ? 'won' : 'lost',
+                        abs($result['amount']),
+                        $bet,
+                        $result['number'],
+                        $this->getColorEmojiByNumber($result['number']),
+                    ),
+                    threadId: $callbackQuery->getMessage()->getMessageThreadId(),
+                );
+                $this->telegramService->answerCallbackQuery(
+                    $callbackQuery,
+                    sprintf(
+                        'You %s %d Ehre (%d %s)',
+                        $result['amount'] > 0 ? 'won' : 'lost',
+                        abs($result['amount']),
+                        $result['number'],
+                        $this->getColorEmojiByNumber($result['number']),
+                    ),
+                    true,
+                );
+            }
         }
     }
 
@@ -66,7 +95,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         if ($bet === null) {
             $this->telegramService->sendText(
                 $message->getChat()->getChatId(),
-                sprintf('choose a bet %s', $message->getUser()->getName()),
+                sprintf('chose a bet for %d Ehre', $initialAmount),
                 threadId: $message->getTelegramThreadId(),
                 replyMarkup: $this->getBoardKeyboard($initialAmount),
             );
@@ -76,14 +105,23 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         if ($currentHonor < $initialAmount) {
             $this->telegramService->replyTo($message, 'not enough ehre');
         } else {
+            $result = $this->roll($message->getChat(), $message->getUser(), $bet, $initialAmount);
             $this->telegramService->replyTo(
                 $message,
-                $this->roll($message->getChat(), $message->getUser(), $bet, $initialAmount),
+                sprintf(
+                    'the number is %d %s. %s %s %d ehre.',
+                    $result['number'],
+                    $this->getColorEmojiByNumber($result['number']),
+                    $message->getUser()->getName(),
+                    $result['amount'] > 0 ? 'won' : 'lost',
+                    abs($result['amount']),
+                ),
             );
         }
     }
 
-    private function roll(Chat $chat, User $user, string $bet, int $initialAmount): string
+    #[ArrayShape(['number' => "int", 'color' => "string", 'amount' => "int"])]
+    private function roll(Chat $chat, User $user, string $bet, int $initialAmount): array
     {
         $number = random_int(0, 36);
         $colorValue = $this->getColorByNumber($number);
@@ -104,13 +142,11 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         }
         $this->manager->persist(HonorFactory::create($chat, null, $user, $amount));
         $this->manager->flush();
-        return sprintf(
-            'the number is %d %s. You have %s %d ehre.',
-            $number,
-            $this->getColorEmojiByNumber($number),
-            $amount > 0 ? 'won' : 'lost',
-            abs($amount),
-        );
+        return [
+            'number' => $number,
+            'color' => $colorValue,
+            'amount' => $amount,
+        ];
     }
 
     public function getHelp(): string
@@ -122,18 +158,18 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
     {
         return [
             [ 0 => 'green' ],
-            [ 1 => 'red', 2, 'black', 3 => 'red'],
-            [ 4 => 'black', 5, 'red', 6 => 'black'],
-            [ 7 => 'red', 8, 'black', 9 => 'red'],
-            [ 10 => 'black', 11, 'black', 12 => 'red'],
-            [ 13 => 'black', 14, 'red', 15 => 'black'],
-            [ 16 => 'red', 17, 'black', 18 => 'red'],
-            [ 19 => 'red', 20, 'black', 21 => 'red'],
-            [ 22 => 'black', 23, 'red', 24 => 'black'],
-            [ 25 => 'red', 26, 'black', 27 => 'red'],
-            [ 28 => 'black', 29, 'black', 30 => 'red'],
-            [ 31 => 'black', 32, 'red', 33 => 'black'],
-            [ 34 => 'red', 35, 'black', 36 => 'red'],
+            [ 1 => 'red', 2 => 'black', 3 => 'red'],
+            [ 4 => 'black', 5 => 'red', 6 => 'black'],
+            [ 7 => 'red', 8 => 'black', 9 => 'red'],
+            [ 10 => 'black', 11 => 'black', 12 => 'red'],
+            [ 13 => 'black', 14 => 'red', 15 => 'black'],
+            [ 16 => 'red', 17 => 'black', 18 => 'red'],
+            [ 19 => 'red', 20 => 'black', 21 => 'red'],
+            [ 22 => 'black', 23 => 'red', 24 => 'black'],
+            [ 25 => 'red', 26 => 'black', 27 => 'red'],
+            [ 28 => 'black', 29 => 'black', 30 => 'red'],
+            [ 31 => 'black', 32 => 'red', 33 => 'black'],
+            [ 34 => 'red', 35 => 'black', 36 => 'red'],
         ];
     }
 
@@ -170,15 +206,19 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
     {
         $board = $this->getBoard();
         $keyboard = [];
-        foreach ($board as $row) {
-            $keyboard[] = array_map(fn(int $number, string $color) => [
-                'text' => sprintf(
-                    '%s %d',
-                    $color === 'green' ? '🟢' : ($color === 'red' ? '🔴' : '⚫️'),
-                    $number
-                ),
-                'callback_data' => sprintf('%s;%d;%d', self::CALLBACK_KEYWORD, $amount, $number)
-            ], $row);
+        foreach ($board as $data) {
+            $row = [];
+            foreach ($data as $number => $color) {
+                  $row[] = [
+                      'text' => sprintf(
+                          '%s %d',
+                          $color === 'green' ? '🟢' : ($color === 'red' ? '🔴' : '⚫️'),
+                          $number
+                      ),
+                      'callback_data' => sprintf('%s;%d;%d', self::CALLBACK_KEYWORD, $amount, $number)
+                  ];
+            }
+            $keyboard[] = $row;
         }
         $keyboard[] = [
             ['text' => '1-12', 'callback_data' => sprintf('%s;%d;%s', self::CALLBACK_KEYWORD, $amount, '1-12')],

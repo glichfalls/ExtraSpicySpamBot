@@ -25,9 +25,16 @@ class TelegramCallbackQueryHandler
     {
         $callbackQuery = $update->getCallbackQuery();
         $data = $callbackQuery->getData();
-        $chat = $this->telegramService->getChatFromUpdate($update);
-        $user = $this->telegramService->getSenderFromUpdate($update);
+        $message = $callbackQuery->getMessage();
+        if ($message === null) {
+            return;
+        }
+        $chat = $this->telegramService->getChatFromMessage($message);
+        $user = $this->telegramService->getUserFromCallbackQuery($callbackQuery);
         if ($chat === null || $user === null) {
+            $this->telegramService->sendText(
+                $update->getCallbackQuery()->getMessage()->getChat()->getId(),
+                'Something went wrong, please try again later.');
             return;
         }
         foreach ($this->listeners as $listener) {
