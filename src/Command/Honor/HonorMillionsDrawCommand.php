@@ -61,7 +61,7 @@ class HonorMillionsDrawCommand extends Command
                 $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());
                 $nextDraw->setChat($draw->getChat());
                 $nextDraw->setPreviousDraw(null);
-                $nextDraw->setPreviousJackpot(0);
+                $nextDraw->setPreviousJackpot(100_000);
             }
             $this->manager->persist($nextDraw);
             $this->manager->flush();
