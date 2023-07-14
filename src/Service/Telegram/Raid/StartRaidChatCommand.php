@@ -44,6 +44,11 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                     threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
                 );
             }
+            $this->telegramService->answerCallbackQuery(
+                $update->getCallbackQuery(),
+                'Raid has finished',
+                false,
+            );
         } catch (\RuntimeException $exception) {
             $this->logger->info($exception->getMessage());
         }

@@ -28,6 +28,11 @@ class CancelRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
                 $this->translator->trans('telegram.raid.raidCanceled'),
                 threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             );
+            $this->telegramService->answerCallbackQuery(
+                $update->getCallbackQuery(),
+                'Raid has been canceled',
+                false,
+            );
         } catch (\RuntimeException $exception) {
             $this->telegramService->sendText(
                 $chat->getChatId(),

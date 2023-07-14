@@ -32,6 +32,11 @@ class SupportRaidChatCommand extends AbstractRaidChatCommand implements Telegram
                     'user' => $user->getName(),
                 ]),
             );
+            $this->telegramService->answerCallbackQuery(
+                $update->getCallbackQuery(),
+                'You are now supporting the raid',
+                false,
+            );
         } catch (\RuntimeException $exception) {
             $this->logger->info($exception->getMessage());
         }
