@@ -2,6 +2,7 @@
 
 namespace App\Subscriber;
 
+use App\Service\Telegram\TelegramCallbackQueryHandler;
 use App\Service\Telegram\TelegramWebhookHandler;
 use BoShurik\TelegramBotBundle\Event\UpdateEvent;
 use Psr\Log\LoggerInterface;
@@ -14,9 +15,10 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
 {
 
     public function __construct(
-        private LoggerInterface        $logger,
+        private LoggerInterface $logger,
         private TelegramWebhookHandler $webhookService,
-        private BotApi                 $bot,
+        private TelegramCallbackQueryHandler $callbackQueryHandler,
+        private BotApi $bot,
     )
     {
     }
@@ -35,6 +37,10 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
             $this->logger->info('Update received', [
                 'update' => $update->toJson(true)
             ]);
+            if ($update->getCallbackQuery() !== null) {
+                $this->callbackQueryHandler->handle($update);
+                return;
+            }
             if (!$update->getMessage() || !$update->getMessage()->getText()) {
                 $this->logger->warning('failed to get text from update');
                 return;

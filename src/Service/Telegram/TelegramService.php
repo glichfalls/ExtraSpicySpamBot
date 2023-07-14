@@ -89,9 +89,9 @@ class TelegramService
         return $this->bot->sendMediaGroup($chatId, $media);
     }
 
-    public function sendText(string $chatId, string $text, ?int $threadId = null): ?TelegramMessage
+    public function sendText(string $chatId, string $text, ?int $threadId = null, mixed $replyMarkup = null, ?string $parseMode = null): ?TelegramMessage
     {
-        return $this->bot->sendMessage($chatId, $text, messageThreadId: $threadId);
+        return $this->bot->sendMessage($chatId, $text, parseMode: $parseMode, replyMarkup: $replyMarkup, messageThreadId: $threadId);
     }
 
     public function stickerReplyTo(Message $message, Sticker $sticker): TelegramMessage
@@ -275,7 +275,7 @@ class TelegramService
         $this->replyTo($message, $this->renderMessage($template, $context), parseMode: 'HTML');
     }
 
-    private function getChatFromUpdate(Update $update): ?Chat
+    public function getChatFromUpdate(Update $update): ?Chat
     {
         if ($update->getMessage()?->getChat()?->getId() === null) {
             return null;
@@ -289,7 +289,7 @@ class TelegramService
         return $chat;
     }
 
-    private function getSenderFromUpdate(Update $update): ?User
+    public function getSenderFromUpdate(Update $update): ?User
     {
         if ($update->getMessage()?->getFrom()?->getId() === null) {
             return null;
