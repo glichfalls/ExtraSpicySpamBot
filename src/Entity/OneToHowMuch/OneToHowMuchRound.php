@@ -35,7 +35,7 @@ class OneToHowMuchRound
     #[Column(type: 'boolean')]
     private bool $accepted = false;
 
-    #[Column(type: 'integer')]
+    #[Column(name: 'number_range', type: 'integer')]
     private int $range = 100;
 
     public function __construct()

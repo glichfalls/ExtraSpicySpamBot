@@ -134,8 +134,8 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
             sprintf('@%s challenged @%s', $message->getUser()->getName(), $opponent->getName()),
-            threadId: $message->getTelegramMessageId(),
-            replyMarkup: $this->getKeyboard(),
+            threadId: $message->getTelegramThreadId(),
+            replyMarkup: $this->getKeyboard($round),
         );
         $this->manager->flush();
     }
