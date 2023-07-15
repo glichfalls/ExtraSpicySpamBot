@@ -14,8 +14,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand('telegram:honor:passive')]
 class PassiveHonorCommand extends Command
 {
-    private const CHAT_ID = -1001285586333;
-    private const PASSIVE_HONOR_PER_HOUR = 100;
 
     public function __construct(
         private EntityManagerInterface $manager,
@@ -28,10 +26,12 @@ class PassiveHonorCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $chat = $this->chatRepository->getChatByTelegramId(self::CHAT_ID);
-        $users = $this->userRepository->getUsersByChat($chat);
-        foreach ($users as $user) {
-            $this->manager->persist(HonorFactory::create($chat, null, $user, self::PASSIVE_HONOR_PER_HOUR));
+        $chats = $this->chatRepository->getAllWithPassiveHonorEnabled();
+        foreach ($chats as $chat) {
+            $users = $this->userRepository->getUsersByChat($chat);
+            foreach ($users as $user) {
+                $this->manager->persist(HonorFactory::create($chat, null, $user, $chat->getConfig()->getPassiveHonorAmount()));
+            }
         }
         $this->manager->flush();
         return Command::SUCCESS;

@@ -58,10 +58,9 @@ class CancelRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
                 threadId: $message->getTelegramThreadId(),
             );
         } catch (\RuntimeException $exception) {
-            $this->telegramService->answerCallbackQuery(
-                $update->getCallbackQuery(),
+            $this->telegramService->replyTo(
+                $message,
                 $exception->getMessage(),
-                true,
             );
         }
     }

@@ -19,4 +19,16 @@ class ChatRepository extends ServiceEntityRepository
         return $this->findOneBy(['chatId' => $id]);
     }
 
+    /**
+     * @return array<Chat>
+     */
+    public function getAllWithPassiveHonorEnabled(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->innerJoin('c.config', 'cc')
+            ->where('cc.passiveHonorEnabled = true')
+            ->getQuery()
+            ->getResult();
+    }
+
 }

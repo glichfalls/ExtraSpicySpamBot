@@ -6,6 +6,7 @@ use App\Model\Id;
 use App\Repository\ChatRepository;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\OneToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity(repositoryClass: ChatRepository::class)]
@@ -19,6 +20,9 @@ class Chat
 
     #[Column]
     private string $name;
+
+    #[OneToOne(targetEntity: ChatConfig::class, cascade: ["persist", "remove"])]
+    private ChatConfig $config;
 
     public function __construct()
     {
@@ -43,6 +47,16 @@ class Chat
     public function setName(string $name): void
     {
         $this->name = $name;
+    }
+
+    public function getConfig(): ChatConfig
+    {
+        return $this->config;
+    }
+
+    public function setConfig(ChatConfig $config): void
+    {
+        $this->config = $config;
     }
 
 }
