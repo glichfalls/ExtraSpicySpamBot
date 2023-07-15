@@ -2,7 +2,7 @@
     "name": "glichfalls/extra-spicy-spam",
     "description": "Extra Spicy Spam",
     "type": "project",
-    "license": "proprietary",
+    "license": "MIT",
     "require": {
         "php": ">=8.0.2",
         "ext-ctype": "*",
