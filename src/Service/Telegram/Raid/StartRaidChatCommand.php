@@ -134,13 +134,13 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
         $totalHonor = $this->honorRepository->getHonorCount($raid->getLeader(), $raid->getChat()) / 2;
         $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getLeader(), -$totalHonor));
         foreach ($raid->getSupporters() as $supporter) {
-            $currentSupporterHonor = ceil(abs($this->honorRepository->getHonorCount($supporter, $raid->getChat())) / 4);
+            $currentSupporterHonor = (int) ceil(abs($this->honorRepository->getHonorCount($supporter, $raid->getChat())) / 4);
             $totalHonor += $currentSupporterHonor;
             $this->manager->persist(HonorFactory::create($raid->getChat(), null, $supporter, -$currentSupporterHonor));
         }
         $raid->setIsActive(false);
         $raid->setIsSuccessful(false);
-        $honorPerDefender = ceil($totalHonor / ($raid->getDefenders()->count() + 1));
+        $honorPerDefender = (int) ceil($totalHonor / ($raid->getDefenders()->count() + 1));
         foreach ($raid->getDefenders() as $defender) {
             // add honor to defenders
             $this->manager->persist(HonorFactory::create($raid->getChat(), null, $defender, $honorPerDefender));

@@ -28,6 +28,7 @@ use TelegramBot\Api\Types\CallbackQuery;
 use TelegramBot\Api\Types\InputMedia\ArrayOfInputMedia;
 use TelegramBot\Api\Types\InputMedia\InputMediaVideo;
 use TelegramBot\Api\Types\Message as TelegramMessage;
+use \TelegramBot\Api\Types\User as TelegramUser;
 use TelegramBot\Api\Types\MessageEntity;
 use TelegramBot\Api\Types\ReplyKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
@@ -328,7 +329,7 @@ class TelegramService
         return $this->createUser($message->getFrom());
     }
 
-    private function createUser(\TelegramBot\Api\Types\User $telegramUser): ?User
+    private function createUser(TelegramUser $telegramUser): User
     {
         /** @var User|null $user */
         $user = $this->userRepository->getByTelegramId($telegramUser->getId());
@@ -378,7 +379,7 @@ class TelegramService
         ]);
     }
 
-    public function deleteMessage(string $chatId, string $messageId): void
+    public function deleteMessage(string $chatId, int $messageId): void
     {
         $this->bot->deleteMessage(
             $chatId,

@@ -55,7 +55,7 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
             ]);
         } catch (Throwable $exception) {
             try {
-                if ($update->getMessage() && $update->getMessage()->getChat()) {
+                if ($update->getMessage()?->getChat()) {
                     $this->bot->sendMessage(
                         $update->getMessage()->getChat()->getId(),
                         '💀',

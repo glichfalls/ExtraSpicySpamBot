@@ -1,6 +1,7 @@
 parameters:
-    level: 2
+    level: 5
     paths:
         - config/
         - public/
         - src/
+    treatPhpDocTypesAsCertain: false
