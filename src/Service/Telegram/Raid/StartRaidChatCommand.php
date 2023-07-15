@@ -49,6 +49,10 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                 'Raid finished',
                 false,
             );
+            $this->telegramService->deleteMessage(
+                $update->getCallbackQuery()->getMessage()->getChat()->getId(),
+                $update->getCallbackQuery()->getMessage()->getMessageId(),
+            );
         } catch (\RuntimeException $exception) {
             $this->logger->info($exception->getMessage());
             $this->telegramService->answerCallbackQuery(
@@ -83,13 +87,10 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                 $this->telegramService->replyTo(
                     $message,
                     $this->translator->trans('telegram.raid.raidFailed', [
-                        'target' => $raid->getTarget()->getName(),
+                        'target' => $raid->getTarget()->getName() ?? $raid->getTarget()->getFirstName(),
                     ]),
                 );
             }
-            $this->telegramService->deleteMessage(
-                $raid->get
-            );
         } catch (\RuntimeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());
         }
