@@ -71,7 +71,7 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
             return;
         }
         if (
-            $round->getChallenger()->getId() !== $user->getId() ||
+            $round->getChallenger()->getId() !== $user->getId() &&
             $round->getOpponent()->getId() !== $user->getId()
         ) {
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'you are not a participant', false);

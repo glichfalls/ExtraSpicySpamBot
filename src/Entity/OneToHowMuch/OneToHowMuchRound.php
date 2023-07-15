@@ -28,8 +28,10 @@ class OneToHowMuchRound
     #[ManyToOne(targetEntity: User::class)]
     private ?User $winner = null;
 
+    #[Column(type: 'integer', nullable: true)]
     private ?int $challengerNumber = null;
 
+    #[Column(type: 'integer', nullable: true)]
     private ?int $opponentNumber = null;
 
     #[Column(type: 'boolean')]

@@ -87,6 +87,9 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                     ]),
                 );
             }
+            $this->telegramService->deleteMessage(
+                $raid->get
+            );
         } catch (\RuntimeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());
         }
