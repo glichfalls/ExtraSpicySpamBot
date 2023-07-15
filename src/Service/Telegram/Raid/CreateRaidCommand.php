@@ -86,7 +86,7 @@ class CreateRaidCommand extends AbstractRaidChatCommand
 
     public function getSyntax(): string
     {
-        return '!raid @<user>';
+        return '!raid @<strong>user</strong>';
     }
 
     public function getDescription(): string

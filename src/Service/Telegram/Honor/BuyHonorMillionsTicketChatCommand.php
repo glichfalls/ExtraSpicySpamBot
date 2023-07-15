@@ -92,7 +92,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
 
     public function getSyntax(): string
     {
-        return '!ticket <number>';
+        return '!ticket <strong>number</strong>';
     }
 
     public function getDescription(): string
