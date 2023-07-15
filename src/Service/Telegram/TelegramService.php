@@ -21,6 +21,7 @@ use App\Repository\StickerSetRepository;
 use App\Repository\UserRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPStan\Analyser\IgnoredError;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use TelegramBot\Api\BotApi;
@@ -293,6 +294,7 @@ class TelegramService
 
     public function getChatFromMessage(TelegramMessage $message): ?Chat
     {
+        // @phpstan-ignore-next-line
         if ($message->getChat()?->getId() === null) {
             return null;
         }
@@ -315,6 +317,7 @@ class TelegramService
 
     public function getUserFromCallbackQuery(CallbackQuery $callbackQuery): ?User
     {
+        // @phpstan-ignore-next-line
         if ($callbackQuery->getFrom()?->getId() === null) {
             return null;
         }

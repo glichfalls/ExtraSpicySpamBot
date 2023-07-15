@@ -26,10 +26,10 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
     ];
 
     public function __construct(
-        EntityManagerInterface     $manager,
-        TranslatorInterface        $translator,
-        LoggerInterface            $logger,
-        TelegramService            $telegramService,
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
         private OpenAiImageService $openAiImageService,
         private GeneratedImageRepository $generatedImageRepository,
     )
@@ -81,7 +81,7 @@ class GenerateImageChatCommand extends AbstractTelegramChatCommand
         if ($latestUserGeneratedImage === null) {
             return 0;
         }
-        $secondsSinceLastUserImage = $this->intervalToSeconds($latestUserGeneratedImage?->getCreatedAt()->diff(new \DateTime()));
+        $secondsSinceLastUserImage = $this->intervalToSeconds($latestUserGeneratedImage->getCreatedAt()->diff(new \DateTime()));
         return self::USER_RATE_LIMIT_SECONDS - $secondsSinceLastUserImage;
     }
 

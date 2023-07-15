@@ -97,4 +97,14 @@ class User
         return $this->receivedHonor;
     }
 
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function setMessages(Collection $collection): void
+    {
+        $this->messages = $collection;
+    }
+
 }

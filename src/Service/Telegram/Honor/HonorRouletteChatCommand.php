@@ -12,7 +12,6 @@ use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
-use JetBrains\PhpStorm\ArrayShape;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
@@ -120,7 +119,6 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         }
     }
 
-    #[ArrayShape(['number' => "int", 'color' => "string", 'amount' => "int"])]
     private function roll(Chat $chat, User $user, string $bet, int $initialAmount): array
     {
         $number = random_int(0, 36);

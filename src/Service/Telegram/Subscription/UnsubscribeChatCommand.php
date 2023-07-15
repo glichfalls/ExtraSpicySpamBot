@@ -15,10 +15,10 @@ class UnsubscribeChatCommand extends AbstractTelegramChatCommand
 {
 
     public function __construct(
-        EntityManagerInterface             $manager,
-        TranslatorInterface                $translator,
-        LoggerInterface                    $logger,
-        TelegramService                    $telegramService,
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
         private ChatSubscriptionRepository $subscriptionRepository,
     )
     {

@@ -29,7 +29,7 @@ class StockTransaction
     #[Column(type: 'integer', nullable: false)]
     private int $amount;
 
-    private ?int $total = null;
+    private ?float $total = null;
 
     private ?int $honorTotal = null;
 

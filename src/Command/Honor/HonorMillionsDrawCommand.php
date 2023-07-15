@@ -49,7 +49,7 @@ class HonorMillionsDrawCommand extends Command
                 $nextDraw->setPreviousJackpot($draw->getJackpot());
             } else {
                 $jackpot = $draw->getJackpot();
-                $amountPerWinner = ceil($jackpot / $winners->count());
+                $amountPerWinner = (int) ceil($jackpot / $winners->count());
                 foreach ($winners as $winner) {
                     $this->telegramService->sendText(
                         $draw->getChat()->getChatId(),

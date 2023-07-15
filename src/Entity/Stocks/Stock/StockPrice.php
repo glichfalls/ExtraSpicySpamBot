@@ -26,7 +26,7 @@ class StockPrice
     private ?float $changeAbsolute = null;
 
     #[Column(type: 'float', nullable: true)]
-    private ?string $changePercent = null;
+    private ?float $changePercent = null;
 
     public function __construct()
     {

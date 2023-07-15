@@ -17,7 +17,7 @@ class GenerateStickerChatCommand extends AbstractTelegramChatCommand
 {
     private const STICKER_SET_NAME = 'extra_spicy_spam';
     private const STICKER_SET_TITLE = 'Extra Spicy Spam';
-    private const OWNER_TELEGRAM_ID = '1098121923';
+    private const OWNER_TELEGRAM_ID = 1098121923;
 
     public function __construct(
         EntityManagerInterface $manager,
