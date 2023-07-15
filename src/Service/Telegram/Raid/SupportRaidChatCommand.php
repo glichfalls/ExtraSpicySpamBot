@@ -29,7 +29,7 @@ class SupportRaidChatCommand extends AbstractRaidChatCommand implements Telegram
             $this->telegramService->sendText(
                 $chat->getChatId(),
                 $this->translator->trans('telegram.raid.userSupportingRaid', [
-                    'user' => $user->getName(),
+                    'name' => $user->getName(),
                 ]),
                 threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             );

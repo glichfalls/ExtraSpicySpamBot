@@ -28,12 +28,14 @@ class DefendRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
             $this->manager->flush();
             $this->telegramService->sendText(
                 $chat->getChatId(),
-                sprintf('%s is now defending the raid', $user->getName()),
+                $this->translator->trans('telegram.raid.userDefendingRaid', [
+                    'name' => $user->getName(),
+                ]),
                 threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             );
             $this->telegramService->answerCallbackQuery(
                 $update->getCallbackQuery(),
-                'You are now defending the raid',
+                $this->translator->trans('telegram.raid.nowDefendingRaid'),
                 false,
             );
             $this->telegramService->changeInlineKeyboard(
@@ -64,7 +66,7 @@ class DefendRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
             $raid->getDefenders()->add($message->getUser());
             $this->manager->persist($raid);
             $this->manager->flush();
-            $this->telegramService->replyTo($message, 'you are now defending the raid');
+            $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.nowDefendingRaid'));
         } catch (\RuntimeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());
             return;
