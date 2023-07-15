@@ -37,8 +37,8 @@ class DefendRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
                 false,
             );
             $this->telegramService->changeInlineKeyboard(
-                $chat->getChatId(),
-                $update->getCallbackQuery()->getInlineMessageId(),
+                $update->getCallbackQuery()->getMessage()->getChat()->getId(),
+                $update->getCallbackQuery()->getMessage()->getMessageId(),
                 $this->getRaidKeyboard($raid),
             );
         } catch (\RuntimeException $exception) {
