@@ -1,7 +1,12 @@
-controllers:
-    resource: ../src/Controller/
-    type: annotation
+# config/routes.yaml
 
-kernel:
-    resource: ../src/Kernel.php
+# API Platform routes
+api_platform:
+    resource: .
+    type: api_platform
+    prefix: /api
+
+# Other routes for your application
+app_routes:
+    resource: '../src/Controller/'
     type: annotation

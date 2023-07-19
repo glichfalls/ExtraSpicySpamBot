@@ -2,6 +2,8 @@
 
 namespace App\Entity\Chat;
 
+
+use ApiPlatform\Core\Annotation\ApiResource;
 use App\Model\Id;
 use App\Repository\ChatRepository;
 use Doctrine\ORM\Mapping\Column;
@@ -10,6 +12,7 @@ use Doctrine\ORM\Mapping\OneToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity(repositoryClass: ChatRepository::class)]
+#[ApiResource]
 class Chat
 {
     use Id;

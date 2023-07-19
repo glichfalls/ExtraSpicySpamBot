@@ -2,3 +2,9 @@ api_platform:
     resource: .
     type: api_platform
     prefix: /api
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']
+        extra_properties:
+            standard_put: true
