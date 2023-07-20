@@ -11,17 +11,17 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        api: # has to be before telegram_login
+            pattern: ^/api
+            stateless: true
+            jwt: ~
         telegram_login:
             login_link:
                 check_route: login_check
                 signature_properties: [ 'telegramUserId' ]
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
-        api:
-            pattern: ^/api
-            stateless: true
-            jwt: ~
 
     access_control:
         - { path: ^/api/auth, roles: PUBLIC_ACCESS }
-        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api, roles: ROLE_USER }
