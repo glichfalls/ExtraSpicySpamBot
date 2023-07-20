@@ -19,7 +19,7 @@ security:
             login_link:
                 check_route: login_check
                 signature_properties: [ 'telegramUserId' ]
-                success_handler: lexik_jwt_authentication.handler.authentication_success
+                success_handler: App\Security\AuthenticationSuccessHandler
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
     access_control:

@@ -11,6 +11,7 @@ services:
             string $extraSpicySpamChatId: '%env(EXTRA_SPICY_SPAM_CHAT_ID)%'
             string $openAiApiKey: '%env(OPENAI_API_KEY)%'
             string $finnhubApiKey: '%env(FINNHUB_API_KEY)%'
+            string $frontendUrl: '%env(FRONTEND_URL)%'
 
     App\:
         resource: '../src/'
