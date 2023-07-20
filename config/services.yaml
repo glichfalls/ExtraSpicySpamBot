@@ -18,3 +18,7 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
+    app.telegram_authenticator:
+        class: App\Security\TelegramAuthenticator
+        parent: lexik_jwt_authentication.security.jwt_authenticator

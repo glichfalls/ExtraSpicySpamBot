@@ -12,9 +12,10 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToMany;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[Entity(repositoryClass: UserRepository::class)]
-class User
+class User implements UserInterface
 {
     use Id;
     use TimestampableEntity;
@@ -105,6 +106,21 @@ class User
     public function setMessages(Collection $collection): void
     {
         $this->messages = $collection;
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->getTelegramUserId();
+    }
+
+    public function getRoles(): array
+    {
+        return ['ROLE_USER'];
+    }
+
+    public function eraseCredentials(): void
+    {
+
     }
 
 }

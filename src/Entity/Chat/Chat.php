@@ -4,10 +4,14 @@ namespace App\Entity\Chat;
 
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use App\Entity\Message\Message;
 use App\Model\Id;
 use App\Repository\ChatRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OneToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
@@ -27,9 +31,13 @@ class Chat
     #[OneToOne(targetEntity: ChatConfig::class, cascade: ["persist", "remove"])]
     private ChatConfig $config;
 
+    #[OneToMany(mappedBy: "chat", targetEntity: Message::class)]
+    private Collection $messages;
+
     public function __construct()
     {
         $this->generateId();
+        $this->messages = new ArrayCollection();
     }
 
     public function getChatId(): string

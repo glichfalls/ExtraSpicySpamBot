@@ -2,6 +2,7 @@
 
 namespace App\Entity\Stocks\Portfolio;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Chat\Chat;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Transaction\StockTransaction;
@@ -17,6 +18,7 @@ use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OrderBy;
 
 #[Entity(repositoryClass: PortfolioRepository::class)]
+#[ApiResource]
 class Portfolio
 {
     use Id;
