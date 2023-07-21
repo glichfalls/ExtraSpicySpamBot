@@ -68,8 +68,14 @@ class SecurityController extends AbstractController
             replyMarkup: $this->getLoginKeyboard($loginLink, $request),
         );
 
+        if ($this->getParameter('kernel.environment') === 'dev') {
+            return $this->json([
+                'success' => true,
+                'link' => $loginLink,
+            ]);
+        }
         return $this->json([
-            'link' => $loginLink,
+            'success' => true,
         ]);
     }
 
