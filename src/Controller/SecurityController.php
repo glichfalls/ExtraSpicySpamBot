@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Chat\Chat;
+use App\Entity\User\User;
 use App\Repository\ChatRepository;
 use App\Repository\UserRepository;
+use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,8 +14,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\LoginLink\LoginLinkHandlerInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
+use TelegramBot\Api\Types\Update;
 
-class SecurityController extends AbstractController
+class SecurityController extends AbstractController implements TelegramCallbackQueryListener
 {
 
     public function __construct(
@@ -23,8 +27,14 @@ class SecurityController extends AbstractController
     {
     }
 
+    #[Route('/api/me')]
+    public function getMe(): Response
+    {
+        return $this->json($this->getUser());
+    }
+
     #[Route('/auth/check', name: 'login_check')]
-    public function login_check(): void
+    public function loginCheck(): void
     {
         // The security layer will intercept this request and proceed to the login.
         // If it is successful, the user is sent to the default success route.
@@ -90,6 +100,16 @@ class SecurityController extends AbstractController
                 ['text' => 'login', 'url' => $link],
             ],
         ]);
+    }
+
+    public function getCallbackKeyword(): string
+    {
+        return 'login';
+    }
+
+    public function handleCallback(Update $update, Chat $chat, User $user): void
+    {
+
     }
 
 }

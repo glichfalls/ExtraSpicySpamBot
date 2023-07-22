@@ -2,6 +2,7 @@
 
 namespace App\Entity\User;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Model\Id;
@@ -13,8 +14,10 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToMany;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: UserRepository::class)]
+#[ApiResource]
 class User implements UserInterface
 {
     use Id;
@@ -33,12 +36,15 @@ class User implements UserInterface
     private ?string $lastName = null;
 
     #[OneToMany(mappedBy: 'sender', targetEntity: Honor::class)]
+    #[Ignore]
     private Collection $sentHonor;
 
     #[OneToMany(mappedBy: 'recipient', targetEntity: Honor::class)]
+    #[Ignore]
     private Collection $receivedHonor;
 
     #[OneToMany(mappedBy: 'user', targetEntity: Message::class)]
+    #[Ignore]
     private Collection $messages;
 
     public function __construct()
