@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OneToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: ChatRepository::class)]
 #[ApiResource]
@@ -32,6 +33,7 @@ class Chat
     private ChatConfig $config;
 
     #[OneToMany(mappedBy: "chat", targetEntity: Message::class)]
+    #[Ignore]
     private Collection $messages;
 
     public function __construct()

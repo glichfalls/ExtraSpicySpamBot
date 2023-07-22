@@ -5,3 +5,13 @@ api_platform:
         json: ['application/merge-patch+json']
     swagger:
         versions: [3]
+    eager_loading:
+        max_joins: 50
+    defaults:
+        pagination_items_per_page: 30
+        pagination_client_items_per_page: true
+        pagination_client_enabled: true
+    collection:
+        pagination:
+            items_per_page_parameter_name: itemsPerPage
+            partial_parameter_name: partial

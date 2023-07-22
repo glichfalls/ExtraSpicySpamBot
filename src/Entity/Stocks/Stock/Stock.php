@@ -2,6 +2,7 @@
 
 namespace App\Entity\Stocks\Stock;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use App\Model\Id;
 use App\Repository\Stocks\StockRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -10,8 +11,10 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OrderBy;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: StockRepository::class)]
+#[ApiResource]
 class Stock
 {
     use Id;
@@ -30,6 +33,7 @@ class Stock
 
     #[OneToMany(mappedBy: 'stock', targetEntity: StockPrice::class, cascade: ['persist'])]
     #[OrderBy(['createdAt' => 'DESC'])]
+    #[Ignore]
     private Collection $stockPrices;
 
     public function __construct()

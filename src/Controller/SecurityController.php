@@ -72,11 +72,13 @@ class SecurityController extends AbstractController implements TelegramCallbackQ
             ], status: Response::HTTP_PRECONDITION_FAILED);
         }
 
-        $this->telegramService->sendText(
-            $userChat->getChatId(),
-            'click the button below to login',
-            replyMarkup: $this->getLoginKeyboard($loginLink, $request),
-        );
+        if ($request->getHost() !== 'localhost') {
+            $this->telegramService->sendText(
+                $userChat->getChatId(),
+                'click the button below to login',
+                replyMarkup: $this->getLoginKeyboard($loginLink, $request),
+            );
+        }
 
         if ($this->getParameter('kernel.environment') === 'dev') {
             return $this->json([

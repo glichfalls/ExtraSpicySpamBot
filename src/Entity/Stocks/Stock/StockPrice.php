@@ -2,6 +2,7 @@
 
 namespace App\Entity\Stocks\Stock;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -10,6 +11,7 @@ use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity]
+#[ApiResource]
 class StockPrice
 {
     use Id;
