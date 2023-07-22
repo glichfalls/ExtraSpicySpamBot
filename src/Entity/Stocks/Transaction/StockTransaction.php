@@ -2,6 +2,9 @@
 
 namespace App\Entity\Stocks\Transaction;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Doctrine\Odm\Filter\SearchFilter;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Model\Id;
@@ -11,9 +14,9 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
-use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: StockTransactionRepository::class)]
+#[ApiResource(paginationEnabled: false)]
 class StockTransaction
 {
     use Id;

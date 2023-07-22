@@ -2,8 +2,9 @@
 
 namespace App\Entity\Stocks\Portfolio;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Metadata\ApiProperty;
+use App\ApiPlatform\Filter\UserFilter;
 use App\Entity\Chat\Chat;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Transaction\StockTransaction;
@@ -17,10 +18,10 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OrderBy;
-use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: PortfolioRepository::class)]
 #[ApiResource]
+    #[ApiFilter(UserFilter::class)]
 class Portfolio
 {
     use Id;
