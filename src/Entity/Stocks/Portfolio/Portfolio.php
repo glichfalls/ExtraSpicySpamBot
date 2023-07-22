@@ -18,22 +18,27 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OrderBy;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity(repositoryClass: PortfolioRepository::class)]
-#[ApiResource]
-    #[ApiFilter(UserFilter::class)]
+#[ApiResource(
+    normalizationContext: ['groups' => ['portfolio:read', 'price:read', 'user:read', 'chat:read']],
+)]
 class Portfolio
 {
     use Id;
 
     #[ManyToOne(targetEntity: Chat::class)]
+    #[Groups(['chat:read'])]
     private Chat $chat;
 
     #[ManyToOne(targetEntity: User::class)]
+    #[Groups(['user:read'])]
     private User $user;
 
     #[OneToMany(mappedBy: 'portfolio', targetEntity: StockTransaction::class, cascade: ['persist'])]
     #[OrderBy(['createdAt' => 'DESC'])]
+    #[Groups(['portfolio:read', 'price:read'])]
     private Collection $transactions;
 
     public function __construct()
@@ -81,6 +86,7 @@ class Portfolio
     /**
      * @return array<SymbolTransactionCollection>
      */
+    #[Groups(['portfolio:read'])]
     public function getBalance(): array
     {
         $symbols = $this->getTransactions()->map(fn (StockTransaction $transaction) => $transaction->getPrice()->getStock()->getSymbol());

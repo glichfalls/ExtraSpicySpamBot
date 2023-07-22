@@ -9,9 +9,10 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity]
-#[ApiResource]
+#[ApiResource(normalizationContext: ['groups' => ['stock:read', 'portfolio:read']])]
 class StockPrice
 {
     use Id;
@@ -19,9 +20,11 @@ class StockPrice
 
     #[ManyToOne(targetEntity: Stock::class, inversedBy: 'stockPrices')]
     #[JoinColumn(nullable: false)]
+    #[Groups(['stock:read', 'portfolio:read'])]
     private Stock $stock;
 
     #[Column(type: 'float', nullable: false)]
+    #[Groups(['stock:read', 'portfolio:read'])]
     private float $price;
 
     #[Column(type: 'float', nullable: true)]
@@ -78,6 +81,12 @@ class StockPrice
     public function getHonorPrice(): int
     {
         return (int) round($this->getPrice());
+    }
+
+    #[Groups(['stock:read', 'portfolio:read'])]
+    public function getCreatedAt(): \DateTimeInterface
+    {
+        return $this->createdAt;
     }
 
 }

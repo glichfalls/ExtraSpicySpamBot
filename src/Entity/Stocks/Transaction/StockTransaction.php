@@ -3,6 +3,7 @@
 namespace App\Entity\Stocks\Transaction;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Doctrine\Odm\Filter\SearchFilter;
 use App\Entity\Stocks\Portfolio\Portfolio;
@@ -14,9 +15,14 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity(repositoryClass: StockTransactionRepository::class)]
-#[ApiResource(paginationEnabled: false)]
+#[ApiResource(
+    description: 'Stock transaction',
+    normalizationContext: ['groups' => ['stock:read', 'portfolio:read']],
+    paginationEnabled: false,
+)]
 class StockTransaction
 {
     use Id;
@@ -28,9 +34,11 @@ class StockTransaction
 
     #[ManyToOne(targetEntity: StockPrice::class)]
     #[JoinColumn(nullable: false)]
+    #[Groups(['stock:read', 'portfolio:read'])]
     private StockPrice $price;
 
     #[Column(type: 'integer', nullable: false)]
+    #[Groups(['stock:read', 'portfolio:read'])]
     private int $amount;
 
     private ?float $total = null;
@@ -80,12 +88,23 @@ class StockTransaction
         return $this->total;
     }
 
+    #[ApiProperty(
+        description: 'The total amount of honor spent on this transaction',
+        readable: true
+    )]
+    #[Groups(['stock:read'])]
     public function getHonorTotal(): int
     {
         if ($this->honorTotal === null) {
             $this->honorTotal = $this->getPrice()->getHonorPrice() * $this->getAmount();
         }
         return $this->honorTotal;
+    }
+
+    #[Groups(['stock:read', 'portfolio:read'])]
+    public function getCreatedAt(): \DateTimeInterface
+    {
+        return $this->createdAt;
     }
 
 }

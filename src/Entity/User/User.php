@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToMany;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: UserRepository::class)]
@@ -24,15 +25,19 @@ class User implements UserInterface
     use TimestampableEntity;
 
     #[Column(type: 'integer')]
+    #[Groups(['user:read'])]
     private int $telegramUserId;
 
     #[Column(type: 'string', nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $name = null;
 
     #[Column(type: 'string', nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $firstName = null;
 
     #[Column(type: 'string', nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $lastName = null;
 
     #[OneToMany(mappedBy: 'sender', targetEntity: Honor::class)]

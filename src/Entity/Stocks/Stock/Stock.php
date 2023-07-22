@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OrderBy;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: StockRepository::class)]
@@ -20,20 +21,24 @@ class Stock
     use Id;
 
     #[Column(type: 'string', nullable: false)]
+    #[Groups(['stock:read'])]
     private string $name;
 
     #[Column(type: 'string', nullable: false)]
+    #[Groups(['stock:read'])]
     private string $displaySymbol;
 
     #[Column(type: 'string', unique: true, nullable: false)]
+    #[Groups(['stock:read'])]
     private string $symbol;
 
     #[Column(type: 'string', nullable: false)]
+    #[Groups(['stock:read'])]
     private string $type;
 
     #[OneToMany(mappedBy: 'stock', targetEntity: StockPrice::class, cascade: ['persist'])]
     #[OrderBy(['createdAt' => 'DESC'])]
-    #[Ignore]
+    #[Groups(['stock:read'])]
     private Collection $stockPrices;
 
     public function __construct()
