@@ -9,6 +9,7 @@ use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\RateLimitUtils;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -18,8 +19,8 @@ use TelegramBot\Api\Types\Update;
 class ApplyHonorChatCommand extends AbstractTelegramChatCommand
 {
 
-    private const RATE_LIMIT = 5;
-    private const MAX_HONOR_AMOUNT = 1;
+    private const RATE_LIMIT_SECONDS = 30;
+    private const MAX_HONOR_AMOUNT = 10;
 
     public function __construct(
         EntityManagerInterface  $manager,
@@ -71,10 +72,11 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
             return;
         }
 
-        $timeSinceLastChange = $this->getTimeSinceLastChange($message->getUser(), $recipient, $message->getChat());
+        $lastChange = $this->honorRepository->getLastChange($message->getUser(), $recipient, $message->getChat());
 
-        if ($this->isRateLimited($timeSinceLastChange)) {
-            $waitTime = self::RATE_LIMIT - $timeSinceLastChange->i;
+        if ($this->isRateLimited($lastChange)) {
+            $timeSinceLastChange = $this->getTimeSinceLastChange($message->getUser(), $recipient, $message->getChat());
+            $waitTime = self::RATE_LIMIT_SECONDS - $timeSinceLastChange->s;
             $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.rateLimitExceeded', [
                 'minutes' => $waitTime,
             ]));
@@ -96,9 +98,9 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
         return $lastChange?->getCreatedAt()->diff(new \DateTime());
     }
 
-    public function isRateLimited(?DateInterval $timeSinceLastChange): bool
+    public function isRateLimited(?\DateTime $lastChange): bool
     {
-        return $timeSinceLastChange !== null && $timeSinceLastChange->i < self::RATE_LIMIT;
+        return RateLimitUtils::getSecondsFrom($lastChange) < self::RATE_LIMIT_SECONDS;
     }
 
     public function getHelp(): string
