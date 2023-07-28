@@ -130,7 +130,7 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^1zwv .+@(?<user>.+)/', $message->getMessage(), $matches) === 1;
+        return preg_match('/^1zu? ?wv ?(?<text>.*)@(?<user>.+)/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -145,7 +145,7 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
         $this->manager->persist($round);
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
-            sprintf('@%s challenged @%s', $message->getUser()->getName(), $opponent->getName()),
+            sprintf('@%s %s', $message->getUser()->getName(), $message['text']),
             threadId: $message->getTelegramThreadId(),
             replyMarkup: $this->getKeyboard($round),
         );
@@ -155,9 +155,9 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
     private function getKeyboard(OneToHowMuchRound $round): InlineKeyboardMarkup
     {
         $data = [];
+        $range = $round->getRange();
+        $row = [];
         if (!$round->isAccepted()) {
-            $range = $round->getRange();
-            $row = [];
             for ($i = 2; $i <= $range; $i++) {
                 $row[] = [
                     'text' => $i,
@@ -169,8 +169,6 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
                 }
             }
         } else {
-            $range = $round->getRange();
-            $row = [];
             for ($i = 1; $i <= $range; $i++) {
                 $row[] = [
                     'text' => $i,
