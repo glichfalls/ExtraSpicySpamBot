@@ -3,6 +3,8 @@
 namespace App\Entity\Stocks\Stock;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use App\Model\Id;
 use App\Repository\Stocks\StockRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -12,10 +14,13 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OrderBy;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: StockRepository::class)]
 #[ApiResource]
+#[ApiFilter(SearchFilter::class, properties: [
+    'symbol' => 'partial',
+    'name' => 'partial',
+])]
 class Stock
 {
     use Id;

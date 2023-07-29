@@ -2,9 +2,9 @@
 
 namespace App\Entity\Stocks\Portfolio;
 
-use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
-use App\ApiPlatform\Filter\UserFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use App\Entity\Chat\Chat;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Transaction\StockTransaction;
@@ -24,6 +24,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(
     normalizationContext: ['groups' => ['portfolio:read', 'price:read', 'user:read', 'chat:read']],
 )]
+#[ApiFilter(SearchFilter::class, properties: [
+    'chat' => 'exact',
+    'chat.id' => 'exact',
+    'user' => 'exact',
+    'user.id' => 'exact',
+])]
 class Portfolio
 {
     use Id;

@@ -2,6 +2,9 @@
 
 namespace App\Entity\Message;
 
+use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
 use App\Model\Id;
@@ -12,6 +15,15 @@ use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity(repositoryClass: MessageRepository::class)]
+#[ApiResource(order: ['createdAt' => 'DESC'])]
+#[ApiFilter(SearchFilter::class, properties: [
+    'chat' => 'exact',
+    'chat.id' => 'exact',
+    'user' => 'exact',
+    'user.id' => 'exact',
+    'telegramThreadId' => 'exact',
+    'message' => 'partial',
+])]
 class Message
 {
     use Id;

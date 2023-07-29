@@ -2,6 +2,7 @@
 
 namespace App\Entity\Sticker;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use App\Model\Id;
 use App\Repository\StickerFileRepository;
 use Doctrine\ORM\Mapping\Column;
@@ -9,6 +10,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 
 #[Entity(repositoryClass: StickerFileRepository::class)]
+#[ApiResource()]
 class Sticker
 {
     use Id;
