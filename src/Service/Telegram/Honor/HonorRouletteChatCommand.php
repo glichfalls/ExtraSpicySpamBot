@@ -133,7 +133,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
             '19-36' => $number >= 19 && $number <= 36 ? $initialAmount : -$initialAmount,
             default => $number === (int)$bet ? ($initialAmount * 36) - $initialAmount : -$initialAmount,
         };
-        if ($number < 0) {
+        if ($amount < 0) {
             // add loss to the jackpot of the next honor millions draw
             $draw = $this->drawRepository->getActiveDrawByChat($chat);
             $draw?->setGamblingLosses($draw->getGamblingLosses() + abs($amount));
