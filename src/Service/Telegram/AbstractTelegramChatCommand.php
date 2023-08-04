@@ -21,12 +21,10 @@ abstract class AbstractTelegramChatCommand implements TelegramChatCommand
 
     public function getDescription(): string
     {
-        $class = static::class;
-        // remove ChatCommand from end
-        $class = substr($class, 0, -strlen('ChatCommand'));
-        // split camel case
-        $words = preg_split('/(?=[A-Z])/', $class);
-        return implode(' ', $words);
+        $className = substr(strrchr(static::class, "\\"), 1);
+        $className = preg_replace('/ChatCommand$/', '', $className);
+        $parts = preg_split('/(?=[A-Z])/', $className, -1, PREG_SPLIT_NO_EMPTY);
+        return implode(' ', $parts);
     }
 
     public function getSyntax(): string
