@@ -12,6 +12,8 @@
 /.idea/
 /public/generated-images/*.png
 .ftp-deploy-sync-state.json
+*.cmd
+
 ###> lexik/jwt-authentication-bundle ###
 /config/jwt/*.pem
 ###< lexik/jwt-authentication-bundle ###
