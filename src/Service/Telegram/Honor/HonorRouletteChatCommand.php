@@ -234,4 +234,14 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         return new InlineKeyboardMarkup($keyboard);
     }
 
+    public function getSyntax(): string
+    {
+        return '!roulette <bet : 1-36, red, blue, ...> <amount : number : optional>';
+    }
+
+    public function getDescription(): string
+    {
+        return 'play roulette with your ehre';
+    }
+
 }

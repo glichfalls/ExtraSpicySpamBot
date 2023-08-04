@@ -64,7 +64,7 @@ class BuyUpgradeChatCommand extends AbstractTelegramChatCommand
 
     public function getSyntax(): string
     {
-        return '!buy upgrade <strong>code</strong>';
+        return '!buy upgrade [code]';
     }
 
     public function getDescription(): string

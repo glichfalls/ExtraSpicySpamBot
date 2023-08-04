@@ -23,10 +23,10 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
     private const MAX_HONOR_AMOUNT = 10;
 
     public function __construct(
-        EntityManagerInterface  $manager,
-        TranslatorInterface     $translator,
-        LoggerInterface         $logger,
-        TelegramService         $telegramService,
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
         private HonorRepository $honorRepository,
     )
     {
@@ -106,6 +106,16 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
     public function getHelp(): string
     {
         return '+/- <amount> ehre @<name>   give/remove honor';
+    }
+
+    public function getDescription(): string
+    {
+        return 'give/remove honor';
+    }
+
+    public function getSyntax(): string
+    {
+        return '+/- <amount> ehre @<name>';
     }
 
 }

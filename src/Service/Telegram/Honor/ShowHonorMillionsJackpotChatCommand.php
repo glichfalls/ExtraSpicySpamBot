@@ -50,9 +50,14 @@ class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatCommand
         ));
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!jackpot   shows the current jackpot';
+        return '!jackpot';
+    }
+
+    public function getDescription(): string
+    {
+        return 'show the jackpot';
     }
 
 }

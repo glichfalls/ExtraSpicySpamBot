@@ -36,9 +36,14 @@ class ShowHonorChatCommand extends AbstractTelegramChatCommand
         $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.show', ['amount' => $total]));
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!ehre   shows your current ehre';
+        return '!ehre';
+    }
+
+    public function getDescription(): string
+    {
+        return 'show your current ehre';
     }
 
 }

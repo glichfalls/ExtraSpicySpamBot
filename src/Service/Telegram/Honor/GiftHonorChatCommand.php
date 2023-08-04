@@ -28,7 +28,7 @@ class GiftHonorChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!gift (?<amount>\d+)\s*ehre\s*@(?<name>.+)$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!gift (?<amount>\d+)\s*@(?<name>.+)$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -61,6 +61,16 @@ class GiftHonorChatCommand extends AbstractTelegramChatCommand
     public function getHelp(): string
     {
         return '!gift <amount> ehre @<username>     gift honor to another user';
+    }
+
+    public function getDescription(): string
+    {
+        return 'gift honor to another user';
+    }
+
+    public function getSyntax(): string
+    {
+        return '!gift <amount> @<username>';
     }
 
 }
