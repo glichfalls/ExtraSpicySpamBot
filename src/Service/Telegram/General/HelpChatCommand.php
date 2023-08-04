@@ -44,7 +44,7 @@ class HelpChatCommand extends AbstractTelegramChatCommand
         foreach ($this->commands as $command) {
             $help[] = sprintf(
                 '<code>%s</code>%s%s%s',
-                $command->getSyntax(),
+                str_replace(['<', '>'], ['(', ')'], $command->getSyntax()),
                 PHP_EOL,
                 $command->getDescription(),
                 PHP_EOL,
