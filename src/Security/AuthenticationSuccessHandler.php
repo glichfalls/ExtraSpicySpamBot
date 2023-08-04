@@ -33,7 +33,8 @@ class AuthenticationSuccessHandler extends LexikAuthenticationSuccessHandler
         $token = $content['token'] ?? null;
 
         // change response to 307 Temporary Redirect
-        // add jwt token from body to header
+        // add jwt token from body to query string
+        // TODO: find more secure way to pass jwt token to frontend
         $response->setStatusCode(Response::HTTP_TEMPORARY_REDIRECT);
         $response->headers->set('Location', sprintf('%s/auth?token=%s', $this->frontendUrl, $token));
         $response->setContent(null);
