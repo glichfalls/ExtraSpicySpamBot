@@ -42,25 +42,30 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             $count = (int) $matches['count'];
         }
         if ($currentHonor < $count) {
-            $this->telegramService->replyTo($message, 'not enough honor');
+            $this->telegramService->replyTo($message, 'not enough Ehre');
         } else {
             if (rand(0, 1) === 1) {
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), $count));
                 $this->manager->flush();
-                $this->telegramService->replyTo($message, sprintf('you have won %d honor', $count));
+                $this->telegramService->replyTo($message, sprintf('you have won %d Ehre', $count));
             } else {
                 $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
                 $draw?->setGamblingLosses($draw->getGamblingLosses() + $count);
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), -$count));
                 $this->manager->flush();
-                $this->telegramService->replyTo($message, sprintf('you have lost %d honor', $count));
+                $this->telegramService->replyTo($message, sprintf('you have lost %d Ehre', $count));
             }
         }
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!gamble <count>   gamble honor (50% win chance)';
+        return '!gamble <count> | !g <count> | !gamble max | !g max';
+    }
+
+    public function getDescription(): string
+    {
+        return 'gamble Ehre (50% win chance)';
     }
 
 }
