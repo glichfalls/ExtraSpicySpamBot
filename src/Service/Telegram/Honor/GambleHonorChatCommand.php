@@ -30,13 +30,17 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!gamble\s(?<count>\d+)$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!(gamble|g)\s(?<count>\d+|max)$/', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $count = (int) $matches['count'];
         $currentHonor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
+        if ($matches['count'] === 'max') {
+            $count = $currentHonor;
+        } else {
+            $count = (int) $matches['count'];
+        }
         if ($currentHonor < $count) {
             $this->telegramService->replyTo($message, 'not enough honor');
         } else {
