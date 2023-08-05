@@ -6,6 +6,8 @@ namespace App\Entity\Chat;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\GetCollection;
+use App\Annotation\UserAware;
 use App\Entity\Message\Message;
 use App\Model\Id;
 use App\Repository\ChatRepository;
@@ -25,6 +27,11 @@ use Symfony\Component\Serializer\Annotation\Ignore;
     'id' => 'exact',
     'name' => 'partial',
 ])]
+#[GetCollection(
+    normalizationContext: ['groups' => ['chat:public:read']],
+    denormalizationContext: ['groups' => ['chat:public:write']],
+)]
+#[UserAware]
 class Chat
 {
     use Id;
@@ -34,7 +41,7 @@ class Chat
     private string $chatId;
 
     #[Column]
-    #[Groups(['chat:read'])]
+    #[Groups(['chat:public:read'])]
     private string $name;
 
     #[OneToOne(targetEntity: ChatConfig::class, cascade: ["persist", "remove"])]

@@ -3,6 +3,7 @@
 namespace App\Entity\Message;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\DateFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use App\Entity\Chat\Chat;
@@ -24,6 +25,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
     'telegramThreadId' => 'exact',
     'message' => 'partial',
 ])]
+#[ApiFilter(DateFilter::class, properties: ['createdAt'])]
 class Message
 {
     use Id;

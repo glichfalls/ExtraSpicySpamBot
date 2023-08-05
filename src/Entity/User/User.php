@@ -3,6 +3,7 @@
 namespace App\Entity\User;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Model\Id;
@@ -19,6 +20,10 @@ use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: UserRepository::class)]
 #[ApiResource]
+#[GetCollection(
+    normalizationContext: ['groups' => ['user:read']],
+    denormalizationContext: ['groups' => ['user:write']],
+)]
 class User implements UserInterface
 {
     use Id;
@@ -126,7 +131,15 @@ class User implements UserInterface
 
     public function getRoles(): array
     {
-        return ['ROLE_USER'];
+        if ($this->getTelegramUserId() === '123456789') {
+            return [
+                'ROLE_ADMIN',
+                'ROLE_USER',
+            ];
+        }
+        return [
+            'ROLE_USER'
+        ];
     }
 
     public function eraseCredentials(): void

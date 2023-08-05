@@ -33,3 +33,8 @@ services:
         arguments: ['@security.helper']
         tags: ['api_platform.filter']
         autoconfigure: false
+
+    App\Doctrine\CurrentUserExtension:
+        tags:
+            - { name: api_platform.doctrine.orm.query_extension.collection }
+            - { name: api_platform.doctrine.orm.query_extension.item }
