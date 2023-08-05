@@ -13,6 +13,8 @@
 /public/generated-images/*.png
 .ftp-deploy-sync-state.json
 *.cmd
+tools
+.php-cs-fixer.cache
 
 ###> lexik/jwt-authentication-bundle ###
 /config/jwt/*.pem
