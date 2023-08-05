@@ -20,8 +20,7 @@ class HonorMillionsDrawCommand extends Command
         private EntityManagerInterface $manager,
         private DrawRepository $drawRepository,
         private TelegramService $telegramService,
-    )
-    {
+    ) {
         parent::__construct();
     }
 

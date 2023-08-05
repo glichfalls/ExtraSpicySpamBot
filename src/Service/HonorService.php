@@ -22,7 +22,7 @@ class HonorService
         } else {
             $text = array_map(function ($entry) {
                 $name = $entry['firstName'] ?? $entry['name'];
-                return sprintf('%s: %d Ehre',  $name, $entry['amount'] + Honor::BASE_HONOR);
+                return sprintf('%s: %d Ehre', $name, $entry['amount'] + Honor::BASE_HONOR);
             }, $leaderboard);
             return implode(PHP_EOL, $text);
         }

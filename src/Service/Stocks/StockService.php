@@ -31,8 +31,7 @@ class StockService
         private EntityManagerInterface $manager,
         private StockRepository $stockRepository,
         string $finnhubApiKey,
-    )
-    {
+    ) {
         $config = Configuration::getDefaultConfiguration()->setApiKey('token', $finnhubApiKey);
         $this->client = new DefaultApi(new Client(), $config);
     }
@@ -94,7 +93,7 @@ class StockService
             }
             $matches = array_filter(
                 $lookup->getResult(),
-                fn(SymbolLookupInfo $info) => strstr(strtolower($info->getSymbol()), strtolower($symbol))
+                fn (SymbolLookupInfo $info) => strstr(strtolower($info->getSymbol()), strtolower($symbol))
             );
             if (count($matches) === 0) {
                 $this->logger->notice(sprintf('No match found for symbol %s', $symbol));
@@ -125,7 +124,7 @@ class StockService
                 $this->logger->notice(sprintf('No results found for symbol %s', $symbol));
                 throw new StockSymbolUpdateException($symbol, 'Symbol not found');
             }
-            $exactMatch = array_filter($lookup->getResult(), fn(SymbolLookupInfo $info) => $info->getSymbol() === $symbol);
+            $exactMatch = array_filter($lookup->getResult(), fn (SymbolLookupInfo $info) => $info->getSymbol() === $symbol);
             if (count($exactMatch) === 0) {
                 $this->logger->notice(sprintf('No exact match found for symbol %s', $symbol));
                 throw new StockSymbolUpdateException($symbol, 'Failed to find exact symbol match');
