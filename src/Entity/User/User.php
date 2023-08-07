@@ -3,7 +3,6 @@
 namespace App\Entity\User;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
