@@ -5,6 +5,7 @@ namespace App\Entity\Chat;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Annotation\UserAware;
 use App\Entity\Message\Message;
@@ -23,15 +24,18 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: ChatRepository::class)]
-#[ApiResource(order: ['name' => 'ASC'])]
+#[ApiResource(
+    denormalizationContext: ['groups' => ['chat:public:write']],
+    normalizationContext: ['groups' => ['public:read', 'chat:public:read', 'user:read']],
+    order: ['name' => 'ASC'],
+)]
+#[Get(
+    normalizationContext: ['groups' => ['public:read', 'chat:public:read', 'user:read']],
+)]
 #[ApiFilter(SearchFilter::class, properties: [
     'id' => 'exact',
     'name' => 'partial',
 ])]
-#[GetCollection(
-    normalizationContext: ['groups' => ['chat:public:read']],
-    denormalizationContext: ['groups' => ['chat:public:write']],
-)]
 #[UserAware(fieldNames: ['users'])]
 class Chat
 {
@@ -39,6 +43,7 @@ class Chat
     use TimestampableEntity;
 
     #[Column(unique: true)]
+    #[Groups(['chat:public:read'])]
     private string $chatId;
 
     #[Column]
@@ -46,13 +51,15 @@ class Chat
     private string $name;
 
     #[OneToOne(targetEntity: ChatConfig::class, cascade: ["persist", "remove"])]
+    #[Groups(['chat:public:read'])]
     private ChatConfig $config;
 
     #[ManyToMany(targetEntity: User::class, inversedBy: "chats")]
+    #[Groups(['chat:public:read'])]
     private Collection $users;
 
     #[OneToMany(mappedBy: "chat", targetEntity: Message::class)]
-    #[Ignore]
+    #[Groups(['message:public:read'])]
     private Collection $messages;
 
     public function __construct()
@@ -89,6 +96,36 @@ class Chat
     public function setConfig(ChatConfig $config): void
     {
         $this->config = $config;
+    }
+
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(User $user): void
+    {
+        $this->users->add($user);
+    }
+
+    public function removeUser(User $user): void
+    {
+        $this->users->removeElement($user);
+    }
+
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function addMessage(Message $message): void
+    {
+        $this->messages->add($message);
+    }
+
+    public function removeMessage(Message $message): void
+    {
+        $this->messages->removeElement($message);
     }
 
 }

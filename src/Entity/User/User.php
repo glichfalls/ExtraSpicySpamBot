@@ -21,8 +21,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: UserRepository::class)]
-#[ApiResource]
-#[GetCollection(
+#[ApiResource(
     normalizationContext: ['groups' => ['user:read']],
     denormalizationContext: ['groups' => ['user:write']],
 )]
@@ -39,7 +38,7 @@ class User implements UserInterface
     private int $telegramUserId;
 
     #[Column(type: 'string', nullable: true)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'chat:public:read'])]
     private ?string $name = null;
 
     #[Column(type: 'string', nullable: true)]
@@ -63,6 +62,7 @@ class User implements UserInterface
     private Collection $messages;
 
     #[ManyToMany(targetEntity: Chat::class, mappedBy: "users")]
+    #[Ignore]
     private Collection $chats;
 
     #[Column(type: 'json')]
@@ -123,9 +123,18 @@ class User implements UserInterface
         return $this->chats;
     }
 
-    public function setChats(Collection $chats): void
+    public function addChat(Chat $chat): void
     {
-        $this->chats = $chats;
+        if (!$this->chats->contains($chat)) {
+            $this->chats->add($chat);
+        }
+    }
+
+    public function removeChat(Chat $chat): void
+    {
+        if ($this->chats->contains($chat)) {
+            $this->chats->removeElement($chat);
+        }
     }
 
     public function getSentHonor(): Collection

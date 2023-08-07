@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 trait Id
 {
@@ -13,6 +14,7 @@ trait Id
     #[ORM\Id]
     #[Column(type: 'uuid', unique: true)]
     #[ORM\GeneratedValue(strategy: 'NONE')]
+    #[Groups(['public:read'])]
     protected UuidInterface $id;
 
     public function getId(): string
