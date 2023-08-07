@@ -2,19 +2,20 @@
 
 namespace App\Entity\Chat;
 
-
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\GetCollection;
 use App\Annotation\UserAware;
 use App\Entity\Message\Message;
+use App\Entity\User\User;
 use App\Model\Id;
 use App\Repository\ChatRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\ManyToMany;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OneToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
@@ -31,7 +32,7 @@ use Symfony\Component\Serializer\Annotation\Ignore;
     normalizationContext: ['groups' => ['chat:public:read']],
     denormalizationContext: ['groups' => ['chat:public:write']],
 )]
-#[UserAware]
+#[UserAware(fieldNames: ['users'])]
 class Chat
 {
     use Id;
@@ -46,6 +47,9 @@ class Chat
 
     #[OneToOne(targetEntity: ChatConfig::class, cascade: ["persist", "remove"])]
     private ChatConfig $config;
+
+    #[ManyToMany(targetEntity: User::class, inversedBy: "chats")]
+    private Collection $users;
 
     #[OneToMany(mappedBy: "chat", targetEntity: Message::class)]
     #[Ignore]

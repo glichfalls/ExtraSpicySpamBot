@@ -4,7 +4,7 @@ namespace App\Annotation;
 
 use Attribute;
 
-#[Attribute]
+#[Attribute(Attribute::TARGET_CLASS)]
 class UserAware
 {
 
@@ -18,8 +18,7 @@ class UserAware
     public function __construct(
         private array $fieldNames = ['user'],
         private string $logicalOperation = self::OPERATION_OR,
-    )
-    {
+    ) {
 
     }
 

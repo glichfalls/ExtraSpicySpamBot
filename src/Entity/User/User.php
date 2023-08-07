@@ -4,6 +4,7 @@ namespace App\Entity\User;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Model\Id;
@@ -12,6 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\ManyToMany;
 use Doctrine\ORM\Mapping\OneToMany;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -28,6 +30,9 @@ class User implements UserInterface
 {
     use Id;
     use TimestampableEntity;
+
+    public const ROLE_ADMIN = 'ROLE_ADMIN';
+    public const ROLE_USER = 'ROLE_USER';
 
     #[Column(type: 'integer')]
     #[Groups(['user:read'])]
@@ -56,6 +61,15 @@ class User implements UserInterface
     #[OneToMany(mappedBy: 'user', targetEntity: Message::class)]
     #[Ignore]
     private Collection $messages;
+
+    #[ManyToMany(targetEntity: Chat::class, mappedBy: "users")]
+    private Collection $chats;
+
+    #[Column(type: 'json')]
+    #[Ignore]
+    private array $roles = [
+        self::ROLE_USER,
+    ];
 
     public function __construct()
     {
@@ -104,6 +118,16 @@ class User implements UserInterface
         $this->lastName = $lastName;
     }
 
+    public function getChats(): Collection
+    {
+        return $this->chats;
+    }
+
+    public function setChats(Collection $chats): void
+    {
+        $this->chats = $chats;
+    }
+
     public function getSentHonor(): Collection
     {
         return $this->sentHonor;
@@ -131,15 +155,12 @@ class User implements UserInterface
 
     public function getRoles(): array
     {
-        if ($this->getTelegramUserId() === '123456789') {
-            return [
-                'ROLE_ADMIN',
-                'ROLE_USER',
-            ];
-        }
-        return [
-            'ROLE_USER'
-        ];
+        return $this->roles;
+    }
+
+    public function setRoles(array $roles): void
+    {
+        $this->roles = array_unique(array_merge($this->roles, array_values($roles)));
     }
 
     public function eraseCredentials(): void

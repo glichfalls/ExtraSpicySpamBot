@@ -7,7 +7,7 @@ use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use App\Annotation\UserAware;
-use Doctrine\Common\Annotations\Reader;
+use App\Entity\User\User;
 use Doctrine\ORM\Query\Expr\Andx;
 use Doctrine\ORM\Query\Expr\Orx;
 use Doctrine\ORM\QueryBuilder;
@@ -16,7 +16,7 @@ use Symfony\Component\Security\Core\Security;
 class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
 {
 
-    public function __construct(private Security $security, private Reader $reader)
+    public function __construct(private Security $security)
     {
     }
 
@@ -26,30 +26,8 @@ class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryIt
         string $resourceClass,
         Operation $operation = null,
         array $context = []
-    ): void
-    {
-        if (class_exists($resourceClass)) {
-            $reflection = new \ReflectionClass($resourceClass);
-            $annotation = $reflection->getAttributes(UserAware::class)[0] ?? null;
-            dump($annotation);
-            if ($annotation instanceof UserAware) {
-                $operation = match ($annotation->getLogicalOperation()) {
-                    UserAware::OPERATION_OR => new Andx(),
-                    UserAware::OPERATION_AND => new Orx(),
-                    default => null,
-                };
-                if ($operation === null) {
-                    dump('Invalid logical operation');
-                    return;
-                }
-                $rootAlias = $queryBuilder->getRootAliases()[0];
-                foreach ($annotation->getFieldNames() as $fieldName) {
-                    $operation->add($queryBuilder->expr()->eq(sprintf('%s.%s', $rootAlias, $fieldName), ':user'));
-                }
-                $queryBuilder->setParameter('user', $this->security->getUser());
-                $queryBuilder->andWhere($operation);
-            }
-        }
+    ): void {
+        $this->addQuery($queryBuilder, $resourceClass);
     }
 
     public function applyToItem(
@@ -59,9 +37,31 @@ class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryIt
         array $identifiers,
         Operation $operation = null,
         array $context = []
-    ): void
+    ): void {
+        $this->addQuery($queryBuilder, $resourceClass);
+    }
+
+    private function addQuery(QueryBuilder $queryBuilder, string $resourceClass): void
     {
-        // TODO: Implement applyToItem() method.
+        if (class_exists($resourceClass)) {
+            $reflectionClass = new \ReflectionClass($resourceClass);
+            $attribute = $reflectionClass->getAttributes(UserAware::class);
+            if (count($attribute) > 0) {
+                $userAware = $attribute[0]->newInstance();
+                $user = $this->security->getUser();
+                if ($user instanceof User && !in_array(User::ROLE_ADMIN, $user->getRoles())) {
+                    $query = $userAware->getLogicalOperation() === UserAware::OPERATION_AND ? new Andx() : new Orx();
+                    foreach ($userAware->getFieldNames() as $fieldName) {
+                        $query->add(
+                            $queryBuilder->expr()
+                                ->isMemberOf(':userId', sprintf('o.%s', $fieldName)),
+                        );
+                    }
+                    $queryBuilder->andWhere($query);
+                    $queryBuilder->setParameter('userId', $user->getId());
+                }
+            }
+        }
     }
 
 }
