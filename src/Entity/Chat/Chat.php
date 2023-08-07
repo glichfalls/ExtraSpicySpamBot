@@ -29,9 +29,6 @@ use Symfony\Component\Serializer\Annotation\Ignore;
     normalizationContext: ['groups' => ['public:read', 'chat:public:read', 'user:read']],
     order: ['name' => 'ASC'],
 )]
-#[Get(
-    normalizationContext: ['groups' => ['public:read', 'chat:public:read', 'user:read']],
-)]
 #[ApiFilter(SearchFilter::class, properties: [
     'id' => 'exact',
     'name' => 'partial',

@@ -38,7 +38,7 @@ class User implements UserInterface
     private int $telegramUserId;
 
     #[Column(type: 'string', nullable: true)]
-    #[Groups(['user:read', 'chat:public:read'])]
+    #[Groups(['user:read'])]
     private ?string $name = null;
 
     #[Column(type: 'string', nullable: true)]
