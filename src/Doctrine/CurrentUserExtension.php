@@ -47,6 +47,7 @@ class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryIt
             $reflectionClass = new \ReflectionClass($resourceClass);
             $attribute = $reflectionClass->getAttributes(UserAware::class);
             if (count($attribute) > 0) {
+                /** @var UserAware $userAware */
                 $userAware = $attribute[0]->newInstance();
                 $user = $this->security->getUser();
                 if ($user instanceof User && !in_array(User::ROLE_ADMIN, $user->getRoles())) {

@@ -6,6 +6,7 @@ use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToOne;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity]
 class ChatConfig
@@ -16,9 +17,11 @@ class ChatConfig
     private Chat $chat;
 
     #[Column(type: "boolean")]
+    #[Groups(['chat:public:read'])]
     private bool $passiveHonorEnabled = true;
 
     #[Column(type: "integer")]
+    #[Groups(['chat:public:read'])]
     private int $passiveHonorAmount = 100;
 
     public function __construct()
