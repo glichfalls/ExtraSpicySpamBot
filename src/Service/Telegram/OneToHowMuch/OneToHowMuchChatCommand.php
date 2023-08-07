@@ -143,9 +143,13 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
         $opponent = $targets[0];
         $round = OneToHowMuchRoundFactory::create($message->getUser(), $opponent);
         $this->manager->persist($round);
+        $userText = $matches['text'] ?? '';
+        if ($userText === '') {
+            $userText = '1 zu wie viel?';
+        }
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
-            sprintf('@%s %s', $message->getUser()->getName(), $message['text']),
+            sprintf('@%s %s', $message->getUser()->getName(), $userText),
             threadId: $message->getTelegramThreadId(),
             replyMarkup: $this->getKeyboard($round),
         );
