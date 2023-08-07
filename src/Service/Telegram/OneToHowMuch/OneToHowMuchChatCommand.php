@@ -78,18 +78,10 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
             return;
         }
         if ($round->getChallenger()->getId() === $user->getId()) {
-            if ($round->getChallengerNumber() !== null) {
-                $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'you already chose a number', false);
-                return;
-            }
             $round->setChallengerNumber((int) $amount);
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'number chosen', false);
         }
         if ($round->getOpponent()->getId() === $user->getId()) {
-            if ($round->getOpponentNumber() !== null) {
-                $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'you already chose a number', false);
-                return;
-            }
             $round->setOpponentNumber((int) $amount);
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'number chosen', false);
         }
@@ -144,12 +136,10 @@ class OneToHowMuchChatCommand extends AbstractTelegramChatCommand implements Tel
         $round = OneToHowMuchRoundFactory::create($message->getUser(), $opponent);
         $this->manager->persist($round);
         $userText = $matches['text'] ?? '';
-        if ($userText === '') {
-            $userText = '1 zu wie viel?';
-        }
+        $text = sprintf('1 zu wie viel %s', $userText);
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
-            sprintf('@%s %s', $opponent->getName(), $userText),
+            sprintf('@%s %s', $opponent->getName(), $text),
             threadId: $message->getTelegramThreadId(),
             replyMarkup: $this->getKeyboard($round),
         );
