@@ -32,7 +32,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!ticket (?<number>\d+)/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!ticket\s?(?<number>\d*)/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -41,6 +41,18 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
         if ($draw === null) {
             $this->telegramService->replyTo($message, 'there is no draw for this chat');
             return;
+        }
+        if ($matches['number'] === '') {
+            $ticket = $draw->getTicketByUser($message->getUser());
+            if ($ticket === null) {
+                $this->telegramService->replyTo($message, 'you have no tickets');
+                return;
+            }
+            $this->telegramService->replyTo($message, sprintf(
+                'you have %d tickets: %s',
+                count($ticket->getNumbers()),
+                implode(', ', $ticket->getNumbers()),
+            ));
         }
         $number = (int) $matches['number'];
         if ($number < 1 || $number > 100) {
