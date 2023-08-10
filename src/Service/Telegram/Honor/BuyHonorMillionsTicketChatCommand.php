@@ -53,6 +53,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
                 count($ticket->getNumbers()),
                 implode(', ', $ticket->getNumbers()),
             ));
+            return;
         }
         $number = (int) $matches['number'];
         if ($number < 1 || $number > 100) {
