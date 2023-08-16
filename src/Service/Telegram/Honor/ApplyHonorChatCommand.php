@@ -28,8 +28,7 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
         LoggerInterface $logger,
         TelegramService $telegramService,
         private HonorRepository $honorRepository,
-    )
-    {
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
@@ -51,7 +50,8 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
         foreach ($recipients as $recipient) {
 
             if ($recipient === null) {
-                $this->telegramService->replyTo($message,
+                $this->telegramService->replyTo(
+                    $message,
                     $this->translator->trans('telegram.honor.userNotFound', ['name' => $matches['name']])
                 );
                 continue;
@@ -74,9 +74,8 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
 
         $lastChange = $this->honorRepository->getLastChange($message->getUser(), $recipient, $message->getChat());
 
-        if ($this->isRateLimited($lastChange)) {
-            $timeSinceLastChange = $this->getTimeSinceLastChange($message->getUser(), $recipient, $message->getChat());
-            $waitTime = self::RATE_LIMIT_SECONDS - $timeSinceLastChange->s;
+        if ($this->isRateLimited($lastChange->getCreatedAt())) {
+            $waitTime = self::RATE_LIMIT_SECONDS - RateLimitUtils::getSecondsFrom($lastChange->getCreatedAt());
             $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.rateLimitExceeded', [
                 'minutes' => $waitTime,
             ]));
