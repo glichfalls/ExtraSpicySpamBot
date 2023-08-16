@@ -48,10 +48,12 @@ class CreateRaidCommand extends AbstractRaidChatCommand
             return;
         }
         $latestRaid = $this->raidRepository->getLatestRaidByLeader($chat, $message->getUser());
-        $diff = time() - $latestRaid->getCreatedAt()->getTimestamp();
-        if ($diff < 3600) {
-            $this->telegramService->replyTo($message, sprintf('please wait %d minutes', 60 - ($diff / 60)));
-            return;
+        if ($latestRaid !== null) {
+            $diff = time() - $latestRaid->getCreatedAt()->getTimestamp();
+            if ($diff < 3600) {
+                $this->telegramService->replyTo($message, sprintf('please wait %d minutes', 60 - ($diff / 60)));
+                return;
+            }
         }
         $targetHonorCount = $this->honorRepository->getHonorCount($target, $chat);
         if ($targetHonorCount <= 0) {
