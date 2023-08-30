@@ -13,15 +13,20 @@ class SellStockChatCommand extends AbstractStockChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/!sell stocks? (?<symbol>[.\w]+) (?<amount>\d+)/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/!sell\s*(stocks|stock)?\s*(?<symbol>[.\w]+)\s*(?<amount>\d+|max)/', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
     {
         $symbol = $matches['symbol'];
-        $amount = (int) $matches['amount'];
+        $amount = $matches['amount'];
         try {
             $portfolio = $this->getPortfolioByMessage($message);
+            if (strtolower($matches['amount']) === 'max') {
+                $amount = $portfolio->getTransactionsBySymbol($symbol)->getTotalAmount();
+            } else {
+                $amount = (int) $amount;
+            }
             $transaction = $this->sellStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
                 'You sold %dx %s ($%.2f) for %d honor',

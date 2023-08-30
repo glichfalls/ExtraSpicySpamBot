@@ -48,10 +48,12 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
                 $this->telegramService->replyTo($message, 'you have no tickets');
                 return;
             }
+            $numbers = $ticket->getNumbers();
+            sort($numbers);
             $this->telegramService->replyTo($message, sprintf(
                 'you have %d tickets: %s',
                 count($ticket->getNumbers()),
-                implode(', ', $ticket->getNumbers()),
+                implode(', ', $numbers),
             ));
             return;
         }
