@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Telegram\Honor;
+namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\HonorFactory;

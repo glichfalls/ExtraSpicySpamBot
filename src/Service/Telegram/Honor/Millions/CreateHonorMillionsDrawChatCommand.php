@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Telegram\Honor;
+namespace App\Service\Telegram\Honor\Millions;
 
 use App\Entity\Honor\HonorMillions\Draw\DrawFactory;
 use App\Entity\Message\Message;
@@ -21,8 +21,7 @@ class CreateHonorMillionsDrawChatCommand extends AbstractTelegramChatCommand
         LoggerInterface $logger,
         TelegramService $telegramService,
         private DrawRepository $drawRepository,
-    )
-    {
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
