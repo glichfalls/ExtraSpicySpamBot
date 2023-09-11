@@ -16,6 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
+use function Sentry\continueTrace;
 
 class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
 {
@@ -91,6 +92,9 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
     {
         $numbers = [];
         foreach (explode(',', $matches['numbers']) as $number) {
+            if (!is_numeric($number)) {
+                continue;
+            }
             $number = (int) trim($number);
             if ($number < 1 || $number > 100) {
                 throw new \InvalidArgumentException(sprintf('%d is not in range. number must be between 1 and 100', $number));
