@@ -59,7 +59,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
 
         $ticket = $draw->getTicketByUser($message->getUser());
 
-        if (array_diff($numbers, $ticket->getNumbers()) !== []) {
+        if (count(array_diff($numbers, $ticket->getNumbers())) !== count($numbers)) {
             $this->telegramService->replyTo($message, sprintf(
                 'you can only buy tickets with numbers you already have. you have %s',
                 implode(', ', $ticket->getNumbers()),
@@ -81,6 +81,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
                 $total,
             ));
         } catch (\InvalidArgumentException $exception) {
+            $this->manager->clear();
             $this->telegramService->replyTo($message, $exception->getMessage());
             return;
         }
