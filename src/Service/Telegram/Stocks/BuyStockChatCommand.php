@@ -38,14 +38,13 @@ class BuyStockChatCommand extends AbstractStockChatCommand
             $portfolio = $this->getPortfolioByMessage($message);
             $transaction = $this->buyStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
-                "<strong>%s</strong>\n%s\n\n%dx %s: <code>$%.2f</code> (%d Ehre)\nTotal buy Price: %d Ehre",
+                "<strong>%s</strong>\n%s\n\n%dx %s: <code>%s</code> Ehre\nTotal buy Price: <code>%d</code> Ehre",
                 $transaction->getPrice()->getStock()->getName(),
                 $transaction->getPrice()->getStock()->getType(),
                 $transaction->getAmount(),
                 $transaction->getPrice()->getStock()->getDisplaySymbol(),
-                $transaction->getPrice()->getPrice(),
                 $transaction->getPrice()->getHonorPrice(),
-                $transaction->getHonorTotal(),
+                number_format($transaction->getHonorTotal(), thousands_separator: '\''),
             ), parseMode: 'HTML');
         } catch (AmountZeroOrNegativeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());

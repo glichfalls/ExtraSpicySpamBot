@@ -29,11 +29,10 @@ class SellStockChatCommand extends AbstractStockChatCommand
             }
             $transaction = $this->sellStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
-                'You sold %dx %s ($%.2f) for %d honor',
-                abs($transaction->getAmount()),
+                '%sx %s sold for %s Ehre',
+                number_format(abs($transaction->getAmount()), thousands_separator: '\''),
                 $transaction->getPrice()->getStock()->getDisplaySymbol(),
-                $transaction->getPrice()->getPrice(),
-                abs($transaction->getHonorTotal()),
+                number_format(abs($transaction->getHonorTotal()), thousands_separator: '\''),
             ));
         } catch (AmountZeroOrNegativeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());
