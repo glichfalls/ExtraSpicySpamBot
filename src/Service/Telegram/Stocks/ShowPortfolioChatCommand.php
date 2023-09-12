@@ -41,10 +41,10 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
             $total += $transactions->getCurrentTotal($currentPrice);
             $totalHonor += $transactions->getCurrentHonorTotal($currentPrice);
             $data[] = sprintf(
-                '%dx <strong>%s</strong>: <code>$%.2f</code> (%d Ehre)',
+                '%dx <strong>%s</strong>: <code>%s</code> (%s Ehre)',
                 $transactions->getTotalAmount(),
                 $transactions->getSymbol(),
-                number_format($transactions->getCurrentHonorTotal($currentPrice), thousands_separator: '\''),
+                number_format($transactions->getCurrentHonorTotal($currentPrice), decimals: 2, thousands_separator: '\''),
                 number_format($transactions->getCurrentTotal($currentPrice), thousands_separator: '\''),
             );
         }
