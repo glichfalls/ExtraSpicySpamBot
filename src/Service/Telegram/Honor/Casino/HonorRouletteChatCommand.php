@@ -94,7 +94,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         if ($bet === null) {
             $this->telegramService->sendText(
                 $message->getChat()->getChatId(),
-                sprintf('chose a bet for %d Ehre', $initialAmount),
+                sprintf('chose a bet for %d Ehre', number_format($initialAmount, thousands_separator: '\'')),
                 threadId: $message->getTelegramThreadId(),
                 replyMarkup: $this->getBoardKeyboard($initialAmount),
             );
@@ -113,7 +113,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
                     $this->getColorEmojiByNumber($result['number']),
                     $message->getUser()->getName(),
                     $result['amount'] > 0 ? 'won' : 'lost',
-                    abs($result['amount']),
+                    number_format(abs($result['amount']), thousands_separator: '\''),
                 ),
             );
         }
