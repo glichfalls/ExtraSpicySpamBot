@@ -44,7 +44,7 @@ class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatCommand
         }
         $jackpot = $draw->getJackpot();
         $this->telegramService->replyTo($message, sprintf(
-            'the jackpot is %s ehre (%s from casino)',
+            'the jackpot is %s ehre (%s today)',
             number_format($jackpot, thousands_separator: '\''),
             number_format($draw->getGamblingLosses(), thousands_separator: '\''),
         ));
