@@ -44,11 +44,15 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
                 '%dx <strong>%s</strong>: <code>$%.2f</code> (%d Ehre)',
                 $transactions->getTotalAmount(),
                 $transactions->getSymbol(),
-                $transactions->getCurrentHonorTotal($currentPrice),
-                $transactions->getCurrentTotal($currentPrice),
+                number_format($transactions->getCurrentHonorTotal($currentPrice), thousands_separator: '\''),
+                number_format($transactions->getCurrentTotal($currentPrice), thousands_separator: '\''),
             );
         }
-        $data[] = sprintf('Total: <code>$%.2f</code> (%d Ehre)', $total, $totalHonor);
+        $data[] = sprintf(
+            'Total: <code>$%.2f</code> (%d Ehre)',
+            number_format($total, thousands_separator: '\''),
+            number_format($totalHonor, thousands_separator: '\''),
+        );
         return implode(PHP_EOL, $data);
     }
 
