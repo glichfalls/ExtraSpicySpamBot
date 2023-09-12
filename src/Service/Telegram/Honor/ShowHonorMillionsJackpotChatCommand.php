@@ -20,8 +20,7 @@ class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatCommand
         LoggerInterface $logger,
         TelegramService $telegramService,
         private DrawRepository $drawRepository,
-    )
-    {
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
@@ -44,7 +43,7 @@ class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatCommand
         }
         $jackpot = $draw->getJackpot();
         $this->telegramService->replyTo($message, sprintf(
-            'the jackpot is %s ehre (%s today)',
+            'the jackpot is %s Ehre (+%s today)',
             number_format($jackpot, thousands_separator: '\''),
             number_format($draw->getGamblingLosses(), thousands_separator: '\''),
         ));
