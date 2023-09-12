@@ -20,8 +20,7 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
         LoggerInterface        $logger,
         TelegramService        $telegramService,
         private HonorService   $honorService,
-    )
-    {
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
