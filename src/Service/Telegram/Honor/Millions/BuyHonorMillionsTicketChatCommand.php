@@ -6,6 +6,7 @@ use App\Entity\Chat\Chat;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Honor\HonorMillions\Draw\Draw;
 use App\Entity\Honor\HonorMillions\Ticket\Ticket;
+use App\Entity\Honor\HonorMillions\Ticket\TicketFactory;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\DrawRepository;
@@ -59,6 +60,12 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
         }
 
         $ticket = $draw->getTicketByUser($message->getUser());
+
+        if ($ticket === null) {
+            $ticket = TicketFactory::create($message->getUser(), $draw);
+            $draw->getTickets()->add($ticket);
+            $this->manager->persist($ticket);
+        }
 
         if (count(array_diff($numbers, $ticket->getNumbers())) !== count($numbers)) {
             $this->telegramService->replyTo($message, sprintf(
