@@ -20,8 +20,7 @@ class ShowHonorChatCommand extends AbstractTelegramChatCommand
         LoggerInterface         $logger,
         TelegramService         $telegramService,
         private HonorRepository $honorRepository,
-    )
-    {
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
@@ -33,7 +32,9 @@ class ShowHonorChatCommand extends AbstractTelegramChatCommand
     public function handle(Update $update, Message $message, array $matches): void
     {
         $total = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
-        $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.show', ['amount' => $total]));
+        $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.show', [
+            'amount' => number_format($total, thousands_separator: '\''),
+        ]));
     }
 
     public function getSyntax(): string
