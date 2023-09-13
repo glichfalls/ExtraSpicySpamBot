@@ -5,6 +5,7 @@ namespace App\Service\Telegram\Stocks;
 use App\Entity\Message\Message;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Exception\StockSymbolUpdateException;
+use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Update;
 
 class ShowPortfolioChatCommand extends AbstractStockChatCommand
@@ -40,14 +41,14 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
             $totalHonor += $transactions->getCurrentHonorTotal($currentPrice);
             $data[] = sprintf(
                 '%sx <strong>%s</strong>: <code>%s</code> Ehre',
-                number_format($transactions->getTotalAmount(), thousands_separator: '\''),
+                NumberFormat::format($transactions->getTotalAmount()),
                 $transactions->getSymbol(),
-                number_format($transactions->getCurrentTotal($currentPrice), thousands_separator: '\''),
+                NumberFormat::format($transactions->getCurrentTotal($currentPrice)),
             );
         }
         $data[] = sprintf(
             '<strong>Total</strong>: <code>%s</code> Ehre',
-            number_format($totalHonor, thousands_separator: '\''),
+            NumberFormat::format($totalHonor),
         );
         return implode(PHP_EOL, $data);
     }

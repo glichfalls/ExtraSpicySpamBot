@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
 use App\Repository\HonorRepository;
+use App\Utils\NumberFormat;
 
 class HonorService
 {
@@ -25,7 +26,7 @@ class HonorService
                 return sprintf(
                     '%s: %s Ehre',
                     $name,
-                    number_format($entry['amount'] + Honor::BASE_HONOR, thousands_separator: '\'')
+                    NumberFormat::format($entry['amount'] + Honor::BASE_HONOR)
                 );
             }, $leaderboard);
             return implode(PHP_EOL, $text);

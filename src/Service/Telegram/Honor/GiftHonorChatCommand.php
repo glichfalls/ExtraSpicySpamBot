@@ -7,6 +7,7 @@ use App\Entity\Message\Message;
 use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -47,14 +48,25 @@ class GiftHonorChatCommand extends AbstractTelegramChatCommand
             $senderHonorAmount = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
 
             if ($senderHonorAmount < $amount) {
-                $this->telegramService->replyTo($message, sprintf('not enough honor to gift %d honor to %s', $senderHonorAmount, $recipient->getFirstName()));
+                $this->telegramService->replyTo(
+                    $message,
+                    sprintf(
+                        'not enough honor to gift %s honor to %s',
+                        NumberFormat::format($senderHonorAmount),
+                        $recipient->getFirstName()
+                    ),
+                );
                 continue;
             }
 
             $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$amount));
             $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $recipient, $amount));
             $this->manager->flush();
-            $this->telegramService->replyTo($message, sprintf('you have gifted %d honor to %s', $amount, $recipient->getFirstName()));
+            $this->telegramService->replyTo($message, sprintf(
+                'you have gifted %s honor to %s',
+                NumberFormat::format($amount),
+                $recipient->getFirstName(),
+            ));
         }
     }
 

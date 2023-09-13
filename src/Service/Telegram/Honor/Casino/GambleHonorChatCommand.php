@@ -8,6 +8,7 @@ use App\Repository\DrawRepository;
 use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -47,13 +48,13 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             if (rand(0, 1) === 1) {
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), $count));
                 $this->manager->flush();
-                $this->telegramService->replyTo($message, sprintf('you have won %s Ehre', number_format($count, thousands_separator: '\'')));
+                $this->telegramService->replyTo($message, sprintf('you have won %s Ehre', NumberFormat::format($count)));
             } else {
                 $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
                 $draw?->setGamblingLosses($draw->getGamblingLosses() + $count);
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), -$count));
                 $this->manager->flush();
-                $this->telegramService->replyTo($message, sprintf('you have lost %s Ehre', number_format($count, thousands_separator: '\'')));
+                $this->telegramService->replyTo($message, sprintf('you have lost %s Ehre', NumberFormat::format($count)));
             }
         }
     }

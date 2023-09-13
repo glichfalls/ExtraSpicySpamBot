@@ -6,6 +6,7 @@ use App\Entity\Message\Message;
 use App\Exception\AmountZeroOrNegativeException;
 use App\Exception\NotEnoughStocksException;
 use App\Exception\StockSymbolUpdateException;
+use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Update;
 
 class SellStockChatCommand extends AbstractStockChatCommand
@@ -30,18 +31,18 @@ class SellStockChatCommand extends AbstractStockChatCommand
             $transaction = $this->sellStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
                 '%sx %s sold for %s Ehre',
-                number_format(abs($transaction->getAmount()), thousands_separator: '\''),
+                NumberFormat::format(abs($transaction->getAmount())),
                 $transaction->getPrice()->getStock()->getDisplaySymbol(),
-                number_format(abs($transaction->getHonorTotal()), thousands_separator: '\''),
+                NumberFormat::format(abs($transaction->getHonorTotal())),
             ));
         } catch (AmountZeroOrNegativeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());
         } catch (NotEnoughStocksException $exception) {
             $this->telegramService->replyTo($message, sprintf(
-                'You dont have enough %s stocks to sell (you have %d stocks, you need %d stocks)',
+                'You dont have enough %s stocks to sell (you have %s stocks, you need %s stocks)',
                 $symbol,
-                $exception->getAvailable(),
-                $exception->getRequired(),
+                NumberFormat::format($exception->getAvailable()),
+                NumberFormat::format($exception->getRequired()),
             ));
         } catch (StockSymbolUpdateException $exception) {
             $this->telegramService->replyTo($message, sprintf(
