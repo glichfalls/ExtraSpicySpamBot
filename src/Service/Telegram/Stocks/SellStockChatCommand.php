@@ -2,14 +2,17 @@
 
 namespace App\Service\Telegram\Stocks;
 
+use App\Entity\Chat\Chat;
 use App\Entity\Message\Message;
+use App\Entity\User\User;
 use App\Exception\AmountZeroOrNegativeException;
 use App\Exception\NotEnoughStocksException;
 use App\Exception\StockSymbolUpdateException;
+use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Update;
 
-class SellStockChatCommand extends AbstractStockChatCommand
+class SellStockChatCommand extends AbstractStockChatCommand implements TelegramCallbackQueryListener
 {
 
     public const SELL_KEYWORD = 'stock:sell:max';
@@ -53,6 +56,16 @@ class SellStockChatCommand extends AbstractStockChatCommand
                 $exception->getMessage()
             ));
         }
+    }
+
+    public function getCallbackKeyword(): string
+    {
+        return self::SELL_KEYWORD;
+    }
+
+    public function handleCallback(Update $update, Chat $chat, User $user): void
+    {
+        $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'soon™', true);
     }
 
 }
