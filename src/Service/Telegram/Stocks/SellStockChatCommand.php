@@ -11,6 +11,8 @@ use TelegramBot\Api\Types\Update;
 class SellStockChatCommand extends AbstractStockChatCommand
 {
 
+    public const SELL_KEYWORD = 'stock:sell:max';
+
     public function matches(Update $update, Message $message, array &$matches): bool
     {
         return preg_match('/!sell\s*(stocks|stock)?\s*(?<symbol>[.\w]+)\s*(?<amount>\d+|max)/', $message->getMessage(), $matches) === 1;

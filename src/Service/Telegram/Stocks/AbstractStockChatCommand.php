@@ -2,6 +2,7 @@
 
 namespace App\Service\Telegram\Stocks;
 
+use App\Entity\Chat\Chat;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
 use App\Entity\Stocks\Portfolio\Portfolio;
@@ -10,6 +11,7 @@ use App\Entity\Stocks\Stock\Stock;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Transaction\StockTransaction;
 use App\Entity\Stocks\Transaction\StockTransactionFactory;
+use App\Entity\User\User;
 use App\Exception\AmountZeroOrNegativeException;
 use App\Exception\NotEnoughHonorException;
 use App\Exception\NotEnoughStocksException;
@@ -56,15 +58,20 @@ abstract class AbstractStockChatCommand extends AbstractTelegramChatCommand
         return $this->stockService->getPriceBySymbol($symbol);
     }
 
-    protected function getPortfolioByMessage(Message $message): Portfolio
+    protected function getPortfolioByUserAndChat(Chat $chat, User $user): Portfolio
     {
-        $portfolio = $this->portfolioRepository->getByChatAndUser($message->getChat(), $message->getUser());
+        $portfolio = $this->portfolioRepository->getByChatAndUser($chat, $user);
         if ($portfolio === null) {
-            $portfolio = PortfolioFactory::create($message->getChat(), $message->getUser());
+            $portfolio = PortfolioFactory::create($chat, $user);
             $this->manager->persist($portfolio);
             $this->manager->flush();
         }
         return $portfolio;
+    }
+
+    protected function getPortfolioByMessage(Message $message): Portfolio
+    {
+        return $this->getPortfolioByUserAndChat($message->getChat(), $message->getUser());
     }
 
     protected function buyStock(Portfolio $portfolio, string $symbol, int $amount): StockTransaction

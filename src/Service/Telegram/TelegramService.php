@@ -50,8 +50,7 @@ class TelegramService
         protected UserRepository $userRepository,
         protected StickerFileRepository $stickerFileRepository,
         protected StickerSetRepository $stickerSetRepository,
-    )
-    {
+    ) {
         if ($_ENV['APP_ENV'] === 'dev') {
             $this->bot->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
         }
@@ -111,8 +110,7 @@ class TelegramService
         string $text,
         ?ReplyKeyboardMarkup $replyMarkup = null,
         $parseMode = null,
-    ): TelegramMessage
-    {
+    ): TelegramMessage {
         return $this->bot->sendMessage(
             $message->getChat()->getChatId(),
             $text,
@@ -125,8 +123,7 @@ class TelegramService
     public function videoReplyTo(
         Message $message,
         string $videoUrl,
-    ): TelegramMessage
-    {
+    ): TelegramMessage {
         return $this->bot->sendVideo(
             $message->getChat()->getChatId(),
             $videoUrl,
@@ -273,6 +270,17 @@ class TelegramService
         }
     }
 
+    public function senderRenderedMessage(
+        string $template,
+        string $chatId,
+        ?int $threadId = null,
+        mixed $replyMarkup = null,
+        ?string $parseMode = null,
+        array $context = []
+    ): void {
+        $this->sendText($chatId, $this->renderMessage($template, $context), $threadId, $replyMarkup, $parseMode);
+    }
+
     public function renderReplyTo(Message $message, string $template, array $context = []): void
     {
         $this->replyTo($message, $this->renderMessage($template, $context), parseMode: 'HTML');
@@ -360,8 +368,7 @@ class TelegramService
         CallbackQuery $callbackQuery,
         string $text,
         bool $showAlert,
-    ): void
-    {
+    ): void {
         $this->bot->answerCallbackQuery(
             $callbackQuery->getId(),
             $text,
@@ -373,8 +380,7 @@ class TelegramService
         string $chatId,
         string $messageId,
         mixed $replyMarkup,
-    ): void
-    {
+    ): void {
         $this->bot->editMessageReplyMarkup(
             $chatId,
             $messageId,

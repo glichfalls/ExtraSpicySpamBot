@@ -5,6 +5,7 @@ namespace App\Service\Telegram\Stocks;
 use App\Entity\Message\Message;
 use App\Entity\Stocks\Stock\Stock;
 use App\Exception\StockSymbolUpdateException;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
 class ShowStockPriceChatCommand extends AbstractStockChatCommand
@@ -23,12 +24,14 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
                 $price = $this->getStockPrice($symbol);
             } catch (StockSymbolUpdateException) {
                 $searchResult = $this->searchStock($symbol);
-                $this->telegramService->replyTo($message, sprintf(
+                $this->telegramService->sendText($message->getChat()->getChatId(), sprintf(
                     'Stock symbol %s not found. Did you mean one of:%s %s?',
                     $symbol,
                     PHP_EOL,
-                    implode(PHP_EOL, $searchResult
-                        ->map(fn(Stock $stock) => sprintf('<code>%s</code>: %s', $stock->getSymbol(), $stock->getName()))
+                    implode(
+                        PHP_EOL,
+                        $searchResult
+                        ->map(fn (Stock $stock) => sprintf('<code>%s</code>: %s', $stock->getSymbol(), $stock->getName()))
                         ->slice(0, 10)
                     ),
                 ), parseMode: 'HTML');
@@ -36,10 +39,16 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
             }
             $portfolio = $this->getPortfolioByMessage($message);
             $balance = $portfolio->getTransactionsBySymbol($symbol, $price);
-            $this->telegramService->renderReplyTo($message, 'stock', [
-                'price' => $price,
-                'balance' => $balance,
-            ]);
+            $this->telegramService->senderRenderedMessage(
+                'stock',
+                $message->getChat()->getChatId(),
+                threadId: $message->getTelegramThreadId(),
+                replyMarkup: $this->getKeyboard($price->getStock()),
+                context: [
+                    'price' => $price,
+                    'balance' => $balance,
+                ]
+            );
         } catch (StockSymbolUpdateException $exception) {
             $this->telegramService->replyTo($message, sprintf(
                 'Failed to get stock price for %s [%s]',
@@ -47,6 +56,22 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
                 $exception->getMessage()
             ));
         }
+    }
+
+    private function getKeyboard(Stock $stock): InlineKeyboardMarkup
+    {
+        return new InlineKeyboardMarkup([
+            [
+                [
+                    'text' => 'buy',
+                    'callback_data' => sprintf('%s:%s', BuyStockChatCommand::BUY_KEYWORD, $stock->getSymbol()),
+                ],
+                [
+                    'text' => 'sell',
+                    'callback_data' => sprintf('%s:%s', SellStockChatCommand::SELL_KEYWORD, $stock->getSymbol()),
+                ],
+            ],
+        ]);
     }
 
 }
