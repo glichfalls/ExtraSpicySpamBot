@@ -4,6 +4,8 @@ namespace App\Service\Telegram\Stocks;
 
 use App\Entity\Message\Message;
 use App\Entity\Stocks\Stock\Stock;
+use App\Entity\Stocks\Stock\StockPrice;
+use App\Entity\Stocks\Transaction\SymbolTransactionCollection;
 use App\Exception\StockSymbolUpdateException;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
@@ -37,17 +39,16 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
                 ), parseMode: 'HTML');
                 return;
             }
-            $portfolio = $this->getPortfolioByMessage($message);
-            $balance = $portfolio->getTransactionsBySymbol($symbol, $price);
-            $this->telegramService->senderRenderedMessage(
-                'stock',
+            $this->telegramService->sendText(
                 $message->getChat()->getChatId(),
+                sprintf(
+                    '%s [%s]: %s Ehre',
+                    $price->getStock()->getName(),
+                    $price->getStock()->getSymbol(),
+                    $price->getHonorPrice(),
+                ),
                 threadId: $message->getTelegramThreadId(),
                 replyMarkup: $this->getKeyboard($price->getStock()),
-                context: [
-                    'price' => $price,
-                    'balance' => $balance,
-                ]
             );
         } catch (StockSymbolUpdateException $exception) {
             $this->telegramService->replyTo($message, sprintf(
@@ -56,6 +57,20 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
                 $exception->getMessage()
             ));
         }
+    }
+
+    private function sendHtmlReply(Message $message, SymbolTransactionCollection $balance, StockPrice $price): void
+    {
+        $this->telegramService->senderRenderedMessage(
+            'stock',
+            $message->getChat()->getChatId(),
+            threadId: $message->getTelegramThreadId(),
+            replyMarkup: $this->getKeyboard($price->getStock()),
+            context: [
+                'price' => $price,
+                'balance' => $balance,
+            ]
+        );
     }
 
     private function getKeyboard(Stock $stock): InlineKeyboardMarkup
