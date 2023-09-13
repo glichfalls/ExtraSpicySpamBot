@@ -103,12 +103,9 @@ class BuyStockChatCommand extends AbstractStockChatCommand implements TelegramCa
     private function getTransactionBill(StockTransaction $transaction): string
     {
         return sprintf(
-            "<strong>%s</strong>\n%s\n\n%dx %s: <code>%s</code> Ehre\nTotal buy Price: <code>%d</code> Ehre",
-            $transaction->getPrice()->getStock()->getName(),
-            $transaction->getPrice()->getStock()->getType(),
-            $transaction->getAmount(),
+            '%s x %s bought for %s Ehre',
+            NumberFormat::format($transaction->getAmount()),
             $transaction->getPrice()->getStock()->getDisplaySymbol(),
-            $transaction->getPrice()->getHonorPrice(),
             NumberFormat::format($transaction->getHonorTotal()),
         );
     }
