@@ -8,6 +8,7 @@ use App\Repository\DrawRepository;
 use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -30,7 +31,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!(gamble|g)\s(?<count>\d+|max)$/', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!(gamble|g)\s(?<count>\d+|max)[km]?$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -39,7 +40,11 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         if ($matches['count'] === 'max') {
             $count = $currentHonor;
         } else {
-            $count = (int) $matches['count'];
+            if (NumberFormat::isAbbreviatedNumber($matches['count'])) {
+                $count = NumberFormat::unabbreviateNumber($matches['count']);
+            } else {
+                $count = (int) $matches['count'];
+            }
         }
         if ($currentHonor < $count) {
             $this->telegramService->replyTo($message, 'not enough Ehre');
@@ -47,13 +52,13 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             if (rand(0, 1) === 1) {
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), $count));
                 $this->manager->flush();
-                $this->telegramService->replyTo($message, sprintf('you have won %s Ehre', number_format($count, thousands_separator: '\'')));
+                $this->telegramService->replyTo($message, sprintf('you have won %s Ehre', NumberFormat::format($count)));
             } else {
                 $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
                 $draw?->setGamblingLosses($draw->getGamblingLosses() + $count);
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), -$count));
                 $this->manager->flush();
-                $this->telegramService->replyTo($message, sprintf('you have lost %s Ehre', number_format($count, thousands_separator: '\'')));
+                $this->telegramService->replyTo($message, sprintf('you have lost %s Ehre', NumberFormat::format($count)));
             }
         }
     }

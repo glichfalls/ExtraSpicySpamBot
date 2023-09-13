@@ -10,6 +10,7 @@ use App\Exception\AmountZeroOrNegativeException;
 use App\Exception\NotEnoughHonorException;
 use App\Exception\StockSymbolUpdateException;
 use App\Service\Telegram\TelegramCallbackQueryListener;
+use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Update;
 
 class BuyStockChatCommand extends AbstractStockChatCommand implements TelegramCallbackQueryListener
@@ -32,11 +33,11 @@ class BuyStockChatCommand extends AbstractStockChatCommand implements TelegramCa
             $this->telegramService->replyTo($message, $exception->getMessage());
         } catch (NotEnoughHonorException $exception) {
             $this->telegramService->replyTo($message, sprintf(
-                'You dont have enough Ehre to buy %dx %s (you have %d Ehre, you need %d Ehre)',
-                $amount,
+                'You dont have enough Ehre to buy %sx %s (you have %s Ehre, you need %s Ehre)',
+                NumberFormat::format($amount),
                 $symbol,
-                $exception->getBalance(),
-                $exception->getRequired(),
+                NumberFormat::format($exception->getBalance()),
+                NumberFormat::format($exception->getRequired()),
             ));
         } catch (StockSymbolUpdateException $exception) {
             $this->logger->error($exception->getMessage());
@@ -108,7 +109,7 @@ class BuyStockChatCommand extends AbstractStockChatCommand implements TelegramCa
             $transaction->getAmount(),
             $transaction->getPrice()->getStock()->getDisplaySymbol(),
             $transaction->getPrice()->getHonorPrice(),
-            number_format($transaction->getHonorTotal(), thousands_separator: '\''),
+            NumberFormat::format($transaction->getHonorTotal()),
         );
     }
 

@@ -6,6 +6,7 @@ use App\Entity\Message\Message;
 use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -33,7 +34,7 @@ class ShowHonorChatCommand extends AbstractTelegramChatCommand
     {
         $total = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
         $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.show', [
-            'amount' => number_format($total, thousands_separator: '\''),
+            'amount' => NumberFormat::format($total),
         ]));
     }
 

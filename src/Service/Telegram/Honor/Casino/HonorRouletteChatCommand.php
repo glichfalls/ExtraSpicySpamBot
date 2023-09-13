@@ -11,6 +11,7 @@ use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -48,7 +49,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
             if ($currentHonor < $amount) {
                 $this->telegramService->answerCallbackQuery(
                     $callbackQuery,
-                    sprintf('you dont have enough Ehre to bet %d Ehre', $amount),
+                    sprintf('you dont have enough Ehre to bet %d Ehre', NumberFormat::format($amount)),
                     true,
                 );
             } else {
@@ -57,10 +58,10 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf(
-                        '%s %s %d Ehre (%s -> %d %s)',
+                        '%s %s %s Ehre (%s -> %s %s)',
                         $user->getName(),
                         $result['amount'] > 0 ? 'won' : 'lost',
-                        abs($result['amount']),
+                        NumberFormat::format(abs($result['amount'])),
                         $bet,
                         $result['number'],
                         $this->getColorEmojiByNumber($result['number']),
@@ -70,9 +71,9 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
                 $this->telegramService->answerCallbackQuery(
                     $callbackQuery,
                     sprintf(
-                        'You %s %d Ehre (%d %s)',
+                        'You %s %s Ehre (%s %s)',
                         $result['amount'] > 0 ? 'won' : 'lost',
-                        abs($result['amount']),
+                        NumberFormat::format(abs($result['amount'])),
                         $result['number'],
                         $this->getColorEmojiByNumber($result['number']),
                     ),
@@ -94,7 +95,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         if ($bet === null) {
             $this->telegramService->sendText(
                 $message->getChat()->getChatId(),
-                sprintf('chose a bet for %d Ehre', number_format($initialAmount, thousands_separator: '\'')),
+                sprintf('chose a bet for %s Ehre', NumberFormat::format($initialAmount)),
                 threadId: $message->getTelegramThreadId(),
                 replyMarkup: $this->getBoardKeyboard($initialAmount),
             );
@@ -108,12 +109,12 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
             $this->telegramService->replyTo(
                 $message,
                 sprintf(
-                    'the number is %d %s. %s %s %d ehre.',
+                    'the number is %s %s. %s %s %s Ehre.',
                     $result['number'],
                     $this->getColorEmojiByNumber($result['number']),
                     $message->getUser()->getName(),
                     $result['amount'] > 0 ? 'won' : 'lost',
-                    number_format(abs($result['amount']), thousands_separator: '\''),
+                    NumberFormat::format(abs($result['amount'])),
                 ),
             );
         }

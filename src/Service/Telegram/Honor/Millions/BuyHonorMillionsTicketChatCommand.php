@@ -17,7 +17,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
-use function Sentry\continueTrace;
 
 class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
 {

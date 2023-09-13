@@ -6,6 +6,7 @@ use App\Entity\Message\Message;
 use App\Repository\DrawRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -44,8 +45,8 @@ class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatCommand
         $jackpot = $draw->getJackpot();
         $this->telegramService->replyTo($message, sprintf(
             'the jackpot is %s Ehre (+%s today)',
-            number_format($jackpot, thousands_separator: '\''),
-            number_format($draw->getGamblingLosses(), thousands_separator: '\''),
+            NumberFormat::format($jackpot),
+            NumberFormat::format($draw->getGamblingLosses()),
         ));
     }
 
