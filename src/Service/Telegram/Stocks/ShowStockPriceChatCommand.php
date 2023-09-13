@@ -7,6 +7,7 @@ use App\Entity\Stocks\Stock\Stock;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Transaction\SymbolTransactionCollection;
 use App\Exception\StockSymbolUpdateException;
+use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
@@ -42,10 +43,14 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
             $this->telegramService->sendText(
                 $message->getChat()->getChatId(),
                 sprintf(
-                    '%s [%s]: %s Ehre',
+                    <<<TEXT
+                    %s
+                    %s
+                    %s Ehre
+                    TEXT,
                     $price->getStock()->getName(),
                     $price->getStock()->getSymbol(),
-                    $price->getHonorPrice(),
+                    NumberFormat::format($price->getPrice()),
                 ),
                 threadId: $message->getTelegramThreadId(),
                 replyMarkup: $this->getKeyboard($price->getStock()),
