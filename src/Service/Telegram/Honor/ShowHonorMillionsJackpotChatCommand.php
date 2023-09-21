@@ -2,6 +2,7 @@
 
 namespace App\Service\Telegram\Honor;
 
+use App\Entity\Honor\HonorMillions\Draw\Draw;
 use App\Entity\Message\Message;
 use App\Repository\DrawRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
@@ -44,10 +45,20 @@ class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatCommand
         }
         $jackpot = $draw->getJackpot();
         $this->telegramService->replyTo($message, sprintf(
-            'the jackpot is %s Ehre (+%s today)',
+            'the jackpot is %s Ehre (+%s today). %s%% chance someone wins today',
             NumberFormat::format($jackpot),
             NumberFormat::format($draw->getGamblingLosses()),
+            $this->getTotalUniqueNumbers($draw),
         ));
+    }
+
+    private function getTotalUniqueNumbers(Draw $draw): int
+    {
+        $numbers = [];
+        foreach ($draw->getTickets() as $ticket) {
+            $numbers = array_merge($numbers, $ticket->getNumbers());
+        }
+        return count(array_unique($numbers));
     }
 
     public function getSyntax(): string
