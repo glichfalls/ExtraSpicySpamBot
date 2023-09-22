@@ -97,13 +97,13 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         };
         $results = [1];
         for ($i = 0; $i < $numberOfIterations; $i++) {
-            $results[] = random_int($min, $max);
+            $results[] = random_int($min, $max / $i);
         }
         sort($results);
         $results = match ($size) {
-            self::SMALL => array_slice($results, 0, 1),
-            self::MEDIUM => array_slice($results, 0, 2),
-            self::LARGE => array_slice($results, 0, 3),
+            self::SMALL => array_slice($results, 0, 2),
+            self::MEDIUM => array_slice($results, 0, 3),
+            self::LARGE => array_slice($results, 0, 4),
         };
         $win = array_sum($results) / count($results);
         return max($win, $min);
