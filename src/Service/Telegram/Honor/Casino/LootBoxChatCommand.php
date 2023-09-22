@@ -64,6 +64,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             $this->removeHonor($chat, $user, $price);
             $result = $this->roll($size);
             $this->addHonor($chat, $user, $result);
+            $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery, sprintf('You won %s honor', NumberFormat::format($result)), false);
             $this->telegramService->sendText(
                 $chat->getChatId(),
@@ -81,31 +82,25 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function roll(string $size)
     {
         $min = match ($size) {
-            self::SMALL => 0,
-            self::MEDIUM => 100,
-            self::LARGE => 1000,
+            self::SMALL => 100,
+            self::MEDIUM => 1000,
+            self::LARGE => 10000,
         };
         $max = match ($size) {
             self::SMALL => 100_000,
             self::MEDIUM => 1_000_000,
-            self::LARGE => 100_000_000,
+            self::LARGE => 10_000_000,
         };
-        $numberOfIterations = match ($size) {
-            self::SMALL => 80,
-            self::MEDIUM => 40,
-            self::LARGE => 20,
-        };
-        $results = [1];
-        for ($i = 0; $i < $numberOfIterations; $i++) {
-            $results[] = random_int($min, $max / $i);
+        if (random_int(0, 100) === 1) {
+            return $max;
         }
-        sort($results);
-        $results = match ($size) {
-            self::SMALL => array_slice($results, 0, 2),
-            self::MEDIUM => array_slice($results, 0, 3),
-            self::LARGE => array_slice($results, 0, 4),
-        };
-        $win = array_sum($results) / count($results);
+        $results = [$min];
+        for ($i = 1; $i <= 3; $i++) {
+            $currentMax = $max / (10 ** $i);
+            $results[] = random_int($min / 10, $currentMax);
+        }
+        $index = array_rand($results);
+        $win = $results[$index];
         return max($win, $min);
     }
 
@@ -125,8 +120,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     {
         return match ($size) {
             self::SMALL => 1000,
-            self::MEDIUM => 5_000,
-            self::LARGE => 10_000,
+            self::MEDIUM => 10_000,
+            self::LARGE => 1,
             default => null,
         };
     }
