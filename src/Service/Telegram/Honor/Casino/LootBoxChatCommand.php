@@ -91,24 +91,20 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::LARGE => 100_000_000,
         };
         $numberOfIterations = match ($size) {
-            self::SMALL => 10,
-            self::MEDIUM => 20,
-            self::LARGE => 40,
+            self::SMALL => 80,
+            self::MEDIUM => 40,
+            self::LARGE => 20,
         };
         $results = [1];
         for ($i = 0; $i < $numberOfIterations; $i++) {
             $results[] = random_int($min, $max);
         }
         sort($results);
-        $lowest = array_shift($results);
-        $highest = array_pop($results);
         $results = match ($size) {
-            self::SMALL => array_slice($results, 2, 5),
-            self::MEDIUM => array_slice($results, 4, 10),
-            self::LARGE => array_slice($results, 8, 20),
+            self::SMALL => array_slice($results, 0, 1),
+            self::MEDIUM => array_slice($results, 0, 2),
+            self::LARGE => array_slice($results, 0, 3),
         };
-        $results[] = $lowest;
-        $results[] = $highest;
         $win = array_sum($results) / count($results);
         return max($win, $min);
     }
@@ -129,8 +125,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     {
         return match ($size) {
             self::SMALL => 1000,
-            self::MEDIUM => 5000,
-            self::LARGE => 10000,
+            self::MEDIUM => 5_000,
+            self::LARGE => 10_000,
             default => null,
         };
     }
