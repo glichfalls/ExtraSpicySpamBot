@@ -43,10 +43,4 @@ abstract class AbstractCollectableTelegramChatCommand extends AbstractTelegramHo
         return $this->collectableItemInstanceRepository->getCurrentCollectionByChatAndUser($chat, $user);
     }
 
-    protected function saveAndQuit(): int
-    {
-        $this->manager->flush();
-        return self::SUCCESS;
-    }
-
 }

@@ -8,10 +8,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-#[Entity]
-#[ApiResource(
-    normalizationContext: ['groups' => ['public:read']],
-)]
+
 class Unit
 {
     use Id;

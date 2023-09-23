@@ -6,12 +6,10 @@ use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 
-#[Entity]
 class ArmyUnit
 {
     use Id;
 
-    #[]
     private Army $army;
 
     private Unit $unit;
