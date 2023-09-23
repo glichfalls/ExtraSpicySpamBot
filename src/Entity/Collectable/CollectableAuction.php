@@ -4,10 +4,13 @@ namespace App\Entity\Collectable;
 
 use App\Entity\User\User;
 use App\Model\Id;
+use App\Repository\CollectableAuctionRepository;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
+#[Entity(repositoryClass: CollectableAuctionRepository::class)]
 class CollectableAuction
 {
     use Id;
@@ -15,6 +18,9 @@ class CollectableAuction
 
     #[ManyToOne(targetEntity: CollectableItemInstance::class)]
     private CollectableItemInstance $instance;
+
+    #[ManyToOne(targetEntity: User::class)]
+    private ?User $seller = null;
 
     #[ManyToOne(targetEntity: User::class)]
     private ?User $highestBidder = null;
@@ -38,6 +44,16 @@ class CollectableAuction
     public function setInstance(CollectableItemInstance $instance): void
     {
         $this->instance = $instance;
+    }
+
+    public function getSeller(): ?User
+    {
+        return $this->seller;
+    }
+
+    public function setSeller(?User $seller): void
+    {
+        $this->seller = $seller;
     }
 
     public function getHighestBidder(): ?User

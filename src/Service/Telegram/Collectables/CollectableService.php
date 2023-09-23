@@ -10,6 +10,7 @@ use App\Entity\Collectable\CollectableTransaction;
 use App\Entity\User\User;
 use App\Repository\CollectableItemInstanceRepository;
 use App\Repository\CollectableRepository;
+use App\Service\HonorService;
 use Doctrine\ORM\EntityManagerInterface;
 
 class CollectableService
@@ -19,6 +20,7 @@ class CollectableService
         private EntityManagerInterface $manager,
         private CollectableRepository $collectableRepository,
         private CollectableItemInstanceRepository $instanceRepository,
+        private HonorService $honorService,
     ) {
     }
 
@@ -34,6 +36,37 @@ class CollectableService
     public function getInstanceById(string $id): ?CollectableItemInstance
     {
         return $this->instanceRepository->find($id);
+    }
+
+    public function acceptAuction(CollectableAuction $auction): CollectableTransaction
+    {
+        if (!$auction->isActive()) {
+            throw new \RuntimeException('Auction is not active.');
+        }
+        if ($auction->getHighestBidder() === null) {
+            throw new \RuntimeException('No bids on auction.');
+        }
+        $chat = $auction->getInstance()->getChat();
+        $buyer = $auction->getHighestBidder();
+        $buyerHonor = $this->honorService->getCurrentHonorAmount($chat, $buyer);
+        if ($buyerHonor < $auction->getHighestBid()) {
+            throw new \RuntimeException('Buyer does not have enough honor.');
+        }
+        $this->honorService->removeHonor($chat, $buyer, $auction->getHighestBid());
+        $this->honorService->addHonor($chat, $auction->getSeller(), $auction->getHighestBid());
+        $transaction = new CollectableTransaction();
+        $transaction->setInstance($auction->getInstance());
+        $transaction->setPrice($auction->getHighestBid());
+        $transaction->setIsCompleted(true);
+        $transaction->setSeller($auction->getSeller());
+        $transaction->setBuyer($auction->getHighestBidder());
+        $transaction->setCreatedAt(new \DateTime());
+        $transaction->setUpdatedAt(new \DateTime());
+        $this->manager->persist($transaction);
+        $auction->setActive(false);
+        $auction->setUpdatedAt(new \DateTime());
+        $this->manager->flush();
+        return $transaction;
     }
 
     private function transferInstance(CollectableItemInstance $instance, User $buyer, int $price): CollectableTransaction
@@ -68,11 +101,6 @@ class CollectableService
         $instance->getTransactions()->add($transaction);
         $this->manager->persist($instance);
         return $instance;
-    }
-
-    public function getActiveCollectableInstanceAuction(): ?CollectableAuction
-    {
-
     }
 
 }

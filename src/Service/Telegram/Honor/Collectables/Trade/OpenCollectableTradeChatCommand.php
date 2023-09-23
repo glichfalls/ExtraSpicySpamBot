@@ -3,32 +3,17 @@
 namespace App\Service\Telegram\Honor\Collectables\Trade;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Message\Message;
+use App\Entity\Collectable\CollectableItemInstance;
 use App\Entity\User\User;
-use App\Service\Telegram\Honor\Collectables\AbstractCollectableTelegramChatCommand;
-use App\Service\Telegram\TelegramCallbackQueryListener;
+use App\Service\Telegram\Honor\Collectables\AbstractCollectableTelegramCallbackQuery;
+use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramChatCommand implements TelegramCallbackQueryListener
+class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramCallbackQuery
 {
 
     public const CALLBACK_KEYWORD = 'collectable:trade';
-
-    public function matches(Update $update, Message $message, array &$matches): bool
-    {
-        return preg_match('/^!trade/i', $message->getMessage()) === 1;
-    }
-
-    public function handle(Update $update, Message $message, array $matches): void
-    {
-        $mentions = $this->telegramService->getUsersFromMentions($update);
-
-        if (count($mentions) !== 1) {
-            $this->telegramService->replyTo($message, 'You need to mention one user to trade with.');
-            return;
-        }
-    }
 
     public function getCallbackKeyword(): string
     {
@@ -44,8 +29,12 @@ class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramChatCom
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Collectable not found.', true);
             return;
         }
-
-
+        try {
+            $this->getAuction($collectable);
+        } catch (\RuntimeException $exception) {
+            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), $exception->getMessage(), true);
+            return;
+        }
         $message = <<<MESSAGE
         @%s: someone wants to buy %s
         
@@ -60,23 +49,19 @@ class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramChatCom
         $this->telegramService->answerCallbackQuery($update->getCallbackQuery());
     }
 
-    private function getKeyboard(): InlineKeyboardMarkup
+    private function getKeyboard(CollectableItemInstance $instance): InlineKeyboardMarkup
     {
         $keyboard = [];
-        $keyboard[] = [
-            [
-                'text' => '+1000',
-                'callback_data' => self::CALLBACK_KEYWORD . ':counter',
-            ],
-            [
-                'text' => '+10\'000',
-                'callback_data' => self::CALLBACK_KEYWORD . ':counter',
-            ],
-            [
-                'text' => '+100\'000',
-                'callback_data' => self::CALLBACK_KEYWORD . ':counter',
-            ],
-        ];
+        $data = sprintf('%s:%s', CreateCollectableBidChatCommand::CALLBACK_KEYWORD, $instance->getId());
+        $options = [1000, 100_000, 1_000_000];
+        $row = [];
+        foreach ($options as $option) {
+            $row[] = [
+                'text' => sprintf('+%s', NumberFormat::format($option)),
+                'callback_data' => sprintf('%s:%s', $data, $option),
+            ];
+        }
+        $keyboard[] = $row;
         return new InlineKeyboardMarkup($keyboard);
     }
 
