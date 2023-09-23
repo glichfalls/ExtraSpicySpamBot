@@ -91,6 +91,15 @@ class TelegramService
         return $this->bot->sendMediaGroup($chatId, $media);
     }
 
+    public function sendImage(string $chatId, string $imageUrl, ?string $threadId = null): TelegramMessage
+    {
+        return $this->bot->sendPhoto(
+            $chatId,
+            $imageUrl,
+            messageThreadId: $threadId,
+        );
+    }
+
     public function sendText(string $chatId, string $text, ?int $threadId = null, mixed $replyMarkup = null, ?string $parseMode = null): ?TelegramMessage
     {
         return $this->bot->sendMessage($chatId, $text, parseMode: $parseMode, replyMarkup: $replyMarkup, messageThreadId: $threadId);

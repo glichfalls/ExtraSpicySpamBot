@@ -35,6 +35,13 @@ class ShowCollectableInfoChatCommand implements TelegramCallbackQueryListener
             $this->telegram->answerCallbackQuery($update->getCallbackQuery(), 'Collectable not found.', true);
             return;
         }
+        if ($collectable->getCollectable()->getImagePublicPath() !== null) {
+            $this->telegram->sendImage(
+                $chat->getChatId(),
+                $collectable->getCollectable()->getImagePublicPath(),
+                threadId: $update->getCallbackQuery()->getMessage()->getMessageId(),
+            );
+        }
         $this->telegram->sendText(
             $chat->getChatId(),
             sprintf(
@@ -43,6 +50,7 @@ class ShowCollectableInfoChatCommand implements TelegramCallbackQueryListener
                 $collectable->getOwner()?->getName() ?? 'Nobody',
                 $collectable->getCurrentTransaction()?->getPrice() ?? '-',
             ),
+            threadId: $update->getCallbackQuery()->getMessage()->getMessageId(),
             replyMarkup: $this->getKeyboard($collectable),
         );
     }
