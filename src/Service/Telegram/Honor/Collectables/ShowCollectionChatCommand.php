@@ -5,6 +5,7 @@ namespace App\Service\Telegram\Honor\Collectables;
 use App\Entity\Collectable\CollectableItemInstance;
 use App\Entity\Message\Message;
 use App\Service\Telegram\Honor\Collectables\Trade\ShowCollectableInfoChatCommand;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
 final class ShowCollectionChatCommand extends AbstractCollectableTelegramChatCommand
@@ -20,7 +21,8 @@ final class ShowCollectionChatCommand extends AbstractCollectableTelegramChatCom
         $collection = $this->getCollection($message->getChat(), $message->getUser());
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
-            sprintf('%s\´s collection', $message->getUser()->getName()),
+            sprintf('%s\'s collection', $message->getUser()->getName()),
+            threadId: $message->getTelegramThreadId(),
             replyMarkup: $this->getKeyboards($collection),
         );
     }
@@ -29,7 +31,7 @@ final class ShowCollectionChatCommand extends AbstractCollectableTelegramChatCom
      * @param CollectableItemInstance[] $collectables
      * @return array
      */
-    public function getKeyboards(array $collectables): array
+    public function getKeyboards(array $collectables): InlineKeyboardMarkup
     {
         $keyboard = [];
         $row = [];
@@ -44,7 +46,11 @@ final class ShowCollectionChatCommand extends AbstractCollectableTelegramChatCom
                 $row = [];
             }
         }
-        return $keyboard;
+        if (count($row) > 0) {
+            $keyboard[] = $row;
+        }
+        $this->logger->debug('Keyboard', ['keyboard' => $keyboard]);
+        return new InlineKeyboardMarkup($keyboard);
     }
 
 }

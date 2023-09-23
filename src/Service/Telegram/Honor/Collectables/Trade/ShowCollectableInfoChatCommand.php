@@ -8,6 +8,8 @@ use App\Entity\User\User;
 use App\Service\Telegram\Collectables\CollectableService;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
+use TelegramBot\Api\Types\ReplyKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
 class ShowCollectableInfoChatCommand implements TelegramCallbackQueryListener
@@ -35,27 +37,38 @@ class ShowCollectableInfoChatCommand implements TelegramCallbackQueryListener
             $this->telegram->answerCallbackQuery($update->getCallbackQuery(), 'Collectable not found.', true);
             return;
         }
+        $text = <<<TEXT
+        %s
+        %s
+        owner: %s
+        TEXT;
+        $message = sprintf(
+            $text,
+            $collectable->getCollectable()->getName(),
+            $collectable->getCollectable()->getDescription(),
+            $collectable->getOwner()?->getName() ?? 'Nobody',
+        );
         if ($collectable->getCollectable()->getImagePublicPath() !== null) {
+            $fullPath = sprintf('https://%s/%s', $_SERVER['HTTP_HOST'], $collectable->getCollectable()->getImagePublicPath());
             $this->telegram->sendImage(
                 $chat->getChatId(),
-                $collectable->getCollectable()->getImagePublicPath(),
-                threadId: $update->getCallbackQuery()->getMessage()->getMessageId(),
+                $fullPath,
+                caption: $message,
+                threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+                replyMarkup: $this->getKeyboard($collectable),
+            );
+        } else {
+            $this->telegram->sendText(
+                $chat->getChatId(),
+                $message,
+                threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+                replyMarkup: $this->getKeyboard($collectable),
             );
         }
-        $this->telegram->sendText(
-            $chat->getChatId(),
-            sprintf(
-                "%s\nOwner: %s\nBuy Price: %s",
-                $collectable->getCollectable()->getName(),
-                $collectable->getOwner()?->getName() ?? 'Nobody',
-                $collectable->getCurrentTransaction()?->getPrice() ?? '-',
-            ),
-            threadId: $update->getCallbackQuery()->getMessage()->getMessageId(),
-            replyMarkup: $this->getKeyboard($collectable),
-        );
+        $this->telegram->answerCallbackQuery($update->getCallbackQuery());
     }
 
-    private function getKeyboard(CollectableItemInstance $collectable): array
+    private function getKeyboard(CollectableItemInstance $collectable): InlineKeyboardMarkup
     {
         $keyboard = [];
         $row = [];
@@ -68,7 +81,7 @@ class ShowCollectableInfoChatCommand implements TelegramCallbackQueryListener
             ),
         ];
         $keyboard[] = $row;
-        return $keyboard;
+        return new InlineKeyboardMarkup($keyboard);
     }
 
 }

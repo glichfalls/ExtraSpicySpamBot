@@ -91,11 +91,18 @@ class TelegramService
         return $this->bot->sendMediaGroup($chatId, $media);
     }
 
-    public function sendImage(string $chatId, string $imageUrl, ?string $threadId = null): TelegramMessage
-    {
+    public function sendImage(
+        string $chatId,
+        string $imageUrl,
+        ?string $caption = null,
+        ?string $threadId = null,
+        mixed $replyMarkup = null,
+    ): TelegramMessage {
         return $this->bot->sendPhoto(
             $chatId,
             $imageUrl,
+            caption: $caption,
+            replyMarkup: $replyMarkup,
             messageThreadId: $threadId,
         );
     }
@@ -375,8 +382,8 @@ class TelegramService
 
     public function answerCallbackQuery(
         CallbackQuery $callbackQuery,
-        string $text,
-        bool $showAlert,
+        ?string $text = null,
+        bool $showAlert = false,
     ): void {
         $this->bot->answerCallbackQuery(
             $callbackQuery->getId(),

@@ -126,18 +126,18 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
 
     private function getLootboxWin(Chat $chat, User $user, string $size): int|CollectableItemInstance
     {
-        $max = $this->getPrice($size) * 25;
         if ($this->getPercentChance(90)) {
-            // get 1-99% of the paid price back
-            return $this->getNumber($this->getPrice($size) / $this->getNumber(99));
+            // get 25-100% of the paid price back
+            return $this->getNumber($this->getPrice($size), $this->getPrice($size) / $this->getNumber(4));
         }
-        if ($this->getPercentChance(20)) {
-            // get 1% - 100% of max
-            return $this->getNumber($max, min: (int) $max / 100);
+        if ($this->getPercentChance(50)) {
+            $max = $this->getPrice($size) * 100;
+            // get 10% - 100% of max
+            return $this->getNumber($max, (int) $max / 10);
         }
         $collectableChance = match ($size) {
-            self::SMALL => 1,
-            self::MEDIUM => 20,
+            self::SMALL => 10,
+            self::MEDIUM => 50,
             self::LARGE => 90,
             default => 0,
         };
@@ -177,7 +177,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                 $priceFormatted = sprintf('%.1fk', $this->getPrice($size) / 1000);
             } else {
                 $format = $price >= 1_000_000 ? '%dm' : '%dk';
-                $priceFormatted = sprintf($format, $this->getPrice($size) / 1000);
+                $displayPrice = $price >= 1_000_000 ? $price / 1_000_000 : $price / 1000;
+                $priceFormatted = sprintf($format, $displayPrice);
             }
             $keyboard[] = [
                 'text' => sprintf('%s Ehre', $priceFormatted),

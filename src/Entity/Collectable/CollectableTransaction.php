@@ -23,7 +23,7 @@ class CollectableTransaction
     private ?User $seller = null;
 
     #[ManyToOne(targetEntity: User::class)]
-    private User $buyer;
+    private ?User $buyer = null;
 
     #[OneToOne(targetEntity: CollectableTransaction::class)]
     private ?CollectableTransaction $next = null;
@@ -59,12 +59,12 @@ class CollectableTransaction
         $this->seller = $seller;
     }
 
-    public function getBuyer(): User
+    public function getBuyer(): ?User
     {
         return $this->buyer;
     }
 
-    public function setBuyer(User $buyer): void
+    public function setBuyer(?User $buyer): void
     {
         $this->buyer = $buyer;
     }

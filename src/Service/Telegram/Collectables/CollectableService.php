@@ -4,6 +4,7 @@ namespace App\Service\Telegram\Collectables;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Collectable\Collectable;
+use App\Entity\Collectable\CollectableAuction;
 use App\Entity\Collectable\CollectableItemInstance;
 use App\Entity\Collectable\CollectableTransaction;
 use App\Entity\User\User;
@@ -30,7 +31,7 @@ class CollectableService
         return array_filter($collectables, fn (Collectable $collectable) => $collectable->isInstancable());
     }
 
-    public function getInstanceById(int $id): ?CollectableItemInstance
+    public function getInstanceById(string $id): ?CollectableItemInstance
     {
         return $this->instanceRepository->find($id);
     }
@@ -67,6 +68,11 @@ class CollectableService
         $instance->getTransactions()->add($transaction);
         $this->manager->persist($instance);
         return $instance;
+    }
+
+    public function getActiveCollectableInstanceAuction(): ?CollectableAuction
+    {
+
     }
 
 }

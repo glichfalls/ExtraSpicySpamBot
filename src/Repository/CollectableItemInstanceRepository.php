@@ -16,15 +16,19 @@ class CollectableItemInstanceRepository extends ServiceEntityRepository
         parent::__construct($registry, CollectableItemInstance::class);
     }
 
+    /**
+     * @param Chat $chat
+     * @param User $user
+     * @return CollectableItemInstance[]
+     */
     public function getCurrentCollectionByChatAndUser(Chat $chat, User $user): array
     {
         return $this->createQueryBuilder('i')
-            ->select('i')
+            ->addSelect('t')
             ->leftJoin('i.transactions', 't')
-            ->where('i.chat = :chat')
-            ->orderBy('t.createdAt', 'DESC')
-            ->groupBy('i.id')
-            ->having('MAX(t.createdAt) = t.createdAt AND t.owner = :user')
+            ->andWhere('i.chat = :chat')
+            ->andWhere('t.buyer = :user')
+            ->andWhere('t.id = (SELECT MAX(t2.id) FROM App\Entity\Collectable\CollectableTransaction t2 WHERE t2.instance = i.id)')
             ->setParameters([
                 'chat' => $chat,
                 'user' => $user,

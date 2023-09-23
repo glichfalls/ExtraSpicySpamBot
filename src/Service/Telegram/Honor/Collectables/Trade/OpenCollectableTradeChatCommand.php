@@ -7,6 +7,7 @@ use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Service\Telegram\Honor\Collectables\AbstractCollectableTelegramChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
 class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramChatCommand implements TelegramCallbackQueryListener
@@ -43,11 +44,40 @@ class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramChatCom
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Collectable not found.', true);
             return;
         }
+
+
         $message = <<<MESSAGE
-        @%s wants to buy %s
-        Enter your price suggestion to start the trade.
+        @%s: someone wants to buy %s
+        
+        You can now start bidding.
         MESSAGE;
-        $this->telegramService->sendText($chat->getChatId(), sprintf($message, $user->getName()));
+        $this->telegramService->sendText(
+            $chat->getChatId(),
+            sprintf($message, $collectable->getOwner()->getName(), $collectable->getCollectable()->getName()),
+            threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+            replyMarkup: $this->getKeyboard(),
+        );
+        $this->telegramService->answerCallbackQuery($update->getCallbackQuery());
+    }
+
+    private function getKeyboard(): InlineKeyboardMarkup
+    {
+        $keyboard = [];
+        $keyboard[] = [
+            [
+                'text' => '+1000',
+                'callback_data' => self::CALLBACK_KEYWORD . ':counter',
+            ],
+            [
+                'text' => '+10\'000',
+                'callback_data' => self::CALLBACK_KEYWORD . ':counter',
+            ],
+            [
+                'text' => '+100\'000',
+                'callback_data' => self::CALLBACK_KEYWORD . ':counter',
+            ],
+        ];
+        return new InlineKeyboardMarkup($keyboard);
     }
 
 }
