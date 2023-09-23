@@ -3,11 +3,19 @@
 namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Collectable\Collectable;
+use App\Entity\Collectable\CollectableItemInstance;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
+use App\Repository\HonorRepository;
+use App\Service\Telegram\Collectables\CollectableService;
 use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
+use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
@@ -16,14 +24,26 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
 
     public const CALLBACK_KEYWORD = 'lootbox';
 
-    private const SMALL = 'small';
-    private const MEDIUM = 'medium';
-    private const LARGE = 'large';
+    private const SMALL = 's';
+    private const MEDIUM = 'm';
+    private const LARGE = 'l';
     private const SIZES = [
         self::SMALL,
         self::MEDIUM,
         self::LARGE,
     ];
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        HonorRepository $honorRepository,
+        private CollectableService $collectableService,
+    )
+    {
+        parent::__construct($manager, $translator, $logger, $telegramService, $honorRepository);
+    }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
@@ -62,54 +82,105 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                 return;
             }
             $this->removeHonor($chat, $user, $price);
-            $result = $this->roll($size);
+            try {
+                $result = $this->getLootboxWin($chat, $user, $size);
+            } catch (\RuntimeException) {
+                $this->telegramService->sendText(
+                    $chat->getChatId(),
+                    'you won a collectable, but theres no collectable left to win. You win the jackpot instead.',
+                    threadId: $callbackQuery->getMessage()->getMessageThreadId(),
+                );
+                $result = 10_000_000;
+            }
+            if ($result instanceof CollectableItemInstance) {
+                $this->telegramService->answerCallbackQuery($callbackQuery, 'You won a collectable', false);
+                $this->telegramService->sendText(
+                    $chat->getChatId(),
+                    sprintf(
+                        '%s won a <strong>%s</strong> collectable from a <strong>%s</strong> lootbox',
+                        $user->getName() ?? $user->getFirstName(),
+                        $result->getCollectable()->getName(),
+                        ucfirst($size),
+                    ),
+                    threadId: $callbackQuery->getMessage()->getMessageThreadId(),
+                    parseMode: 'HTML',
+                );
+                return;
+            }
             $this->addHonor($chat, $user, $result);
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery, sprintf('You won %s honor', NumberFormat::format($result)), false);
             $this->telegramService->sendText(
                 $chat->getChatId(),
                 sprintf(
-                    '%s won %s Ehre from a %s lootbox',
+                    '%s won %s Ehre from a <strong>%s</strong> lootbox',
                     $user->getName() ?? $user->getFirstName(),
                     NumberFormat::format($result),
-                    $size
+                    ucfirst($size),
                 ),
                 threadId: $callbackQuery->getMessage()->getMessageThreadId(),
+                parseMode: 'HTML',
             );
         }
     }
 
-    private function roll(string $size)
+    private function getLootboxWin(Chat $chat, User $user, string $size): int|CollectableItemInstance
     {
-        $min = match ($size) {
-            self::SMALL => 100,
-            self::MEDIUM => 1000,
-            self::LARGE => 10000,
-        };
-        $max = match ($size) {
-            self::SMALL => 100_000,
-            self::MEDIUM => 1_000_000,
-            self::LARGE => 10_000_000,
-        };
-        if (random_int(0, 100) === 1) {
-            return $max;
+        $max = $this->getPrice($size) * 25;
+        if ($this->getPercentChance(90)) {
+            // get 1-99% of the paid price back
+            return $this->getNumber($this->getPrice($size) / $this->getNumber(99));
         }
-        $results = [$min];
-        for ($i = 1; $i <= 3; $i++) {
-            $currentMax = $max / (10 ** $i);
-            $results[] = random_int($min / 10, $currentMax);
+        if ($this->getPercentChance(20)) {
+            // get 1% - 100% of max
+            return $this->getNumber($max, min: (int) $max / 100);
         }
-        $index = array_rand($results);
-        $win = $results[$index];
-        return max($win, $min);
+        $collectableChance = match ($size) {
+            self::SMALL => 1,
+            self::MEDIUM => 20,
+            self::LARGE => 90,
+            default => 0,
+        };
+        if ($this->getPercentChance($collectableChance)) {
+            return $this->winCollectable($chat, $user);
+        }
+        return 0;
+    }
+
+    private function winCollectable(Chat $chat, User $user): CollectableItemInstance
+    {
+        $collectables = $this->collectableService->getInstancableCollectables();
+        if (count($collectables) === 0) {
+            throw new \RuntimeException('No collectables available');
+        }
+        $wonCollectable = $collectables[array_rand($collectables)];
+        $this->collectableService->createCollectableInstance($wonCollectable, $chat, $user);
+        return $wonCollectable;
+    }
+
+    private function getPercentChance(int $probability): bool
+    {
+        return $this->getNumber(100) <= $probability;
+    }
+
+    private function getNumber(int $max, int $min = 1): int
+    {
+        return mt_rand($min, $max);
     }
 
     private function getKeyboard(): InlineKeyboardMarkup
     {
         $keyboard = [];
         foreach (self::SIZES as $size) {
+            $price = $this->getPrice($size);
+            if ($price < 1000) {
+                $priceFormatted = sprintf('%.1fk', $this->getPrice($size) / 1000);
+            } else {
+                $format = $price >= 1_000_000 ? '%dm' : '%dk';
+                $priceFormatted = sprintf($format, $this->getPrice($size) / 1000);
+            }
             $keyboard[] = [
-                'text' => sprintf('%s (%s Ehre)', ucfirst($size), NumberFormat::format($this->getPrice($size))),
+                'text' => sprintf('%s Ehre', $priceFormatted),
                 'callback_data' => sprintf('%s;%s', self::CALLBACK_KEYWORD, $size),
             ];
         }
@@ -119,9 +190,9 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function getPrice(string $size): ?int
     {
         return match ($size) {
-            self::SMALL => 1000,
-            self::MEDIUM => 10_000,
-            self::LARGE => 1,
+            self::SMALL => 5_000,
+            self::MEDIUM => 50_000,
+            self::LARGE => 1_000_000,
             default => null,
         };
     }
