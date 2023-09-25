@@ -128,8 +128,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     {
         $baseFailChance = match ($size) {
             self::SMALL => 94,
-            self::MEDIUM => 88,
-            self::LARGE => 78,
+            self::MEDIUM => 90,
+            self::LARGE => 88,
             default => 100,
         };
         if ($this->getPercentChance($baseFailChance)) {
