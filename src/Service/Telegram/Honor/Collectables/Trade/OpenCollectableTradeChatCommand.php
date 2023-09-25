@@ -44,7 +44,7 @@ class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramCallbac
             $chat->getChatId(),
             sprintf($message, $collectable->getOwner()->getName(), $collectable->getCollectable()->getName()),
             threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
-            replyMarkup: $this->getKeyboard(),
+            replyMarkup: $this->getKeyboard($collectable),
         );
         $this->telegramService->answerCallbackQuery($update->getCallbackQuery());
     }
