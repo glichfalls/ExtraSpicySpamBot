@@ -65,7 +65,7 @@ class ShowCollectableInfoChatCommand extends AbstractCollectableTelegramCallback
             return null;
         }
         if ($collectable->getOwner() === null) {
-            $this->createKeyboard([
+            return $this->createKeyboard([
                 [
                     'text' => sprintf('Buy (%s Ehre)', NumberFormat::format($collectable->getPrice())),
                     'callback_data' => sprintf(
