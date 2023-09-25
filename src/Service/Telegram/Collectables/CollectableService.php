@@ -8,6 +8,7 @@ use App\Entity\Collectable\CollectableAuction;
 use App\Entity\Collectable\CollectableItemInstance;
 use App\Entity\Collectable\CollectableTransaction;
 use App\Entity\User\User;
+use App\Repository\CollectableAuctionRepository;
 use App\Repository\CollectableItemInstanceRepository;
 use App\Repository\CollectableRepository;
 use App\Service\HonorService;
@@ -20,6 +21,7 @@ class CollectableService
         private EntityManagerInterface $manager,
         private CollectableRepository $collectableRepository,
         private CollectableItemInstanceRepository $instanceRepository,
+        private CollectableAuctionRepository $auctionRepository,
         private HonorService $honorService,
     ) {
     }
@@ -101,6 +103,31 @@ class CollectableService
         $instance->getTransactions()->add($transaction);
         $this->manager->persist($instance);
         return $instance;
+    }
+
+    public function getAuction(CollectableItemInstance $instance): CollectableAuction
+    {
+        $auction = $this->auctionRepository->findOneBy([
+            'instance' => $instance,
+            'active' => true,
+        ]);
+        if ($auction !== null) {
+            return $auction;
+        }
+        if (!$instance->getCollectable()->isTradeable()) {
+            throw new \RuntimeException('Collectable is not tradeable.');
+        }
+        $auction = new CollectableAuction();
+        $auction->setInstance($instance);
+        $auction->setSeller($instance->getOwner());
+        $auction->setHighestBidder(null);
+        $auction->setHighestBid(0);
+        $auction->setActive(true);
+        $auction->setCreatedAt(new \DateTime());
+        $auction->setUpdatedAt(new \DateTime());
+        $this->manager->persist($auction);
+        $this->manager->flush();
+        return $auction;
     }
 
 }
