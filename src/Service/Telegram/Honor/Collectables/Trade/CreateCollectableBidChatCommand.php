@@ -43,7 +43,7 @@ final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramC
             return;
         }
         $auction->setHighestBidder($user);
-        $auction->setHighestBid($auction->getHighestBid() + $bid);
+        $auction->setHighestBid($bid);
         $this->manager->flush();
         $this->telegramService->sendText(
             $chat->getChatId(),
