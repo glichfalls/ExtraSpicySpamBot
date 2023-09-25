@@ -13,7 +13,7 @@ use TelegramBot\Api\Types\Update;
 class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramCallbackQuery
 {
 
-    public const CALLBACK_KEYWORD = 'collectable:trade';
+    public const CALLBACK_KEYWORD = 'collectable:trade:open';
 
     public function getCallbackKeyword(): string
     {
