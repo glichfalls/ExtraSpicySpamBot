@@ -72,7 +72,7 @@ class CollectableItemInstance
     {
         return $this->getTransactions()
             ->filter(fn (CollectableTransaction $transaction) => $transaction->isCompleted())
-            ->last();
+            ->first();
     }
 
     public function getOwner(): ?User
