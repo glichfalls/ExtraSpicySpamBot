@@ -30,7 +30,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!deposit\s*(?<amount>\d+)$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!deposit\s*(?<amount>\d+|max)/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -40,7 +40,12 @@ class DepositChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'you do not have an account');
             return;
         }
-        $amount = (int) $matches['amount'];
+        $amount = $matches['amount'];
+        if ($amount === 'max') {
+            $amount = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
+        } else {
+            $amount = (int) $amount;
+        }
         if ($this->canDepositAmount($message, $amount)) {
             $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$amount));
             $account->addTransaction(TransactionFactory::create($amount));
@@ -62,9 +67,14 @@ class DepositChatCommand extends AbstractTelegramChatCommand
         return true;
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!deposit <amount>   deposit honor into your bank account';
+        return '!deposit [amount]';
+    }
+
+    public function getDescription(): string
+    {
+        return 'deposit honor into your bank account';
     }
 
 }
