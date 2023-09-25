@@ -31,7 +31,7 @@ class CreateCollectableCommand extends Command
         $this->addArgument('description', InputArgument::REQUIRED, 'Description');
         $this->addArgument('image', InputArgument::REQUIRED, 'Image');
         $this->addArgument('chat', InputArgument::OPTIONAL, 'Chat ID', default: self::CHAT_ID);
-        $this->addArgument('instances', InputArgument::OPTIONAL, 'Number of instances', default: 0);
+        $this->addArgument('instances', InputArgument::OPTIONAL, 'Number of instances', default: 1);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
