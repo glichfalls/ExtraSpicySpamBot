@@ -127,8 +127,11 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function getLootboxWin(Chat $chat, User $user, string $size): int|CollectableItemInstance
     {
         if ($this->getPercentChance(96)) {
-            // get 25-100% of the paid price back
-            return $this->getNumber($this->getPrice($size), $this->getPrice($size) / $this->getNumber(4, 2));
+            if ($this->getPercentChance(10)) {
+                // get 25-50% of the paid price back
+                return $this->getNumber($this->getPrice($size) / 2, $this->getPrice($size) / $this->getNumber(4));
+            }
+            return 1;
         }
         if ($this->getPercentChance(50)) {
             $max = $this->getPrice($size) * 100;
