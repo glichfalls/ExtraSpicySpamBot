@@ -35,19 +35,27 @@ class AcceptCollectableTradeChatCommand extends AbstractCollectableTelegramCallb
             return;
         }
         try {
-            $auction = $this->getAuction($collectable);
-            $transaction = $this->collectableService->acceptAuction($auction);
+            $auction = $this->collectableService->getActiveAuction($collectable);
+            if ($auction === null) {
+                $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'No active auction found.', true);
+                return;
+            }
+            $this->collectableService->acceptAuction($auction);
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Auction accepted.', true);
             $this->telegramService->sendText(
                 $chat->getChatId(),
                 sprintf(
                     '%s sold! %s paid %s Ehre to %s.',
                     $collectable->getCollectable()->getName(),
-                    $transaction->getBuyer()->getName(),
-                    NumberFormat::format($transaction->getPrice()),
-                    $transaction->getSeller()->getName(),
+                    $auction->getHighestBidder()->getName(),
+                    NumberFormat::format($auction->getHighestBid()),
+                    $auction->getSeller()->getName(),
                 ),
                 threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+            );
+            $this->telegramService->deleteMessage(
+                $chat->getChatId(),
+                $update->getCallbackQuery()->getMessage()->getMessageId(),
             );
         } catch (\RuntimeException $e) {
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), $e->getMessage(), true);

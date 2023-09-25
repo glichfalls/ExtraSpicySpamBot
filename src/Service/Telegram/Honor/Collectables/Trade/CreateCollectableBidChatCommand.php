@@ -35,7 +35,11 @@ final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramC
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Collectable not found.', true);
             return;
         }
-        $auction = $this->getAuction($collectable);
+        $auction = $this->collectableService->getActiveAuction($collectable);
+        if ($auction === null) {
+            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'No active auction found.', true);
+            return;
+        }
         $bid = $auction->getHighestBid() + $bid;
         $honor = $this->honorRepository->getHonorCount($user, $chat);
         if ($honor < $bid) {
@@ -50,6 +54,10 @@ final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramC
             sprintf('%s bid %s Ehre for %s', $user->getName(), NumberFormat::format($auction->getHighestBid()), $collectable->getCollectable()->getName()),
             threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             replyMarkup: $this->getKeyboard($auction),
+        );
+        $this->telegramService->deleteMessage(
+            $chat->getChatId(),
+            $update->getCallbackQuery()->getMessage()->getMessageId(),
         );
         $this->telegramService->answerCallbackQuery($update->getCallbackQuery());
     }

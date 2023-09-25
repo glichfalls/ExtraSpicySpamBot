@@ -5,13 +5,9 @@ namespace App\Entity\Collectable;
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
 use App\Model\Id;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
-use Doctrine\ORM\Mapping\OneToMany;
-use Doctrine\ORM\Mapping\OrderBy;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity]
@@ -20,32 +16,20 @@ class CollectableItemInstance
     use Id;
     use TimestampableEntity;
 
-    #[ManyToOne(targetEntity: Chat::class)]
-    #[JoinColumn(nullable: false)]
-    private Chat $chat;
-
     #[ManyToOne(targetEntity: Collectable::class)]
     #[JoinColumn(nullable: false)]
     private Collectable $collectable;
 
-    #[OneToMany(mappedBy: 'instance', targetEntity: CollectableTransaction::class)]
-    #[OrderBy(['createdAt' => 'DESC'])]
-    protected Collection $transactions;
+    #[ManyToOne(targetEntity: Chat::class)]
+    #[JoinColumn(nullable: false)]
+    private Chat $chat;
+
+    #[ManyToOne(targetEntity: User::class)]
+    private ?User $owner = null;
 
     public function __construct()
     {
         $this->generateId();
-        $this->transactions = new ArrayCollection();
-    }
-
-    public function getChat(): Chat
-    {
-        return $this->chat;
-    }
-
-    public function setChat(Chat $chat): void
-    {
-        $this->chat = $chat;
     }
 
     public function getCollectable(): Collectable
@@ -58,26 +42,24 @@ class CollectableItemInstance
         $this->collectable = $collectable;
     }
 
-    public function getTransactions(): Collection
+    public function getChat(): Chat
     {
-        return $this->transactions;
+        return $this->chat;
     }
 
-    public function setTransactions(Collection $transactions): void
+    public function setChat(Chat $chat): void
     {
-        $this->transactions = $transactions;
-    }
-
-    public function getCurrentTransaction(): ?CollectableTransaction
-    {
-        return $this->getTransactions()
-            ->filter(fn (CollectableTransaction $transaction) => $transaction->isCompleted())
-            ->first();
+        $this->chat = $chat;
     }
 
     public function getOwner(): ?User
     {
-        return $this->getCurrentTransaction()?->getBuyer();
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): void
+    {
+        $this->owner = $owner;
     }
 
 }

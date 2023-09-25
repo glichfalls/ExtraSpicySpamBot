@@ -3,7 +3,6 @@
 namespace App\Service\Telegram\Honor\Collectables;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\CollectableAuction;
 use App\Entity\Collectable\CollectableItemInstance;
 use App\Entity\User\User;
 use App\Repository\CollectableItemInstanceRepository;
@@ -42,11 +41,6 @@ abstract class AbstractCollectableTelegramCallbackQuery extends AbstractTelegram
     protected function getCollection(Chat $chat, User $user): array
     {
         return $this->collectableItemInstanceRepository->getCurrentCollectionByChatAndUser($chat, $user);
-    }
-
-    protected function getAuction(CollectableItemInstance $instance): CollectableAuction
-    {
-        return $this->collectableService->getAuction($instance);
     }
 
 }

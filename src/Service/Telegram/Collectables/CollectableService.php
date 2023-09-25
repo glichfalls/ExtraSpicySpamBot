@@ -6,7 +6,6 @@ use App\Entity\Chat\Chat;
 use App\Entity\Collectable\Collectable;
 use App\Entity\Collectable\CollectableAuction;
 use App\Entity\Collectable\CollectableItemInstance;
-use App\Entity\Collectable\CollectableTransaction;
 use App\Entity\User\User;
 use App\Repository\CollectableAuctionRepository;
 use App\Repository\CollectableItemInstanceRepository;
@@ -40,7 +39,7 @@ class CollectableService
         return $this->instanceRepository->find($id);
     }
 
-    public function acceptAuction(CollectableAuction $auction): CollectableTransaction
+    public function acceptAuction(CollectableAuction $auction): void
     {
         if (!$auction->isActive()) {
             throw new \RuntimeException('Auction is not active.');
@@ -56,40 +55,13 @@ class CollectableService
         }
         $this->honorService->removeHonor($chat, $buyer, $auction->getHighestBid());
         $this->honorService->addHonor($chat, $auction->getSeller(), $auction->getHighestBid());
-        $transaction = new CollectableTransaction();
-        $transaction->setInstance($auction->getInstance());
-        $transaction->setPrice($auction->getHighestBid());
-        $transaction->setIsCompleted(true);
-        $transaction->setSeller($auction->getSeller());
-        $transaction->setBuyer($auction->getHighestBidder());
-        $transaction->setCreatedAt(new \DateTime());
-        $transaction->setUpdatedAt(new \DateTime());
-        $this->manager->persist($transaction);
+        $auction->getInstance()->setOwner($buyer);
         $auction->setActive(false);
         $auction->setUpdatedAt(new \DateTime());
         $this->manager->flush();
-        return $transaction;
     }
 
-    private function transferInstance(CollectableItemInstance $instance, User $buyer, int $price): CollectableTransaction
-    {
-        if ($instance->getOwner() !== null) {
-            throw new \RuntimeException('Instance already has an owner');
-        }
-        $transaction = new CollectableTransaction();
-        $transaction->setInstance($instance);
-        $transaction->setPrice($price);
-        $transaction->setIsCompleted(true);
-        $transaction->setSeller(null);
-        $transaction->setBuyer($buyer);
-        $transaction->setCreatedAt(new \DateTime());
-        $transaction->setUpdatedAt(new \DateTime());
-        $this->manager->persist($transaction);
-        $this->manager->flush();
-        return $transaction;
-    }
-
-    public function createCollectableInstance(Collectable $collectable, Chat $chat, ?User $user, int $price = 0): CollectableItemInstance
+    public function createCollectableInstance(Collectable $collectable, Chat $chat, ?User $user): CollectableItemInstance
     {
         if ($collectable->isUnique() && $collectable->getInstances()->count() > 0) {
             throw new \RuntimeException('Collectable is unique');
@@ -99,23 +71,13 @@ class CollectableService
         $instance->setCollectable($collectable);
         $instance->setCreatedAt(new \DateTime());
         $instance->setUpdatedAt(new \DateTime());
-        if ($user !== null) {
-            $transaction = $this->transferInstance($instance, $user, $price);
-            $instance->getTransactions()->add($transaction);
-        }
+        $instance->setOwner($user);
         $this->manager->persist($instance);
         return $instance;
     }
 
-    public function getAuction(CollectableItemInstance $instance): CollectableAuction
+    public function createAuction(CollectableItemInstance $instance): CollectableAuction
     {
-        $auction = $this->auctionRepository->findOneBy([
-            'instance' => $instance,
-            'active' => true,
-        ]);
-        if ($auction !== null) {
-            return $auction;
-        }
         if (!$instance->getCollectable()->isTradeable()) {
             throw new \RuntimeException('Collectable is not tradeable.');
         }
@@ -130,6 +92,19 @@ class CollectableService
         $this->manager->persist($auction);
         $this->manager->flush();
         return $auction;
+    }
+
+    public function getActiveAuction(CollectableItemInstance $instance): ?CollectableAuction
+    {
+        return $this->auctionRepository->findOneBy([
+            'instance' => $instance,
+            'active' => true,
+        ]);
+    }
+
+    public function getCollectablesByUser(Chat $chat, User $user): array
+    {
+
     }
 
 }

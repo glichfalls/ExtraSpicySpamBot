@@ -29,20 +29,21 @@ class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramCallbac
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Collectable not found.', true);
             return;
         }
-        try {
-            $this->getAuction($collectable);
-        } catch (\RuntimeException $exception) {
-            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), $exception->getMessage(), true);
-            return;
+        $activeAuction = $this->collectableService->getActiveAuction($collectable);
+        if ($activeAuction === null) {
+            $this->collectableService->createAuction($collectable);
+            $format = <<<MESSAGE
+            @%s: someone wants to buy %s
+            
+            You can now start bidding.
+            MESSAGE;
+            $message = sprintf($format, $collectable->getOwner()->getName(), $collectable->getCollectable()->getName());
+        } else {
+            $message = sprintf('current bid: %s Ehre', NumberFormat::format($activeAuction->getHighestBid()));
         }
-        $message = <<<MESSAGE
-        @%s: someone wants to buy %s
-        
-        You can now start bidding.
-        MESSAGE;
         $this->telegramService->sendText(
             $chat->getChatId(),
-            sprintf($message, $collectable->getOwner()->getName(), $collectable->getCollectable()->getName()),
+            $message,
             threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             replyMarkup: $this->getKeyboard($collectable),
         );
@@ -53,7 +54,7 @@ class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramCallbac
     {
         $keyboard = [];
         $data = sprintf('%s:%s', CreateCollectableBidChatCommand::CALLBACK_KEYWORD, $instance->getId());
-        $options = [1000, 100_000, 1_000_000];
+        $options = [1_000, 10_000, 100_000];
         $row = [];
         foreach ($options as $option) {
             $row[] = [

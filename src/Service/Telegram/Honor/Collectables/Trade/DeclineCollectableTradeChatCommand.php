@@ -33,7 +33,11 @@ class DeclineCollectableTradeChatCommand extends AbstractCollectableTelegramCall
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'You are not the owner of this collectable.', true);
             return;
         }
-        $auction = $this->getAuction($collectable);
+        $auction = $this->collectableService->getActiveAuction($collectable);
+        if ($auction === null) {
+            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'No active auction found.', true);
+            return;
+        }
         $auction->setActive(false);
         $auction->setUpdatedAt(new \DateTime());
         $this->manager->flush();
@@ -46,6 +50,10 @@ class DeclineCollectableTradeChatCommand extends AbstractCollectableTelegramCall
                 $collectable->getCollectable()->getName(),
             ),
             threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+        );
+        $this->telegramService->deleteMessage(
+            $chat->getChatId(),
+            $update->getCallbackQuery()->getMessage()->getMessageId(),
         );
     }
 

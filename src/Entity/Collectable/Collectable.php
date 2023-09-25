@@ -2,11 +2,13 @@
 
 namespace App\Entity\Collectable;
 
+use App\Entity\Collectable\Effect\Effect;
 use App\Model\Id;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\OneToMany;
 
 #[Entity]
@@ -28,6 +30,9 @@ class Collectable
 
     #[Column(type: 'text', nullable: true)]
     private ?string $imagePublicPath = null;
+
+    #[ManyToOne(targetEntity: Effect::class)]
+    private ?Effect $effect = null;
 
     #[OneToMany(mappedBy: 'collectable', targetEntity: CollectableItemInstance::class)]
     private Collection $instances;
@@ -86,6 +91,16 @@ class Collectable
     public function setImagePublicPath(?string $imagePublicPath): void
     {
         $this->imagePublicPath = $imagePublicPath;
+    }
+
+    public function getEffect(): ?Effect
+    {
+        return $this->effect;
+    }
+
+    public function setEffect(?Effect $effect): void
+    {
+        $this->effect = $effect;
     }
 
     public function getInstances(): Collection
