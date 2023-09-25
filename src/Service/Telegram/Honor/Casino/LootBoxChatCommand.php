@@ -131,7 +131,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                 // get 25-50% of the paid price back
                 return $this->getNumber($this->getPrice($size) / 2, $this->getPrice($size) / $this->getNumber(4));
             }
-            return 1;
+            return (int) floor($this->getPrice($size) / $this->getNumber(20, 2));
         }
         if ($this->getPercentChance(50)) {
             $max = $this->getPrice($size) * 100;
