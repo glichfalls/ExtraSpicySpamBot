@@ -5,6 +5,7 @@ namespace App\Entity\Collectable;
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
 use App\Model\Id;
+use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
@@ -26,6 +27,9 @@ class CollectableItemInstance
 
     #[ManyToOne(targetEntity: User::class)]
     private ?User $owner = null;
+
+    #[Column(type: 'integer')]
+    private int $price;
 
     public function __construct()
     {
@@ -60,6 +64,16 @@ class CollectableItemInstance
     public function setOwner(?User $owner): void
     {
         $this->owner = $owner;
+    }
+
+    public function getPrice(): int
+    {
+        return $this->price;
+    }
+
+    public function setPrice(int $price): void
+    {
+        $this->price = $price;
     }
 
 }

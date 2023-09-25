@@ -5,14 +5,16 @@ namespace App\Service\Telegram\Honor\Collectables\Trade;
 use App\Entity\Chat\Chat;
 use App\Entity\Collectable\CollectableItemInstance;
 use App\Entity\User\User;
+use App\Service\Telegram\AbstractTelegramCallbackQuery;
 use App\Service\Telegram\Collectables\CollectableService;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\ReplyKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-class ShowCollectableInfoChatCommand implements TelegramCallbackQueryListener
+class ShowCollectableInfoChatCommand extends AbstractTelegramCallbackQuery
 {
 
     public const CALLBACK_KEYWORD = 'collectable:show';
@@ -74,20 +76,27 @@ class ShowCollectableInfoChatCommand implements TelegramCallbackQueryListener
             return null;
         }
         if ($collectable->getOwner() === null) {
-            return null;
+            $this->createKeyboard([
+                [
+                    'text' => sprintf('Buy (%s Ehre)', NumberFormat::format($collectable->getPrice())),
+                    'callback_data' => sprintf(
+                        '%s:%s',
+                        BuyCollectableChatCommand::CALLBACK_KEYWORD,
+                        $collectable->getId(),
+                    ),
+                ],
+            ]);
         }
-        $keyboard = [];
-        $row = [];
-        $row[] = [
-            'text' => 'Trade',
-            'callback_data' => sprintf(
-                '%s:%s',
-                OpenCollectableTradeChatCommand::CALLBACK_KEYWORD,
-                $collectable->getId(),
-            ),
-        ];
-        $keyboard[] = $row;
-        return new InlineKeyboardMarkup($keyboard);
+        return $this->createKeyboard([
+            [
+                'text' => 'Trade',
+                'callback_data' => sprintf(
+                    '%s:%s',
+                    OpenCollectableTradeChatCommand::CALLBACK_KEYWORD,
+                    $collectable->getId(),
+                ),
+            ],
+        ]);
     }
 
 }

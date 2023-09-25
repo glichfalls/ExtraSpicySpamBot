@@ -105,6 +105,23 @@ class CollectableService
         return $auction;
     }
 
+    public function buyCollectable(CollectableItemInstance $instance, User $user): void
+    {
+        if (!$instance->getCollectable()->isTradeable()) {
+            throw new \RuntimeException('Collectable is not tradeable.');
+        }
+        if ($instance->getOwner() !== null) {
+            throw new \RuntimeException('Collectable is not for sale.');
+        }
+        $honor = $this->honorService->getCurrentHonorAmount($instance->getChat(), $user);
+        if ($instance->getPrice() > $honor) {
+            throw new \RuntimeException('You don\'t have enough Ehre.');
+        }
+        $this->honorService->removeHonor($instance->getChat(), $user, $instance->getPrice());
+        $instance->setOwner($user);
+        $this->manager->flush();
+    }
+
     public function getActiveAuction(CollectableItemInstance $instance): ?CollectableAuction
     {
         return $this->auctionRepository->findOneBy([
