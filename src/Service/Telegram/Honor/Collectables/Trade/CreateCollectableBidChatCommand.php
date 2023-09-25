@@ -36,6 +36,12 @@ final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramC
             return;
         }
         $auction = $this->getAuction($collectable);
+        $bid = $auction->getHighestBid() + $bid;
+        $honor = $this->honorRepository->getHonorCount($user, $chat);
+        if ($honor < $bid) {
+            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'You dont have enough Ehre');
+            return;
+        }
         $auction->setHighestBidder($user);
         $auction->setHighestBid($auction->getHighestBid() + $bid);
         $this->manager->flush();
@@ -45,6 +51,7 @@ final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramC
             threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             replyMarkup: $this->getKeyboard($auction),
         );
+        $this->telegramService->answerCallbackQuery($update->getCallbackQuery());
     }
 
     private function getKeyboard(CollectableAuction $auction): InlineKeyboardMarkup
