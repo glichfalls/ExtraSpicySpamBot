@@ -34,6 +34,17 @@ class CollectableService
         return array_filter($collectables, fn (Collectable $collectable) => $collectable->isInstancable());
     }
 
+    /**
+     * @return CollectableItemInstance[]
+     */
+    public function getAvailableInstances(Chat $chat): array
+    {
+        return $this->instanceRepository->findBy([
+            'chat' => $chat,
+            'owner' => null,
+        ]);
+    }
+
     public function getInstanceById(string $id): ?CollectableItemInstance
     {
         return $this->instanceRepository->find($id);

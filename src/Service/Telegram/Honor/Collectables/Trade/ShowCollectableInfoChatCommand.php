@@ -68,8 +68,14 @@ class ShowCollectableInfoChatCommand implements TelegramCallbackQueryListener
         $this->telegram->answerCallbackQuery($update->getCallbackQuery());
     }
 
-    private function getKeyboard(CollectableItemInstance $collectable): InlineKeyboardMarkup
+    private function getKeyboard(CollectableItemInstance $collectable): ?InlineKeyboardMarkup
     {
+        if (!$collectable->getCollectable()->isTradeable()) {
+            return null;
+        }
+        if ($collectable->getOwner() === null) {
+            return null;
+        }
         $keyboard = [];
         $row = [];
         $row[] = [
