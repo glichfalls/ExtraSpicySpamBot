@@ -113,9 +113,9 @@ class CollectableService
         ]);
     }
 
-    public function getCollectablesByUser(Chat $chat, User $user): array
+    public function getCollection(Chat $chat, User $user): array
     {
-
+        return $this->instanceRepository->getCurrentCollectionByChatAndUser($chat, $user);
     }
 
 }

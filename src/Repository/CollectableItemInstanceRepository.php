@@ -24,15 +24,10 @@ class CollectableItemInstanceRepository extends ServiceEntityRepository
     public function getCurrentCollectionByChatAndUser(Chat $chat, User $user): array
     {
         return $this->createQueryBuilder('i')
-            ->addSelect('t')
-            ->leftJoin('i.transactions', 't')
             ->andWhere('i.chat = :chat')
-            ->andWhere('t.buyer = :user')
-            ->andWhere('t.id = (SELECT MAX(t2.id) FROM App\Entity\Collectable\CollectableTransaction t2 WHERE t2.instance = i.id)')
-            ->setParameters([
-                'chat' => $chat,
-                'user' => $user,
-            ])
+            ->andWhere('i.owner = :user')
+            ->setParameter('chat', $chat)
+            ->setParameter('user', $user)
             ->getQuery()
             ->getResult();
     }

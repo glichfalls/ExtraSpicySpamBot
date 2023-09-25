@@ -18,7 +18,7 @@ final class ShowCollectionChatCommand extends AbstractCollectableTelegramChatCom
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $collection = $this->getCollection($message->getChat(), $message->getUser());
+        $collection = $this->collectableService->getCollection($message->getChat(), $message->getUser());
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
             sprintf('%s\'s collection', $message->getUser()->getName()),
@@ -29,7 +29,7 @@ final class ShowCollectionChatCommand extends AbstractCollectableTelegramChatCom
 
     /**
      * @param CollectableItemInstance[] $collectables
-     * @return array
+     * @return InlineKeyboardMarkup
      */
     public function getKeyboards(array $collectables): InlineKeyboardMarkup
     {

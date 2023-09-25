@@ -2,9 +2,6 @@
 
 namespace App\Service\Telegram\Honor\Collectables;
 
-use App\Entity\Chat\Chat;
-use App\Entity\Collectable\CollectableItemInstance;
-use App\Entity\User\User;
 use App\Repository\CollectableItemInstanceRepository;
 use App\Repository\CollectableRepository;
 use App\Repository\HonorRepository;
@@ -31,16 +28,6 @@ abstract class AbstractCollectableTelegramChatCommand extends AbstractTelegramHo
         protected CollectableItemInstanceRepository $collectableItemInstanceRepository,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService, $honorRepository);
-    }
-
-    /**
-     * @param Chat $chat
-     * @param User $user
-     * @return CollectableItemInstance[]
-     */
-    protected function getCollection(Chat $chat, User $user): array
-    {
-        return $this->collectableItemInstanceRepository->getCurrentCollectionByChatAndUser($chat, $user);
     }
 
 }
