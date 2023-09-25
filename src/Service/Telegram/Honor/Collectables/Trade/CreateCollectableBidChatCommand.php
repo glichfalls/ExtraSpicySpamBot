@@ -13,7 +13,7 @@ use TelegramBot\Api\Types\Update;
 final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramCallbackQuery
 {
 
-    public const CALLBACK_KEYWORD = 'collectable:trade:bid';
+    public const CALLBACK_KEYWORD = 'trade:bid';
 
     public function getCallbackKeyword(): string
     {
@@ -23,7 +23,7 @@ final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramC
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
         $data = explode(':', $update->getCallbackQuery()->getData());
-        if (count($data) !== 5) {
+        if (count($data) !== 4) {
             $this->logger->error('Invalid callback data for collectable bid.', [
                 'data' => $data,
             ]);
