@@ -99,8 +99,10 @@ class CollectableService
         $instance->setCollectable($collectable);
         $instance->setCreatedAt(new \DateTime());
         $instance->setUpdatedAt(new \DateTime());
-        $transaction = $this->transferInstance($instance, $user, $price);
-        $instance->getTransactions()->add($transaction);
+        if ($user !== null) {
+            $transaction = $this->transferInstance($instance, $user, $price);
+            $instance->getTransactions()->add($transaction);
+        }
         $this->manager->persist($instance);
         return $instance;
     }

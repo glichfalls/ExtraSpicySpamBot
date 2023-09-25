@@ -24,7 +24,7 @@ class Collectable
     private bool $tradeable;
 
     #[Column(type: 'boolean')]
-    private bool $unique;
+    private bool $isUnique;
 
     #[Column(type: 'text', nullable: true)]
     private ?string $imagePublicPath = null;
@@ -70,12 +70,12 @@ class Collectable
 
     public function isUnique(): bool
     {
-        return $this->unique;
+        return $this->isUnique;
     }
 
     public function setUnique(bool $unique): void
     {
-        $this->unique = $unique;
+        $this->isUnique = $unique;
     }
 
     public function getImagePublicPath(): ?string
