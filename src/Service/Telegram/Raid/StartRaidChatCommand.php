@@ -111,6 +111,12 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
         $baseChance = 50;
         $baseChance -= $raid->getDefenders()->count() * 20;
         $baseChance += $raid->getSupporters()->count() * 20;
+        if ($baseChance <= 0) {
+            return false;
+        }
+        if ($baseChance >= 100) {
+            return true;
+        }
         return mt_rand(0, 100) <= $baseChance;
     }
 
