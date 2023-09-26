@@ -127,26 +127,33 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function getLootboxWin(Chat $chat, User $user, string $size): int|CollectableItemInstance
     {
         $baseFailChance = match ($size) {
-            self::SMALL => 94,
-            self::MEDIUM => 90,
-            self::LARGE => 88,
+            self::SMALL => 96,
+            self::MEDIUM => 93,
+            self::LARGE => 90,
             default => 100,
         };
         if ($this->getPercentChance($baseFailChance)) {
-            if ($this->getPercentChance(25)) {
+            if ($this->getPercentChance(10)) {
                 return $this->getPrice($size);
             }
             return (int) floor($this->getPrice($size) / $this->getNumber(5, 2));
         }
-        if ($this->getPercentChance(50)) {
-            $max = $this->getPrice($size) * 100;
-            // get 10% - 100% of max
-            return $this->getNumber($max, (int) $max / 10);
+        if ($this->getPercentChance(80)) {
+            return $this->getNumber($this->getPrice($size) * 2, $this->getPrice($size));
+        }
+        if ($this->getPercentChance(10)) {
+            return $this->getNumber($this->getPrice($size) * 5, $this->getPrice($size) * 2);
+        }
+        if ($this->getPercentChance(1)) {
+            if ($this->getPercentChance(10)) {
+                return $this->getPrice($size) * 100;
+            }
+            return $this->getNumber($this->getPrice($size) * 50, $this->getPrice($size) * 10);
         }
         $collectableChance = match ($size) {
-            self::SMALL => 10,
+            self::SMALL => 25,
             self::MEDIUM => 50,
-            self::LARGE => 90,
+            self::LARGE => 75,
             default => 0,
         };
         if ($this->getPercentChance($collectableChance)) {
@@ -154,21 +161,19 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         }
         return match($size) {
             self::SMALL => 69,
-            self::MEDIUM => 42_069,
-            self::LARGE => 69_420,
+            self::MEDIUM => 69_420,
+            self::LARGE => 420_420,
             default => 0,
         };
     }
 
     private function winCollectable(Chat $chat, User $user): CollectableItemInstance
     {
-        $collectables = $this->collectableService->getInstancableCollectables();
-        if (count($collectables) === 0) {
-            throw new \RuntimeException('No collectables available');
-        }
-        $wonCollectable = $collectables[array_rand($collectables)];
-        $this->collectableService->createCollectableInstance($wonCollectable, $chat, $user);
-        return $wonCollectable;
+        $collectables = $this->collectableService->getAvailableInstances($chat);
+        $win = $collectables[array_rand($collectables)];
+        $win->setOwner($user);
+        $this->manager->flush();
+        return $win;
     }
 
     private function getPercentChance(int $probability): bool
