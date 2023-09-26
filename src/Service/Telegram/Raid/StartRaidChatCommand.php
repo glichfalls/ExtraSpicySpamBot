@@ -24,7 +24,7 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
         try {
             $raid = $this->getActiveRaid($chat);
             $this->canStartRaid($raid, $user);
-            if ($this->isSuccessful()) {
+            if ($this->isSuccessful($raid)) {
                 $this->success($raid);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
@@ -35,7 +35,6 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                     threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
                 );
             } else {
-                $this->failure($raid);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     $this->translator->trans('telegram.raid.raidFailed', [
@@ -73,7 +72,7 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
         try {
             $raid = $this->getActiveRaid($message->getChat());
             $this->canStartRaid($raid, $message->getUser());
-            if ($this->isSuccessful()) {
+            if ($this->isSuccessful($raid)) {
                 $this->success($raid);
                 $this->telegramService->replyTo(
                     $message,
@@ -83,7 +82,6 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                     ]),
                 );
             } else {
-                $this->failure($raid);
                 $this->telegramService->replyTo(
                     $message,
                     $this->translator->trans('telegram.raid.raidFailed', [
@@ -108,16 +106,19 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
         }
     }
 
-    private function isSuccessful(): bool
+    private function isSuccessful(Raid $raid): bool
     {
-        return random_int(1, 10) <= 6;
+        $baseChance = 50;
+        $baseChance -= $raid->getDefenders()->count() * 20;
+        $baseChance += $raid->getSupporters()->count() * 20;
+        return mt_rand(0, 100) <= $baseChance;
     }
 
     private function success(Raid $raid): void
     {
         $raid->setIsActive(false);
         $raid->setIsSuccessful(true);
-        $honorPerSupporter = $raid->getAmount() / ($raid->getSupporters()->count() + 1);
+        $honorPerSupporter = (int) ceil($raid->getAmount() / ($raid->getSupporters()->count() + 1));
         // add honor to leader
         $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getLeader(), $honorPerSupporter));
         // add honor to supporters
@@ -126,31 +127,6 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
         }
         // remove honor from target
         $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getTarget(), -$raid->getAmount()));
-        // remove honor from defenders
-        foreach ($raid->getDefenders() as $defender) {
-            $this->manager->persist(HonorFactory::create($raid->getChat(), null, $defender, -$honorPerSupporter));
-        }
-        $this->manager->flush();
-    }
-
-    private function failure(Raid $raid): void
-    {
-        $totalHonor = $this->honorRepository->getHonorCount($raid->getLeader(), $raid->getChat()) / 2;
-        $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getLeader(), -$totalHonor));
-        foreach ($raid->getSupporters() as $supporter) {
-            $currentSupporterHonor = (int) ceil(abs($this->honorRepository->getHonorCount($supporter, $raid->getChat())) / 4);
-            $totalHonor += $currentSupporterHonor;
-            $this->manager->persist(HonorFactory::create($raid->getChat(), null, $supporter, -$currentSupporterHonor));
-        }
-        $raid->setIsActive(false);
-        $raid->setIsSuccessful(false);
-        $honorPerDefender = (int) ceil($totalHonor / ($raid->getDefenders()->count() + 1));
-        foreach ($raid->getDefenders() as $defender) {
-            // add honor to defenders
-            $this->manager->persist(HonorFactory::create($raid->getChat(), null, $defender, $honorPerDefender));
-        }
-        // add honor to target
-        $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getTarget(), $honorPerDefender));
         $this->manager->flush();
     }
 
