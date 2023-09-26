@@ -46,6 +46,10 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $count = (int) $matches['count'];
             }
         }
+        if ($count < 0) {
+            $this->telegramService->replyTo($message, 'you cannot gamble negative Ehre');
+            return;
+        }
         if ($currentHonor < $count) {
             $this->telegramService->replyTo($message, 'not enough Ehre');
         } else {
