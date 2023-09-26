@@ -56,7 +56,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             if (rand(0, 1) === 1) {
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), $count));
                 $this->manager->flush();
-                $this->telegramService->replyTo($message, sprintf('you have won %s Ehre (-50% für d krankekasse)', NumberFormat::format($count)));
+                $this->telegramService->replyTo($message, sprintf('you have won %s Ehre (-50%% für d krankekasse)', NumberFormat::format($count)));
             } else {
                 $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
                 $draw?->setGamblingLosses($draw->getGamblingLosses() + $count);
