@@ -109,6 +109,9 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
     private function isSuccessful(Raid $raid): bool
     {
         $baseChance = 50;
+        if ($raid->getSupporters()->count() + $raid->getDefenders()->count() === 1) {
+            return mt_rand(0, 1) === 1;
+        }
         $baseChance -= $raid->getDefenders()->count() * 20;
         $baseChance += $raid->getSupporters()->count() * 20;
         if ($baseChance <= 0) {
