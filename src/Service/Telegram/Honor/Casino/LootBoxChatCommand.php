@@ -13,6 +13,7 @@ use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
+use App\Utils\Random;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -132,16 +133,16 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::LARGE => 88,
             default => 100,
         };
-        if ($this->getPercentChance($baseFailChance)) {
-            if ($this->getPercentChance(25)) {
+        if (Random::getPercentChance($baseFailChance)) {
+            if (Random::getPercentChance(25)) {
                 return $this->getPrice($size);
             }
-            return (int) floor($this->getPrice($size) / $this->getNumber(5, 2));
+            return (int) floor($this->getPrice($size) / Random::getNumber(5, 2));
         }
-        if ($this->getPercentChance(50)) {
+        if (Random::getPercentChance(50)) {
             $max = $this->getPrice($size) * 100;
             // get 10% - 100% of max
-            return $this->getNumber($max, (int) $max / 10);
+            return Random::getNumber($max, (int) $max / 10);
         }
         $collectableChance = match ($size) {
             self::SMALL => 10,
@@ -149,7 +150,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::LARGE => 90,
             default => 0,
         };
-        if ($this->getPercentChance($collectableChance)) {
+        if (Random::getPercentChance($collectableChance)) {
             return $this->winCollectable($chat, $user);
         }
         return match($size) {
@@ -169,16 +170,6 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         $wonCollectable = $collectables[array_rand($collectables)];
         $this->collectableService->createCollectableInstance($wonCollectable, $chat, $user);
         return $wonCollectable;
-    }
-
-    private function getPercentChance(int $probability): bool
-    {
-        return $this->getNumber(100) <= $probability;
-    }
-
-    private function getNumber(int $max, int $min = 1): int
-    {
-        return mt_rand($min, $max);
     }
 
     private function getKeyboard(): InlineKeyboardMarkup

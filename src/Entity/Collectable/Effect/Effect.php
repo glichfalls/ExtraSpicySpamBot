@@ -3,8 +3,11 @@
 namespace App\Entity\Collectable\Effect;
 
 use App\Model\Id;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\ManyToMany;
 
 #[Entity]
 class Effect
@@ -12,14 +15,44 @@ class Effect
     use Id;
 
     #[Column(type: 'string')]
+    private string $type;
+
+    #[Column(type: 'float')]
+    private float $magnitude;
+
+    #[Column(type: 'string')]
     private string $name;
 
     #[Column(type: 'text')]
     private string $description;
 
+    #[ManyToMany(targetEntity: Effect::class)]
+    private Collection $collectables;
+
     public function __construct()
     {
         $this->generateId();
+        $this->collectables = new ArrayCollection();
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): void
+    {
+        $this->type = $type;
+    }
+
+    public function getMagnitude(): float
+    {
+        return $this->magnitude;
+    }
+
+    public function setMagnitude(float $magnitude): void
+    {
+        $this->magnitude = $magnitude;
     }
 
     public function getName(): string

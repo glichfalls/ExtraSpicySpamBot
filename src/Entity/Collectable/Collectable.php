@@ -8,7 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
-use Doctrine\ORM\Mapping\ManyToOne;
+use Doctrine\ORM\Mapping\ManyToMany;
 use Doctrine\ORM\Mapping\OneToMany;
 
 #[Entity]
@@ -31,8 +31,8 @@ class Collectable
     #[Column(type: 'text', nullable: true)]
     private ?string $imagePublicPath = null;
 
-    #[ManyToOne(targetEntity: Effect::class)]
-    private ?Effect $effect = null;
+    #[ManyToMany(targetEntity: Effect::class)]
+    private Collection $effects;
 
     #[OneToMany(mappedBy: 'collectable', targetEntity: CollectableItemInstance::class)]
     private Collection $instances;
@@ -40,6 +40,7 @@ class Collectable
     public function __construct()
     {
         $this->generateId();
+        $this->effects = new ArrayCollection();
         $this->instances = new ArrayCollection();
     }
 
@@ -93,14 +94,17 @@ class Collectable
         $this->imagePublicPath = $imagePublicPath;
     }
 
-    public function getEffect(): ?Effect
+    /**
+     * @return Collection<Effect>
+     */
+    public function getEffects(): Collection
     {
-        return $this->effect;
+        return $this->effects;
     }
 
-    public function setEffect(?Effect $effect): void
+    public function setEffects(Collection $effects): void
     {
-        $this->effect = $effect;
+        $this->effects = $effects;
     }
 
     public function getInstances(): Collection
