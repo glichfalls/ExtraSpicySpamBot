@@ -25,7 +25,6 @@ class Honor
     #[ManyToOne(targetEntity: User::class, fetch: 'EXTRA_LAZY', inversedBy: 'receivedHonor')]
     private User $recipient;
 
-    #[ManyToOne(targetEntity: Chat::class, fetch: 'EXTRA_LAZY')]
     private Chat $chat;
 
     #[Column(type: 'integer')]

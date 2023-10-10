@@ -15,7 +15,7 @@ class Sticker
 {
     use Id;
 
-    #[ManyToOne(targetEntity: StickerSet::class)]
+    #[ManyToOne(targetEntity: StickerSet::class, inversedBy: 'stickers')]
     private StickerSet $stickerSet;
 
     #[ManyToOne(targetEntity: StickerFile::class)]

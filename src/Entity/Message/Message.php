@@ -31,7 +31,7 @@ class Message
     use Id;
     use TimestampableEntity;
 
-    #[ManyToOne(targetEntity: Chat::class)]
+    #[ManyToOne(targetEntity: Chat::class, inversedBy: 'messages')]
     private Chat $chat;
 
     #[ManyToOne(targetEntity: User::class, inversedBy: 'messages')]

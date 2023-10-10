@@ -17,7 +17,7 @@ class CollectableItemInstance
     use Id;
     use TimestampableEntity;
 
-    #[ManyToOne(targetEntity: Collectable::class)]
+    #[ManyToOne(targetEntity: Collectable::class, inversedBy: 'instances')]
     #[JoinColumn(nullable: false)]
     private Collectable $collectable;
 
