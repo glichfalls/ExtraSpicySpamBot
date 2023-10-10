@@ -7,9 +7,9 @@ use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\DrawRepository;
-use App\Repository\HonorRepository;
 use App\Service\Collectable\CollectableService;
 use App\Service\Collectable\EffectTypes;
+use App\Service\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
@@ -27,7 +27,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private HonorRepository $honorRepository,
+        private HonorService $honorService,
         private DrawRepository $drawRepository,
         private CollectableService $collectableService,
     ) {
@@ -41,7 +41,8 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $currentHonor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
+        $currentHonor = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
+        $this->logger->error(sprintf('GAMBLE current honor: %s', $currentHonor));
         if ($matches['count'] === 'max') {
             $count = $currentHonor;
         } else {
@@ -54,32 +55,41 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             }
             $count = (int) $matches['count'];
         }
+        $this->logger->error(sprintf('GAMBLE %s honor', $count));
         if ($count < 0) {
+            $this->logger->error('GAMBLE failed, negative honor');
             $this->telegramService->replyTo($message, 'you cannot gamble negative Ehre');
             return;
         }
         if ($currentHonor < $count) {
+            $this->logger->error('GAMBLE failed, not enough honor');
             $this->telegramService->replyTo($message, 'not enough Ehre');
         } else {
+            $this->logger->error('GAMBLE start');
             if ($this->gamble($message->getUser(), $message->getChat())) {
-                $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), $count));
+                $this->logger->error(sprintf('GAMBLE %s won %s honor', $message->getUser()->getName(), $count));
+                $this->honorService->addHonor($message->getChat(), $message->getUser(), $count);
                 $this->manager->flush();
                 $this->telegramService->replyTo($message, sprintf('you have won %s Ehre', NumberFormat::format($count)));
             } else {
+                $this->logger->error(sprintf('GAMBLE %s lost %s honor', $message->getUser()->getName(), $count));
                 $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
                 $draw?->setGamblingLosses($draw->getGamblingLosses() + $count);
-                $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), -$count));
+                $this->honorService->removeHonor($message->getChat(), $message->getUser(), -$count);
                 $this->manager->flush();
                 $this->telegramService->replyTo($message, sprintf('you have lost %s Ehre', NumberFormat::format($count)));
             }
+            $this->logger->error('GAMBLE end');
         }
     }
 
     private function gamble(User $user, Chat $chat): bool
     {
-        $chance = 50;
         $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::GAMBLE_LUCK);
-        return Random::getPercentChance($effects->apply($chance));
+        $this->logger->debug(sprintf('gamble luck effects: %s', $effects->count()));
+        $chance = $effects->apply(50);
+        $this->logger->debug(sprintf('gamble chance: %s', $chance));
+        return Random::getPercentChance(min($chance, 100));
     }
 
     public function getSyntax(): string

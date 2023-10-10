@@ -45,11 +45,12 @@ class EffectRepository extends ServiceEntityRepository
     public function getByUserAndType(User $user, Chat $chat, string $type): array
     {
         return $this->createQueryBuilder('e')
+            ->select('e')
             ->join('e.collectables', 'c')
             ->join('c.instances', 'i')
             ->join('i.owner', 'o')
-            ->andWhere('o.id = :id')
             ->andWhere('e.type = :type')
+            ->andWhere('i.id = :id')
             ->andWhere('i.chat = :chat')
             ->setParameter('id', $user->getId())
             ->setParameter('type', $type)
