@@ -57,9 +57,6 @@ class Chat
     #[Groups(['message:public:read'])]
     private Collection $messages;
 
-    #[OneToMany(mappedBy: "chat", targetEntity: Honor::class, fetch: 'EXTRA_LAZY')]
-    private Collection $honor;
-
     public function __construct()
     {
         $this->generateId();

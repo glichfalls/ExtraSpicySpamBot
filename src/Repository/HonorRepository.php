@@ -6,27 +6,36 @@ use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
 use App\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\UnexpectedResultException;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 
 class HonorRepository extends ServiceEntityRepository
 {
 
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(ManagerRegistry $registry, private LoggerInterface $logger)
     {
         parent::__construct($registry, Honor::class);
     }
 
     public function getHonorCount(User $user, Chat $chat): int
     {
-        $honor = $this->createQueryBuilder('h')
-            ->select('SUM(h.amount)')
-            ->where('h.chat_id = :chatId')
-            ->andWhere('h.recipient_id = :userId')
-            ->setParameter('chatId', $chat->getId())
-            ->setParameter('userId', $user->getId())
-            ->getQuery()
-            ->getSingleScalarResult() ?: 0;
-        return Honor::BASE_HONOR + (int) $honor;
+        try {
+            $queryBuilder = $this->createQueryBuilder('h');
+            $queryBuilder
+                ->select('SUM(h.points) as totalHonor')
+                ->where('h.user = :userId')
+                ->andWhere('h.chat = :chatId')
+                ->setParameter('userId', $user->getId())
+                ->setParameter('chatId', $chat->getId());
+            return (int)$queryBuilder->getQuery()->getSingleScalarResult();
+        } catch (ORMException $e) {
+            $this->logger->error($e->getMessage());
+            return 0;
+        }
     }
 
     public function getLeaderboard(Chat $chat): array

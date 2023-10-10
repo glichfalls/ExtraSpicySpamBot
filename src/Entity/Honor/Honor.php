@@ -17,12 +17,10 @@ class Honor
     use Id;
     use TimestampableEntity;
 
-    public const BASE_HONOR = 10;
-
-    #[ManyToOne(targetEntity: User::class, fetch: 'EXTRA_LAZY', inversedBy: 'sentHonor')]
+    #[ManyToOne(targetEntity: User::class, inversedBy: 'sentHonor')]
     private ?User $sender = null;
 
-    #[ManyToOne(targetEntity: User::class, fetch: 'EXTRA_LAZY', inversedBy: 'receivedHonor')]
+    #[ManyToOne(targetEntity: User::class, inversedBy: 'receivedHonor')]
     private User $recipient;
 
     #[ManyToOne(targetEntity: Chat::class)]
