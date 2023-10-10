@@ -14,8 +14,7 @@ abstract class AbstractTelegramChatCommand implements TelegramChatCommand
         protected TranslatorInterface $translator,
         protected LoggerInterface $logger,
         protected TelegramService $telegramService
-    )
-    {
+    ) {
 
     }
 

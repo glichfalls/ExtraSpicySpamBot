@@ -5,7 +5,7 @@ namespace App\Service\Telegram\Honor\Collectables;
 use App\Repository\CollectableItemInstanceRepository;
 use App\Repository\CollectableRepository;
 use App\Repository\HonorRepository;
-use App\Service\Telegram\Collectables\CollectableService;
+use App\Service\Collectable\CollectableService;
 use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;

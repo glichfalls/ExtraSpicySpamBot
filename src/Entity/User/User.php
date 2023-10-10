@@ -4,6 +4,9 @@ namespace App\Entity\User;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Chat\Chat;
+use App\Entity\Collectable\Collectable;
+use App\Entity\Collectable\CollectableItemInstance;
+use App\Entity\Collectable\Effect\Effect;
 use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Model\Id;
@@ -64,6 +67,10 @@ class User implements UserInterface
     #[Ignore]
     private Collection $chats;
 
+    #[OneToMany(mappedBy: "owner", targetEntity: CollectableItemInstance::class)]
+    #[Ignore]
+    private Collection $collectables;
+
     #[Column(type: 'json')]
     #[Ignore]
     private array $roles = [
@@ -75,6 +82,9 @@ class User implements UserInterface
         $this->generateId();
         $this->sentHonor = new ArrayCollection();
         $this->receivedHonor = new ArrayCollection();
+        $this->messages = new ArrayCollection();
+        $this->chats = new ArrayCollection();
+        $this->collectables = new ArrayCollection();
     }
 
     public function getTelegramUserId(): int
@@ -149,6 +159,14 @@ class User implements UserInterface
     public function getMessages(): Collection
     {
         return $this->messages;
+    }
+
+    /**
+     * @return Collection<CollectableItemInstance>
+     */
+    public function getCollectables(): Collection
+    {
+        return $this->collectables;
     }
 
     public function setMessages(Collection $collection): void

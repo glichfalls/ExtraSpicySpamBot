@@ -2,13 +2,19 @@
 
 namespace App\Service\Telegram\Honor\Casino;
 
+use App\Entity\Chat\Chat;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
+use App\Entity\User\User;
 use App\Repository\DrawRepository;
 use App\Repository\HonorRepository;
+use App\Service\Collectable\CollectableService;
+use App\Service\Collectable\EffectTypes;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Strategy\Effect\EffectStrategyFactory;
 use App\Utils\NumberFormat;
+use App\Utils\Random;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -24,8 +30,8 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         TelegramService $telegramService,
         private HonorRepository $honorRepository,
         private DrawRepository $drawRepository,
-    )
-    {
+        private CollectableService $collectableService,
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
@@ -42,9 +48,12 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         } else {
             if (NumberFormat::isAbbreviatedNumber($matches['count'])) {
                 $count = NumberFormat::unabbreviateNumber($matches['count']);
-            } else {
-                $count = (int) $matches['count'];
+                if ($count === null) {
+                    $this->telegramService->replyTo($message, 'invalid number');
+                    return;
+                }
             }
+            $count = (int) $matches['count'];
         }
         if ($count < 0) {
             $this->telegramService->replyTo($message, 'you cannot gamble negative Ehre');
@@ -53,7 +62,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         if ($currentHonor < $count) {
             $this->telegramService->replyTo($message, 'not enough Ehre');
         } else {
-            if (rand(0, 1) === 1) {
+            if ($this->gamble($message->getUser(), $message->getChat())) {
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), $count));
                 $this->manager->flush();
                 $this->telegramService->replyTo($message, sprintf('you have won %s Ehre (-50%% für d krankekasse)', NumberFormat::format($count)));
@@ -65,6 +74,16 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $this->telegramService->replyTo($message, sprintf('you have lost %s Ehre', NumberFormat::format($count)));
             }
         }
+    }
+
+    private function gamble(User $user, Chat $chat): bool
+    {
+        $chance = 50;
+        $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::GAMBLE_LUCK);
+        foreach ($effects as $effect) {
+            $chance = $effect->apply($chance);
+        }
+        return Random::getPercentChance($chance);
     }
 
     public function getSyntax(): string

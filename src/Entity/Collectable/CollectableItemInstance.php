@@ -25,7 +25,7 @@ class CollectableItemInstance
     #[JoinColumn(nullable: false)]
     private Chat $chat;
 
-    #[ManyToOne(targetEntity: User::class)]
+    #[ManyToOne(targetEntity: User::class, inversedBy: 'collectables')]
     private ?User $owner = null;
 
     #[Column(type: 'integer')]

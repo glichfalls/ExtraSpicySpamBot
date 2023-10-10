@@ -8,11 +8,13 @@ use App\Entity\Collectable\CollectableItemInstance;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\HonorRepository;
-use App\Service\Telegram\Collectables\CollectableService;
+use App\Service\Collectable\CollectableService;
+use App\Service\Collectable\EffectTypes;
 use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
+use App\Utils\Random;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -40,8 +42,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         TelegramService $telegramService,
         HonorRepository $honorRepository,
         private CollectableService $collectableService,
-    )
-    {
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService, $honorRepository);
     }
 
@@ -73,7 +74,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             $size = $data[1];
             $price = $this->getPrice($size);
             if ($price === null) {
-                $this->telegramService->answerCallbackQuery($callbackQuery, 'Invalid size', false);
+                $this->telegramService->answerCallbackQuery($callbackQuery, 'Invalid size');
                 return;
             }
             $currentHonor = $this->getCurrentHonorAmount($chat, $user);
@@ -132,28 +133,20 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::LARGE => 65,
             default => 100,
         };
-        if ($this->getPercentChance($baseFailChance)) {
-            return (int) floor($this->getPrice($size) / $this->getNumber(10, 5));
+        if (Random::getPercentChance($baseFailChance)) {
+            return (int) floor($this->getPrice($size) / Random::getNumber(8, 3));
         }
-        if ($this->getPercentChance(90)) {
-            return $this->getNumber($this->getPrice($size) * 2, $this->getPrice($size));
+        if (Random::getPercentChance(50)) {
+            $max = $this->getPrice($size) * 100;
+            // get 10% - 100% of max
+            return Random::getNumber($max, (int) $max / 10);
         }
-        if ($this->getPercentChance(25)) {
-            return $this->getNumber($this->getPrice($size) * 15, $this->getPrice($size) * 5);
+        $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::LOOTBOX_LUCK);
+        $collectableChance = 0.1;
+        foreach ($effects as $effect) {
+            $collectableChance = $effect->apply($collectableChance);
         }
-        if ($this->getPercentChance(1)) {
-            if ($this->getPercentChance(10)) {
-                return $this->getPrice($size) * 100;
-            }
-            return $this->getNumber($this->getPrice($size) * 99, $this->getPrice($size) * 10);
-        }
-        $collectableChance = match ($size) {
-            self::SMALL => 5,
-            self::MEDIUM => 10,
-            self::LARGE => 20,
-            default => 0,
-        };
-        if ($this->getPercentChance($collectableChance)) {
+        if (Random::getPercentChance($collectableChance)) {
             return $this->winCollectable($chat, $user);
         }
         return match($size) {

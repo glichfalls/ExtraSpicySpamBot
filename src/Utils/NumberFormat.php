@@ -41,22 +41,27 @@ class NumberFormat
         return $number;
     }
 
-    public static function unabbreviateNumber(string $number): int
+    public static function unabbreviateNumber(string $number): ?int
     {
-        $number = str_replace('K', '000', $number);
-        $number = str_replace('M', '000000', $number);
-        $number = str_replace('B', '000000000', $number);
-        $number = str_replace('T', '000000000000', $number);
+        if (!self::isAbbreviatedNumber($number)) {
+            return null;
+        }
+        $number = trim($number);
+        $number = preg_replace('/K$/i', '000', $number);
+        $number = preg_replace('/M$/i', '000000', $number);
+        $number = preg_replace('/B$/i', '000000000', $number);
+        $number = preg_replace('/T$/i', '000000000000', $number);
         return (int) $number;
     }
 
     public static function isAbbreviatedNumber(string $number): bool
     {
-        if (preg_match('/[KMBT]/', $number) === false) {
+        // number must end with K, M, B or T
+        if (preg_match('/[KMBT]$/i', $number) === false) {
             return false;
         }
-        $number = str_replace(['K', 'M', 'B', 'T'], '', $number);
-        return is_numeric(trim($number));
+        $numberWithoutSuffix = substr(trim($number), 0, -1);
+        return is_numeric($numberWithoutSuffix);
     }
 
 }
