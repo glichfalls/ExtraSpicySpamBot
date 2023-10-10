@@ -141,7 +141,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         if ($this->getPercentChance(50)) {
             return $this->getNumber($this->getPrice($size) * 5, $this->getPrice($size));
         }
-        if ($this->getPercentChance(10)) {
+        if ($this->getPercentChance(25)) {
             return $this->getNumber($this->getPrice($size) * 15, $this->getPrice($size) * 5);
         }
         if ($this->getPercentChance(1)) {
