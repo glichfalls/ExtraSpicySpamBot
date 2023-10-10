@@ -2,21 +2,13 @@
 
 namespace App\Utils;
 
-use App\Entity\User\User;
 use App\Strategy\Effect\EffectStrategyFactory;
-use App\Strategy\Effect\Types;
 
 class Random
 {
 
-    public static function getPercentChance(int $probability, ?User $user): bool
+    public static function getPercentChance(int $probability): bool
     {
-        if ($user !== null) {
-            $effects = $user->getCollectablesByEffectType(Types::LUCK);
-            foreach ($effects as $effect) {
-
-            }
-        }
         return self::getNumber(100) <= $probability;
     }
 

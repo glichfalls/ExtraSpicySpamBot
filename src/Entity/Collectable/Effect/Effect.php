@@ -2,14 +2,16 @@
 
 namespace App\Entity\Collectable\Effect;
 
+use App\Entity\Collectable\Collectable;
 use App\Model\Id;
+use App\Repository\EffectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToMany;
 
-#[Entity]
+#[Entity(repositoryClass: EffectRepository::class)]
 class Effect
 {
     use Id;
@@ -21,12 +23,15 @@ class Effect
     private float $magnitude;
 
     #[Column(type: 'string')]
+    private string $operator;
+
+    #[Column(type: 'string')]
     private string $name;
 
     #[Column(type: 'text')]
     private string $description;
 
-    #[ManyToMany(targetEntity: Effect::class)]
+    #[ManyToMany(targetEntity: Collectable::class, inversedBy: 'effects')]
     private Collection $collectables;
 
     public function __construct()
@@ -55,6 +60,16 @@ class Effect
         $this->magnitude = $magnitude;
     }
 
+    public function getOperator(): string
+    {
+        return $this->operator;
+    }
+
+    public function setOperator(string $operator): void
+    {
+        $this->operator = $operator;
+    }
+
     public function getName(): string
     {
         return $this->name;
@@ -73,6 +88,17 @@ class Effect
     public function setDescription(string $description): void
     {
         $this->description = $description;
+    }
+
+    public function apply(int|float $value): int|float
+    {
+        return match ($this->operator) {
+            '+' => $value + $this->magnitude,
+            '-' => $value - $this->magnitude,
+            '*' => $value * $this->magnitude,
+            '/' => $value / $this->magnitude,
+            default => throw new \RuntimeException(sprintf('Unknown operator "%s"', $this->operator)),
+        };
     }
 
 }

@@ -31,7 +31,7 @@ class Collectable
     #[Column(type: 'text', nullable: true)]
     private ?string $imagePublicPath = null;
 
-    #[ManyToMany(targetEntity: Effect::class)]
+    #[ManyToMany(targetEntity: Effect::class, mappedBy: 'collectables')]
     private Collection $effects;
 
     #[OneToMany(mappedBy: 'collectable', targetEntity: CollectableItemInstance::class)]

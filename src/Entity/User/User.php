@@ -169,16 +169,6 @@ class User implements UserInterface
         return $this->collectables;
     }
 
-    public function getCollectablesByEffectType(string $type): Collection
-    {
-        return $this->getCollectables()->filter(
-            fn (CollectableItemInstance $collectableItemInstance) => $collectableItemInstance
-                ->getCollectable()
-                ->getEffects()
-                ->exists(fn (int $key, Effect $effect) => $effect->getType() === $type)
-        );
-    }
-
     public function setMessages(Collection $collection): void
     {
         $this->messages = $collection;

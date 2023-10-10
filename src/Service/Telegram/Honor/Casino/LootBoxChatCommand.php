@@ -8,7 +8,8 @@ use App\Entity\Collectable\CollectableItemInstance;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\HonorRepository;
-use App\Service\Telegram\Collectables\CollectableService;
+use App\Service\Collectable\CollectableService;
+use App\Service\Collectable\EffectTypes;
 use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
@@ -41,8 +42,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         TelegramService $telegramService,
         HonorRepository $honorRepository,
         private CollectableService $collectableService,
-    )
-    {
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService, $honorRepository);
     }
 
@@ -74,7 +74,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             $size = $data[1];
             $price = $this->getPrice($size);
             if ($price === null) {
-                $this->telegramService->answerCallbackQuery($callbackQuery, 'Invalid size', false);
+                $this->telegramService->answerCallbackQuery($callbackQuery, 'Invalid size');
                 return;
             }
             $currentHonor = $this->getCurrentHonorAmount($chat, $user);
@@ -144,12 +144,11 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             // get 10% - 100% of max
             return Random::getNumber($max, (int) $max / 10);
         }
-        $collectableChance = match ($size) {
-            self::SMALL => 10,
-            self::MEDIUM => 50,
-            self::LARGE => 90,
-            default => 0,
-        };
+        $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::LOOTBOX_LUCK);
+        $collectableChance = 0.1;
+        foreach ($effects as $effect) {
+            $collectableChance = $effect->apply($collectableChance);
+        }
         if (Random::getPercentChance($collectableChance)) {
             return $this->winCollectable($chat, $user);
         }

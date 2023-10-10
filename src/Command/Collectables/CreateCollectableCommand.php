@@ -4,7 +4,7 @@ namespace App\Command\Collectables;
 
 use App\Entity\Collectable\Collectable;
 use App\Repository\ChatRepository;
-use App\Service\Telegram\Collectables\CollectableService;
+use App\Service\Collectable\CollectableService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

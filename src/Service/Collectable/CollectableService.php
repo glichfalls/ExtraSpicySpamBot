@@ -1,16 +1,19 @@
 <?php
 
-namespace App\Service\Telegram\Collectables;
+namespace App\Service\Collectable;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Collectable\Collectable;
 use App\Entity\Collectable\CollectableAuction;
 use App\Entity\Collectable\CollectableItemInstance;
+use App\Entity\Collectable\Effect\Effect;
 use App\Entity\User\User;
 use App\Repository\CollectableAuctionRepository;
 use App\Repository\CollectableItemInstanceRepository;
 use App\Repository\CollectableRepository;
+use App\Repository\EffectRepository;
 use App\Service\HonorService;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 
 class CollectableService
@@ -22,6 +25,7 @@ class CollectableService
         private CollectableItemInstanceRepository $instanceRepository,
         private CollectableAuctionRepository $auctionRepository,
         private HonorService $honorService,
+        private EffectRepository $effectRepository,
     ) {
     }
 
@@ -133,6 +137,25 @@ class CollectableService
     public function getCollection(Chat $chat, User $user): array
     {
         return $this->instanceRepository->getCurrentCollectionByChatAndUser($chat, $user);
+    }
+
+    /**
+     * @return Collection<Effect>
+     */
+    public function getEffectsByUser(User $user, Chat $chat): Collection
+    {
+        return $this->effectRepository->getByUser($user, $chat);
+    }
+
+    /**
+     * @return Collection<Effect>
+     */
+    public function getEffectsByUserAndType(User $user, Chat $chat, string $type): Collection
+    {
+        if (!in_array($type, EffectTypes::ALL)) {
+            throw new \InvalidArgumentException(sprintf('effect type %s does not exist', $type));
+        }
+        return $this->effectRepository->getByUserAndType($user, $chat, $type);
     }
 
 }
