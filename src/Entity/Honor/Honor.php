@@ -19,13 +19,13 @@ class Honor
 
     public const BASE_HONOR = 10;
 
-    #[ManyToOne(targetEntity: User::class, inversedBy: 'sentHonor')]
+    #[ManyToOne(targetEntity: User::class, fetch: 'EXTRA_LAZY', inversedBy: 'sentHonor')]
     private ?User $sender = null;
 
-    #[ManyToOne(targetEntity: User::class, inversedBy: 'receivedHonor')]
+    #[ManyToOne(targetEntity: User::class, fetch: 'EXTRA_LAZY', inversedBy: 'receivedHonor')]
     private User $recipient;
 
-    #[ManyToOne(targetEntity: Chat::class)]
+    #[ManyToOne(targetEntity: Chat::class, fetch: 'EXTRA_LAZY')]
     private Chat $chat;
 
     #[Column(type: 'integer')]

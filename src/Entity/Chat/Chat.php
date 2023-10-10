@@ -48,11 +48,11 @@ class Chat
     #[Groups(['chat:public:read'])]
     private ChatConfig $config;
 
-    #[ManyToMany(targetEntity: User::class, inversedBy: "chats")]
+    #[ManyToMany(targetEntity: User::class, inversedBy: "chats", fetch: 'EXTRA_LAZY')]
     #[Groups(['chat:public:read'])]
     private Collection $users;
 
-    #[OneToMany(mappedBy: "chat", targetEntity: Message::class)]
+    #[OneToMany(mappedBy: "chat", targetEntity: Message::class, fetch: 'EXTRA_LAZY')]
     #[Groups(['message:public:read'])]
     private Collection $messages;
 
