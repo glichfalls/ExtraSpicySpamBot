@@ -19,8 +19,9 @@ class HonorRepository extends ServiceEntityRepository
     public function getHonorCount(User $user, Chat $chat): int
     {
         $honor = $this->createQueryBuilder('h')
+            ->join('h.chat', 'c')
             ->select('SUM(h.amount)')
-            ->where('h.chat = :chat')
+            ->where('c.chat = :chat')
             ->andWhere('h.recipient = :user')
             ->setParameter('chat', $chat)
             ->setParameter('user', $user)
