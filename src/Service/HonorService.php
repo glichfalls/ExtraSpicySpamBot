@@ -9,6 +9,7 @@ use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\UnexpectedResultException;
 
 class HonorService
 {
@@ -31,7 +32,7 @@ class HonorService
                 return sprintf(
                     '%s: %s Ehre',
                     $name,
-                    NumberFormat::format($entry['amount'] + Honor::BASE_HONOR)
+                    NumberFormat::format($entry['amount'])
                 );
             }, $leaderboard);
             return implode(PHP_EOL, $text);
@@ -40,7 +41,11 @@ class HonorService
 
     public function getCurrentHonorAmount(Chat $chat, User $user): int
     {
-        return $this->honorRepository->getHonorCount($user, $chat);
+        try {
+            return $this->honorRepository->getHonorCount($user, $chat);
+        } catch (UnexpectedResultException $exception) {
+            throw new \RuntimeException('failed to load honor count', previous: $exception);
+        }
     }
 
     public function addHonor(Chat $chat, User $recipient, int $amount, ?User $sender = null): void

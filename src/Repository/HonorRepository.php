@@ -6,36 +6,30 @@ use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
 use App\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Exception\ORMException;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\UnexpectedResultException;
 use Doctrine\Persistence\ManagerRegistry;
-use Psr\Log\LoggerInterface;
 
 class HonorRepository extends ServiceEntityRepository
 {
 
-    public function __construct(ManagerRegistry $registry, private LoggerInterface $logger)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Honor::class);
     }
 
+    /**
+     * @throws UnexpectedResultException
+     */
     public function getHonorCount(User $user, Chat $chat): int
     {
-        try {
-            $queryBuilder = $this->createQueryBuilder('h');
-            $queryBuilder
-                ->select('SUM(h.points) as totalHonor')
-                ->where('h.user = :userId')
-                ->andWhere('h.chat = :chatId')
-                ->setParameter('userId', $user->getId())
-                ->setParameter('chatId', $chat->getId());
-            return (int)$queryBuilder->getQuery()->getSingleScalarResult();
-        } catch (ORMException $e) {
-            $this->logger->error($e->getMessage());
-            return 0;
-        }
+        $queryBuilder = $this->createQueryBuilder('h');
+        $queryBuilder
+            ->select('SUM(h.points) as totalHonor')
+            ->where('h.user = :userId')
+            ->andWhere('h.chat = :chatId')
+            ->setParameter('userId', $user->getId())
+            ->setParameter('chatId', $chat->getId());
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
     public function getLeaderboard(Chat $chat): array
@@ -51,6 +45,9 @@ class HonorRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @throws UnexpectedResultException
+     */
     public function getLastChange(User $sender, User $recipient, Chat $chat): ?Honor
     {
         return $this->createQueryBuilder('h')
