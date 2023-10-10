@@ -21,9 +21,9 @@ class HonorRepository extends ServiceEntityRepository
         $honor = $this->createQueryBuilder('h')
             ->join('h.chat', 'c')
             ->select('SUM(h.amount)')
-            ->where('c.chat = :chat')
+            ->where('c.id = :chat')
             ->andWhere('h.recipient = :user')
-            ->setParameter('chat', $chat)
+            ->setParameter('chat', $chat->getId())
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult() ?: 0;
