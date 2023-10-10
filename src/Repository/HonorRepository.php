@@ -24,7 +24,7 @@ class HonorRepository extends ServiceEntityRepository
     {
         $queryBuilder = $this->createQueryBuilder('h');
         $queryBuilder
-            ->select('SUM(h.points)')
+            ->select('SUM(h.amount)')
             ->where('h.user = :userId')
             ->andWhere('h.chat = :chatId')
             ->setParameter('userId', $user->getId())

@@ -51,15 +51,15 @@ class User implements UserInterface
     #[Groups(['user:read'])]
     private ?string $lastName = null;
 
-    #[OneToMany(mappedBy: 'sender', targetEntity: Honor::class, fetch: 'EXTRA_LAZY')]
+    #[OneToMany(mappedBy: 'sender', targetEntity: Honor::class, fetch: 'LAZY')]
     #[Ignore]
     private Collection $sentHonor;
 
-    #[OneToMany(mappedBy: 'recipient', targetEntity: Honor::class, fetch: 'EXTRA_LAZY')]
+    #[OneToMany(mappedBy: 'recipient', targetEntity: Honor::class)]
     #[Ignore]
     private Collection $receivedHonor;
 
-    #[OneToMany(mappedBy: 'user', targetEntity: Message::class, fetch: 'EXTRA_LAZY')]
+    #[OneToMany(mappedBy: 'user', targetEntity: Message::class)]
     #[Ignore]
     private Collection $messages;
 
