@@ -127,28 +127,28 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function getLootboxWin(Chat $chat, User $user, string $size): int|CollectableItemInstance
     {
         $baseFailChance = match ($size) {
-            self::SMALL => 96,
-            self::MEDIUM => 93,
-            self::LARGE => 90,
+            self::SMALL => 75,
+            self::MEDIUM => 60,
+            self::LARGE => 50,
             default => 100,
         };
         if ($this->getPercentChance($baseFailChance)) {
-            if ($this->getPercentChance(10)) {
+            if ($this->getPercentChance(50)) {
                 return $this->getPrice($size);
             }
             return (int) floor($this->getPrice($size) / $this->getNumber(5, 2));
         }
-        if ($this->getPercentChance(80)) {
-            return $this->getNumber($this->getPrice($size) * 2, $this->getPrice($size));
+        if ($this->getPercentChance(50)) {
+            return $this->getNumber($this->getPrice($size) * 5, $this->getPrice($size));
         }
         if ($this->getPercentChance(10)) {
-            return $this->getNumber($this->getPrice($size) * 5, $this->getPrice($size) * 2);
+            return $this->getNumber($this->getPrice($size) * 15, $this->getPrice($size) * 5);
         }
         if ($this->getPercentChance(1)) {
             if ($this->getPercentChance(10)) {
                 return $this->getPrice($size) * 100;
             }
-            return $this->getNumber($this->getPrice($size) * 50, $this->getPrice($size) * 10);
+            return $this->getNumber($this->getPrice($size) * 99, $this->getPrice($size) * 10);
         }
         $collectableChance = match ($size) {
             self::SMALL => 25,
@@ -160,7 +160,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             return $this->winCollectable($chat, $user);
         }
         return match($size) {
-            self::SMALL => 69,
+            self::SMALL => 9001,
             self::MEDIUM => 69_420,
             self::LARGE => 420_420,
             default => 0,
