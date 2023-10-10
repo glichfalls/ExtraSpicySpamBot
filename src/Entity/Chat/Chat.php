@@ -6,6 +6,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use App\Annotation\UserAware;
+use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Model\Id;
@@ -55,6 +56,9 @@ class Chat
     #[OneToMany(mappedBy: "chat", targetEntity: Message::class, fetch: 'EXTRA_LAZY')]
     #[Groups(['message:public:read'])]
     private Collection $messages;
+
+    #[OneToMany(mappedBy: "chat", targetEntity: Honor::class, fetch: 'EXTRA_LAZY')]
+    private Collection $honor;
 
     public function __construct()
     {
