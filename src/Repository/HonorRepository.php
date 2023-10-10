@@ -14,6 +14,7 @@ class HonorRepository extends ServiceEntityRepository
 
     public function __construct(ManagerRegistry $registry)
     {
+        /** @phpstan-ignore-next-line */
         parent::__construct($registry, Honor::class);
     }
 
@@ -25,10 +26,10 @@ class HonorRepository extends ServiceEntityRepository
         $queryBuilder = $this->createQueryBuilder('h');
         $queryBuilder
             ->select('SUM(h.amount)')
-            ->where('h.user = :userId')
-            ->andWhere('h.chat = :chatId')
-            ->setParameter('userId', $user->getId())
-            ->setParameter('chatId', $chat->getId());
+            ->where('h.recipient = :user')
+            ->andWhere('h.chat = :chat')
+            ->setParameter('user', $user)
+            ->setParameter('chat', $chat);
         return (int) $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
