@@ -80,10 +80,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
     {
         $chance = 50;
         $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::GAMBLE_LUCK);
-        foreach ($effects as $effect) {
-            $chance = $effect->apply($chance);
-        }
-        return Random::getPercentChance($chance);
+        return Random::getPercentChance($effects->apply($chance));
     }
 
     public function getSyntax(): string

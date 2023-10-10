@@ -29,8 +29,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         TelegramService $telegramService,
         private HonorRepository $honorRepository,
         private DrawRepository $drawRepository,
-    )
-    {
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
@@ -208,14 +207,14 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         foreach ($board as $data) {
             $row = [];
             foreach ($data as $number => $color) {
-                  $row[] = [
-                      'text' => sprintf(
-                          '%s %d',
-                          $color === 'green' ? '🟢' : ($color === 'red' ? '🔴' : '⚫️'),
-                          $number
-                      ),
-                      'callback_data' => sprintf('%s;%d;%d', self::CALLBACK_KEYWORD, $amount, $number)
-                  ];
+                $row[] = [
+                    'text' => sprintf(
+                        '%s %d',
+                        $color === 'green' ? '🟢' : ($color === 'red' ? '🔴' : '⚫️'),
+                        $number
+                    ),
+                    'callback_data' => sprintf('%s;%d;%d', self::CALLBACK_KEYWORD, $amount, $number)
+                ];
             }
             $keyboard[] = $row;
         }

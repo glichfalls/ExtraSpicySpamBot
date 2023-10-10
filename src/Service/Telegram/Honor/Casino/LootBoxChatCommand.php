@@ -149,18 +149,14 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             // get 0.5% - 100% of max
             return Random::getNumber($max, (int) $max / 50);
         }
+        // collectable loot
         $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::LOOTBOX_LUCK);
-        $collectableChance = match ($size) {
+        if (Random::getPercentChance($effects->apply(match ($size) {
             self::SMALL => 0.1,
             self::MEDIUM => 1,
             self::LARGE => 15,
             default => 0,
-        };
-        foreach ($effects as $effect) {
-            $collectableChance += $effect->apply($collectableChance);
-        }
-        // collectable loot
-        if (Random::getPercentChance($collectableChance)) {
+        }))) {
             return $this->winCollectable($chat, $user);
         }
         return $this->getPrice($size) + 1;

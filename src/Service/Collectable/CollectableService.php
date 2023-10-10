@@ -7,12 +7,14 @@ use App\Entity\Collectable\Collectable;
 use App\Entity\Collectable\CollectableAuction;
 use App\Entity\Collectable\CollectableItemInstance;
 use App\Entity\Collectable\Effect\Effect;
+use App\Entity\Collectable\Effect\EffectCollection;
 use App\Entity\User\User;
 use App\Repository\CollectableAuctionRepository;
 use App\Repository\CollectableItemInstanceRepository;
 use App\Repository\CollectableRepository;
 use App\Repository\EffectRepository;
 use App\Service\HonorService;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -147,15 +149,12 @@ class CollectableService
         return $this->effectRepository->getByUser($user, $chat);
     }
 
-    /**
-     * @return Collection<Effect>
-     */
-    public function getEffectsByUserAndType(User $user, Chat $chat, string $type): Collection
+    public function getEffectsByUserAndType(User $user, Chat $chat, string $type): EffectCollection
     {
         if (!in_array($type, EffectTypes::ALL)) {
             throw new \InvalidArgumentException(sprintf('effect type %s does not exist', $type));
         }
-        return $this->effectRepository->getByUserAndType($user, $chat, $type);
+        return new EffectCollection($this->effectRepository->getByUserAndType($user, $chat, $type));
     }
 
 }

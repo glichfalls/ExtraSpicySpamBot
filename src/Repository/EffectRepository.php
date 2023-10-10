@@ -40,9 +40,9 @@ class EffectRepository extends ServiceEntityRepository
      * @param User $user
      * @param Chat $chat
      * @param string $type
-     * @return Collection<Effect>
+     * @return array<Effect>
      */
-    public function getByUserAndType(User $user, Chat $chat, string $type): Collection
+    public function getByUserAndType(User $user, Chat $chat, string $type): array
     {
         return $this->createQueryBuilder('e')
             ->join('e.collectables', 'c')
