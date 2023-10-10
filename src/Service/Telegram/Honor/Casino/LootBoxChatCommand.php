@@ -5,6 +5,7 @@ namespace App\Service\Telegram\Honor\Casino;
 use App\Entity\Chat\Chat;
 use App\Entity\Collectable\Collectable;
 use App\Entity\Collectable\CollectableItemInstance;
+use App\Entity\Collectable\Effect\Effect;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\HonorRepository;
@@ -127,34 +128,42 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
 
     private function getLootboxWin(Chat $chat, User $user, string $size): int|CollectableItemInstance
     {
-        $baseFailChance = match ($size) {
-            self::SMALL => 80,
-            self::MEDIUM => 70,
+        // -ehre loot
+        if (Random::getPercentChance(match ($size) {
+            self::SMALL => 55,
+            self::MEDIUM => 60,
             self::LARGE => 65,
             default => 100,
-        };
-        if (Random::getPercentChance($baseFailChance)) {
+        })) {
             return (int) floor($this->getPrice($size) / Random::getNumber(8, 3));
         }
-        if (Random::getPercentChance(50)) {
-            $max = $this->getPrice($size) * 100;
-            // get 10% - 100% of max
-            return Random::getNumber($max, (int) $max / 10);
+        // high ehre loot
+        if (Random::getPercentChance(match ($size) {
+            self::SMALL => 90,
+            self::MEDIUM => 95,
+            self::LARGE => 100,
+            default => 0,
+        })) {
+            // max = 100% - 1500% of price
+            $max = $this->getPrice($size) * Random::getNumber(15);
+            // get 0.5% - 100% of max
+            return Random::getNumber($max, (int) $max / 50);
         }
         $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::LOOTBOX_LUCK);
-        $collectableChance = 0.1;
+        $collectableChance = match ($size) {
+            self::SMALL => 0.1,
+            self::MEDIUM => 1,
+            self::LARGE => 15,
+            default => 0,
+        };
         foreach ($effects as $effect) {
-            $collectableChance = $effect->apply($collectableChance);
+            $collectableChance += $effect->apply($collectableChance);
         }
+        // collectable loot
         if (Random::getPercentChance($collectableChance)) {
             return $this->winCollectable($chat, $user);
         }
-        return match($size) {
-            self::SMALL => 9001,
-            self::MEDIUM => 69_420,
-            self::LARGE => 420_420,
-            default => 0,
-        };
+        return $this->getPrice($size) + 1;
     }
 
     private function winCollectable(Chat $chat, User $user): CollectableItemInstance
