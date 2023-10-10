@@ -12,7 +12,6 @@ use App\Service\Collectable\CollectableService;
 use App\Service\Collectable\EffectTypes;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
-use App\Strategy\Effect\EffectStrategyFactory;
 use App\Utils\NumberFormat;
 use App\Utils\Random;
 use Doctrine\ORM\EntityManagerInterface;
@@ -65,7 +64,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             if ($this->gamble($message->getUser(), $message->getChat())) {
                 $this->manager->persist(HonorFactory::create($message->getChat(), $message->getUser(), $message->getUser(), $count));
                 $this->manager->flush();
-                $this->telegramService->replyTo($message, sprintf('you have won %s Ehre (-50%% für d krankekasse)', NumberFormat::format($count)));
+                $this->telegramService->replyTo($message, sprintf('you have won %s Ehre', NumberFormat::format($count)));
             } else {
                 $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
                 $draw?->setGamblingLosses($draw->getGamblingLosses() + $count);
