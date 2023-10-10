@@ -28,7 +28,7 @@ jobs:
         with:
           dev: no
           php_version: 8.0.2
-          php_extensions: gd
+          php_extensions: gd intl
           version: 2.x
 
       - name: 🌐 FTP sync changes
