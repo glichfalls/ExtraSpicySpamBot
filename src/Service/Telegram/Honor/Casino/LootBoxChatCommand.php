@@ -128,15 +128,15 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     {
         $baseFailChance = match ($size) {
             self::SMALL => 80,
-            self::MEDIUM => 60,
-            self::LARGE => 50,
+            self::MEDIUM => 70,
+            self::LARGE => 65,
             default => 100,
         };
         if ($this->getPercentChance($baseFailChance)) {
-            return (int) floor($this->getPrice($size) / $this->getNumber(10, 3));
+            return (int) floor($this->getPrice($size) / $this->getNumber(10, 5));
         }
-        if ($this->getPercentChance(50)) {
-            return $this->getNumber($this->getPrice($size) * 5, $this->getPrice($size));
+        if ($this->getPercentChance(90)) {
+            return $this->getNumber($this->getPrice($size) * 2, $this->getPrice($size));
         }
         if ($this->getPercentChance(25)) {
             return $this->getNumber($this->getPrice($size) * 15, $this->getPrice($size) * 5);
@@ -148,9 +148,9 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             return $this->getNumber($this->getPrice($size) * 99, $this->getPrice($size) * 10);
         }
         $collectableChance = match ($size) {
-            self::SMALL => 25,
-            self::MEDIUM => 50,
-            self::LARGE => 75,
+            self::SMALL => 5,
+            self::MEDIUM => 10,
+            self::LARGE => 20,
             default => 0,
         };
         if ($this->getPercentChance($collectableChance)) {
