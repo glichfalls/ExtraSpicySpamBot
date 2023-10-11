@@ -41,6 +41,8 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
+        $this->telegramService->replyTo($message, 'out of order ☠️');
+        return;
         $currentHonor = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
         $this->logger->error(sprintf('GAMBLE current honor: %s', $currentHonor));
         if ($matches['count'] === 'max') {
