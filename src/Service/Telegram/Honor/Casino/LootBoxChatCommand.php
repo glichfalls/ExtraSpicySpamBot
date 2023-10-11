@@ -94,6 +94,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                         sprintf('%s won %s from a <strong>%s</strong> lootbox', $user->getName() ?? $user->getFirstName(), $result, ucfirst($size)),
                         threadId: $callbackQuery->getMessage()->getMessageThreadId(),
                     );
+                    return;
                 }
             } catch (\RuntimeException) {
                 $this->telegramService->sendText(
