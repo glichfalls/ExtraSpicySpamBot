@@ -4,6 +4,7 @@ namespace App\Service\Telegram\Honor\Collectables\Trade;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Collectable\CollectableItemInstance;
+use App\Entity\Collectable\Effect\Effect;
 use App\Entity\User\User;
 use App\Service\Telegram\Honor\Collectables\AbstractCollectableTelegramCallbackQuery;
 use App\Utils\NumberFormat;
@@ -32,12 +33,15 @@ class ShowCollectableInfoChatCommand extends AbstractCollectableTelegramCallback
         %s
         %s
         owner: %s
+        Effect(s): %s
         TEXT;
+        $effects = $collectable->getCollectable()->getEffects()->map(fn (Effect $effect) => $effect->getDescription())->getValues();
         $message = sprintf(
             $text,
             $collectable->getCollectable()->getName(),
             $collectable->getCollectable()->getDescription(),
             $collectable->getOwner()?->getName() ?? 'Nobody',
+            count($effects) > 0 ? implode(PHP_EOL, $effects) : 'None',
         );
         if ($collectable->getCollectable()->getImagePublicPath() !== null) {
             $fullPath = sprintf('https://%s/%s', $_SERVER['HTTP_HOST'], $collectable->getCollectable()->getImagePublicPath());
