@@ -145,7 +145,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             default => 0,
         })) {
             // max = 100% - 800% of price
-            $max = $this->getPrice($size) * Random::getNumber(8);
+            $max = $this->getPrice($size) * Random::getNumber(10, 2);
             // win between 100% of price and max
             return Random::getNumber($max, $this->getPrice($size));
         }
@@ -204,8 +204,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function getPrice(string $size): ?int
     {
         return match ($size) {
-            self::SMALL => 5_000,
-            self::MEDIUM => 50_000,
+            self::SMALL => 10_000,
+            self::MEDIUM => 100_000,
             self::LARGE => 1_000_000,
             default => null,
         };
