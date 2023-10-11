@@ -86,6 +86,16 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             $this->removeHonor($chat, $user, $price);
             try {
                 $result = $this->getLootboxWin($chat, $user, $size);
+                if ($result === 0) {
+                    $result = $this->getRandomJunk();
+                    $this->telegramService->answerCallbackQuery($callbackQuery, sprintf('You won %s', $result));
+                    $this->telegramService->sendText(
+                        $chat->getChatId(),
+                        sprintf('%s won %s from a <strong>%s</strong> lootbox', $user->getName() ?? $user->getFirstName(), $result, ucfirst($size)),
+                        threadId: $callbackQuery->getMessage()->getMessageThreadId(),
+                    );
+                    return;
+                }
             } catch (\RuntimeException) {
                 $this->telegramService->sendText(
                     $chat->getChatId(),
@@ -128,38 +138,62 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
 
     private function getLootboxWin(Chat $chat, User $user, string $size): int|CollectableItemInstance
     {
-        // -ehre loot
-        if (Random::getPercentChance(match ($size) {
-            self::SMALL => 55,
-            self::MEDIUM => 60,
-            self::LARGE => 65,
+        // nothing
+        if (Random::getPercentChance(match($size) {
+            self::SMALL => 30,
+            self::MEDIUM => 20,
+            self::LARGE => 15,
             default => 100,
         })) {
-            return (int) floor($this->getPrice($size) / Random::getNumber(8, 3));
+            return 0;
+        }
+        // -ehre loot
+        if (Random::getPercentChance(match ($size) {
+            self::SMALL => 59,
+            self::MEDIUM => 58,
+            self::LARGE => 57,
+            default => 100,
+        })) {
+            return (int) floor($this->getPrice($size) / Random::getNumber(8));
         }
         // high ehre loot
         if (Random::getPercentChance(match ($size) {
-            self::SMALL => 90,
-            self::MEDIUM => 95,
-            self::LARGE => 100,
+            self::SMALL => 80,
+            self::MEDIUM => 85,
+            self::LARGE => 90,
             default => 0,
         })) {
-            // max = 100% - 1500% of price
-            $max = $this->getPrice($size) * Random::getNumber(15);
-            // get 0.5% - 100% of max
-            return Random::getNumber($max, (int) $max / 50);
+            $seed = (int) floor((Random::getNumber(15) + Random::getNumber(10)) / 2);
+            // max = 100% - 150% of price
+            $max = $this->getPrice($size) * Random::getNumber($seed);
+            // win between 100% of price and max
+            return Random::getNumber($max, $this->getPrice($size));
         }
         // collectable loot
         $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::LOOTBOX_LUCK);
         if (Random::getPercentChance($effects->apply(match ($size) {
-            self::SMALL => 0.1,
-            self::MEDIUM => 1,
+            self::SMALL => 1,
+            self::MEDIUM => 2,
             self::LARGE => 15,
             default => 0,
         }))) {
             return $this->winCollectable($chat, $user);
         }
         return $this->getPrice($size) + 1;
+    }
+
+    private function getRandomJunk(): string
+    {
+        $junk = [
+            'a piece of toilet paper',
+            'a used tissue',
+            'some trouser buttons',
+            'absolutely nothing',
+            'a bag of air',
+            'a fake nft',
+            'monopoly money',
+        ];
+        return $junk[array_rand($junk)];
     }
 
     private function winCollectable(Chat $chat, User $user): CollectableItemInstance
@@ -204,8 +238,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function getPrice(string $size): ?int
     {
         return match ($size) {
-            self::SMALL => 5_000,
-            self::MEDIUM => 50_000,
+            self::SMALL => 10_000,
+            self::MEDIUM => 100_000,
             self::LARGE => 1_000_000,
             default => null,
         };

@@ -42,6 +42,8 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
+        $this->telegramService->replyTo($message, 'out of order ☠️');
+        return;
         Memory::logMemoryReport($this->logger);
         $this->logger->error(sprintf('GAMBLE memory usage: %s', memory_get_usage(true)));
         $currentHonor = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
