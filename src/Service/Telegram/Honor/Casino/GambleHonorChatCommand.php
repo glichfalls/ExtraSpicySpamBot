@@ -12,6 +12,7 @@ use App\Service\Collectable\EffectTypes;
 use App\Service\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\Memory;
 use App\Utils\NumberFormat;
 use App\Utils\Random;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,8 +42,11 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
+        Memory::logMemoryReport($this->logger);
+        $this->logger->error(sprintf('GAMBLE memory usage: %s', memory_get_usage(true)));
         $currentHonor = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
         $this->logger->error(sprintf('GAMBLE current honor: %s', $currentHonor));
+        $this->logger->error(sprintf('GAMBLE memory usage: %s', memory_get_usage(true)));
         if ($matches['count'] === 'max') {
             $count = $currentHonor;
         } else {
@@ -65,7 +69,8 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             $this->logger->error('GAMBLE failed, not enough honor');
             $this->telegramService->replyTo($message, 'not enough Ehre');
         } else {
-            $this->logger->error('GAMBLE start');
+            $this->logger->error(sprintf('GAMBLE %s start', $message->getUser()->getName()));
+            $this->logger->error(sprintf('GAMBLE memory usage: %s', memory_get_usage(true)));
             if ($this->gamble($message->getUser(), $message->getChat())) {
                 $this->logger->error(sprintf('GAMBLE %s won %s honor', $message->getUser()->getName(), $count));
                 $this->honorService->addHonor($message->getChat(), $message->getUser(), $count);
@@ -85,11 +90,19 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     private function gamble(User $user, Chat $chat): bool
     {
-        $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::GAMBLE_LUCK);
-        $this->logger->debug(sprintf('gamble luck effects: %s', $effects->count()));
-        $chance = $effects->apply(50);
-        $this->logger->debug(sprintf('gamble chance: %s', $chance));
-        return Random::getPercentChance(min($chance, 100));
+        try {
+            $this->logger->debug('gamble luck effects');
+            $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::GAMBLE_LUCK);
+            $this->logger->debug(sprintf('gamble luck effects: %s', $effects->count()));
+            $chance = $effects->apply(50);
+            $this->logger->debug(sprintf('gamble chance: %s', $chance));
+            return Random::getPercentChance(min($chance, 100));
+        } catch (\Error $exception) {
+            $this->logger->error('failed to apply gamble luck effects', [
+                'exception' => $exception,
+            ]);
+            return false;
+        }
     }
 
     public function getSyntax(): string
