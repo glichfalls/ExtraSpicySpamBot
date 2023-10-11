@@ -1,0 +1,61 @@
+name: 🚀 Deployment
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  APP_ENV: prod
+  ROLLBAR_ACCESS_TOKEN: ${{ secrets.ROLLBAR_ACCESS_TOKEN }}
+
+jobs:
+  deploy:
+    name: 🚀 Deployment
+    runs-on: ubuntu-latest
+    environment: Main
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: 🔐 Create .env
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env.local
+          echo "!.env.local" > .git-ftp-include
+
+      - name: 🔨 Setup php composer dependencies
+        uses: php-actions/composer@v6
+        with:
+          dev: no
+          php_version: 8.2
+          php_extensions: gd intl
+          version: 2.x
+
+      - name: 🌐 SSH sync with rsync
+        uses: deployphp/action@v1
+        with:
+            dep: deploy
+            private-key: ${{ secrets.JWT_SECRET_KEY }}
+
+      - name: Migrate
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.KEY }}
+          script: |
+            php bin/console cache:clear --env=prod
+            php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: 🧹 Clean up FTP
+        uses: StephanThierry/ftp-delete-action@v2.1
+        with:
+          host: 185.117.169.140
+          user: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          remoteFiles: '*.log;docker_tag;DOCKER_ENV;Dockerfile-php-build'
+          #remoteDirectories: 'var'
+          workingDir: './subdomains/extra-spicy-spam/httpdocs/'
+          ignoreSSL: 1
