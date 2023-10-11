@@ -86,6 +86,15 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             $this->removeHonor($chat, $user, $price);
             try {
                 $result = $this->getLootboxWin($chat, $user, $size);
+                if ($result === 0) {
+                    $result = $this->getRandomJunk();
+                    $this->telegramService->answerCallbackQuery($callbackQuery, sprintf('You won %s', $result));
+                    $this->telegramService->sendText(
+                        $chat->getChatId(),
+                        sprintf('%s won %s from a <strong>%s</strong> lootbox', $user->getName() ?? $user->getFirstName(), $result, ucfirst($size)),
+                        threadId: $callbackQuery->getMessage()->getMessageThreadId(),
+                    );
+                }
             } catch (\RuntimeException) {
                 $this->telegramService->sendText(
                     $chat->getChatId(),
@@ -135,7 +144,10 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::LARGE => 57,
             default => 100,
         })) {
-            return (int) floor($this->getPrice($size) / Random::getNumber(8, 3));
+            return (int) floor($this->getPrice($size) / Random::getNumber(8));
+        }
+        if (Random::getPercentChance(25)) {
+            return 0;
         }
         // high ehre loot
         if (Random::getPercentChance(match ($size) {
@@ -161,6 +173,20 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             return $this->winCollectable($chat, $user);
         }
         return $this->getPrice($size) + 1;
+    }
+
+    private function getRandomJunk(): string
+    {
+        $junk = [
+            'a piece of toilet paper',
+            'a used tissue',
+            'some trouser buttons',
+            'absolutely nothing',
+            'a bag of air',
+            'a fake nft',
+            'monopoly money',
+        ];
+        return $junk[array_rand($junk)];
     }
 
     private function winCollectable(Chat $chat, User $user): CollectableItemInstance
