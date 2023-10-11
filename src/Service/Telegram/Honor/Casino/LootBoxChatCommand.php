@@ -131,8 +131,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         // -ehre loot
         if (Random::getPercentChance(match ($size) {
             self::SMALL => 55,
-            self::MEDIUM => 60,
-            self::LARGE => 65,
+            self::MEDIUM => 54,
+            self::LARGE => 53,
             default => 100,
         })) {
             return (int) floor($this->getPrice($size) / Random::getNumber(8, 3));
