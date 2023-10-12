@@ -18,10 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: 🔐 Create .env
-        run: |
-          echo "${{ secrets.ENV_FILE }}" > .env.local
-
       - name: 🔨 Setup php composer dependencies
         uses: php-actions/composer@v6
         with:
@@ -33,7 +29,7 @@ jobs:
       - name: 🌐 rsync changes to server
         uses: burnett01/rsync-deployments@6.0.0
         with:
-          switches: -avzr --delete
+          switches: -avzr --delete --exclude=".env.local" --exclude=".git/" --exclude=".github/"
           remote_path: /var/www/vhosts/netlabs.dev/extra-spicy-backend.netlabs.dev/
           remote_host: ${{ vars.SSH_HOST }}
           remote_user: ${{ vars.SSH_USER }}
@@ -41,15 +37,12 @@ jobs:
 
       - name: Migrate
         uses: appleboy/ssh-action@v1.0.0
-        env:
-          TEST: ${{ vars.TEST }}
         with:
           host: ${{ vars.SSH_HOST }}
           username: ${{ vars.SSH_USER }}
           port: 22
           key: ${{ secrets.SSH_KEY }}
           script: |
-            echo "$TEST"
             cd /var/www/vhosts/netlabs.dev/extra-spicy-backend.netlabs.dev/
             php bin/console cache:clear --env=prod
             php bin/console doctrine:migrations:migrate --no-interaction
