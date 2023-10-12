@@ -44,7 +44,7 @@ class OpenAiImageService extends BaseOpenAiService
         $publicPath = sprintf('/generated-images/%s.png', $generatedImage->getId());
         $serverPath = sprintf('%s/public/%s', $this->kernel->getProjectDir(), $publicPath);
         $this->filesystem->dumpFile($serverPath, base64_decode($base64Image));
-        $this->gcloudGeneratedImages->write($publicPath, file_get_contents($serverPath));
+        $this->gcloudGeneratedImages->write($publicPath, base64_decode($base64Image));
         $generatedImage->setPublicPath($publicPath);
         $this->entityManager->flush();
     }
