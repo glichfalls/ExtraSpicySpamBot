@@ -4,7 +4,6 @@ namespace App\Subscriber;
 
 use App\Service\Telegram\TelegramCallbackQueryHandler;
 use App\Service\Telegram\TelegramWebhookHandler;
-use App\Utils\Memory;
 use BoShurik\TelegramBotBundle\Event\UpdateEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -12,13 +11,13 @@ use TelegramBot\Api\BotApi;
 use TelegramBot\Api\HttpException;
 use Throwable;
 
-class TelegramUpdateSubscriber implements EventSubscriberInterface
+readonly class TelegramUpdateSubscriber implements EventSubscriberInterface
 {
 
     public function __construct(
-        private readonly LoggerInterface $logger,
-        private readonly TelegramWebhookHandler $webhookService,
-        private readonly TelegramCallbackQueryHandler $callbackQueryHandler,
+        private LoggerInterface $logger,
+        private TelegramWebhookHandler $webhookService,
+        private TelegramCallbackQueryHandler $callbackQueryHandler,
         private BotApi $bot,
     ) {
 

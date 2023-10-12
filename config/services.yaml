@@ -12,6 +12,7 @@ services:
             string $openAiApiKey: '%env(OPENAI_API_KEY)%'
             string $finnhubApiKey: '%env(FINNHUB_API_KEY)%'
             string $frontendUrl: '%env(FRONTEND_URL)%'
+            string $backendUrl: '%env(BACKEND_URL)%'
 
     App\:
         resource: '../src/'

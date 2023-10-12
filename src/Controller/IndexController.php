@@ -10,6 +10,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class IndexController extends AbstractController
 {
 
+    #[Route('/', methods: ['GET'])]
+    public function index(string $frontendUrl): Response
+    {
+        return $this->redirect($frontendUrl);
+    }
+
     #[Route('/rickrolled/{name}', methods: ['POST'])]
     public function rickrolled(string $name, TelegramService $telegramService): Response
     {
