@@ -5,6 +5,7 @@ namespace App\Service\OpenApi;
 use App\Entity\OpenApi\GeneratedImage;
 use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
+use League\Flysystem\FilesystemOperator;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -14,8 +15,13 @@ class OpenAiImageService extends BaseOpenAiService
 
     private Filesystem $filesystem;
 
-    public function __construct(private KernelInterface $kernel, HttpClientInterface $httpClient, EntityManagerInterface $entityManager, string $openAiApiKey)
-    {
+    public function __construct(
+        private readonly KernelInterface $kernel,
+        private FilesystemOperator $gcloudProductImageStorage,
+        HttpClientInterface $httpClient,
+        EntityManagerInterface $entityManager,
+        string $openAiApiKey
+    ) {
         parent::__construct($httpClient, $entityManager, $openAiApiKey);
         $this->filesystem = new Filesystem();
     }

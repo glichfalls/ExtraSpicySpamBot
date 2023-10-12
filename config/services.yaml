@@ -39,3 +39,7 @@ services:
         tags:
             - { name: api_platform.doctrine.orm.query_extension.collection }
             - { name: api_platform.doctrine.orm.query_extension.item }
+
+    Google\Cloud\Storage\StorageClient:
+        arguments:
+            - { keyFilePath: '%env(resolve:GOOGLE_CLOUD_KEY)%' }
