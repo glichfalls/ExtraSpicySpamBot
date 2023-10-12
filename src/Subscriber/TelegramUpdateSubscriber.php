@@ -16,12 +16,12 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
 {
 
     public function __construct(
-        private LoggerInterface $logger,
-        private TelegramWebhookHandler $webhookService,
-        private TelegramCallbackQueryHandler $callbackQueryHandler,
+        private readonly LoggerInterface $logger,
+        private readonly TelegramWebhookHandler $webhookService,
+        private readonly TelegramCallbackQueryHandler $callbackQueryHandler,
         private BotApi $bot,
     ) {
-        Memory::logMemoryReport($this->logger, 'startup, constructor');
+
     }
 
     public static function getSubscribedEvents(): array
@@ -35,22 +35,18 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
     {
         $update = $event->getUpdate();
         try {
-            $this->logger->info('Update received', [
-                'update' => $update->toJson(true)
-            ]);
-            Memory::logMemoryReport($this->logger);
+            $this->logger->info('Update received', $update->toJson());
             if ($update->getCallbackQuery() !== null) {
                 $this->callbackQueryHandler->handle($update);
                 return;
             }
             if (!$update->getMessage() || !$update->getMessage()->getText()) {
                 $this->logger->warning('failed to get text from update');
+                $this->logger->debug('update', $update->toJson());
                 return;
             }
-            Memory::logMemoryReport($this->logger);
             $this->webhookService->handle($update);
             $this->logger->info('Update handled');
-            Memory::logMemoryReport($this->logger);
         } catch (HttpException $exception) {
             // telegram api seems to have some downtime sometimes
             // nothing we can do about it
