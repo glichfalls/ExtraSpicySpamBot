@@ -35,14 +35,13 @@ class TelegramUpdateSubscriber implements EventSubscriberInterface
     {
         $update = $event->getUpdate();
         try {
-            $this->logger->info('Update received', $update->toJson());
+            $this->logger->info('Update received', $update->toJson(true));
             if ($update->getCallbackQuery() !== null) {
                 $this->callbackQueryHandler->handle($update);
                 return;
             }
             if (!$update->getMessage() || !$update->getMessage()->getText()) {
                 $this->logger->warning('failed to get text from update');
-                $this->logger->debug('update', $update->toJson());
                 return;
             }
             $this->webhookService->handle($update);
