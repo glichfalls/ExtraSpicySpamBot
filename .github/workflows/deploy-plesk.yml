@@ -47,5 +47,6 @@ jobs:
           port: 22
           key: ${{ secrets.SSH_KEY }}
           script: |
+            cd /var/www/vhosts/netlabs.dev/extra-spicy-backend.netlabs.dev/
             php bin/console cache:clear --env=prod
             php bin/console doctrine:migrations:migrate --no-interaction
