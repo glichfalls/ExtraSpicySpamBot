@@ -29,7 +29,7 @@ jobs:
       - name: 🌐 rsync changes to server
         uses: burnett01/rsync-deployments@6.0.0
         with:
-          switches: -avzr --delete --exclude=".env.local" --exclude=".git/" --exclude=".github/"
+          switches: -avzr --delete --exclude=".env.local" --exclude=".git/" --exclude=".github/" --exclude="var/"
           remote_path: /var/www/vhosts/netlabs.dev/extra-spicy-backend.netlabs.dev/
           remote_host: ${{ vars.SSH_HOST }}
           remote_user: ${{ vars.SSH_USER }}
