@@ -12,7 +12,7 @@ class EffectCollection extends ArrayCollection
      */
     public function getValues(): array
     {
-        return self::filter(fn (mixed $effect) => $effect instanceof Effect)->getValues();
+        return array_filter(parent::getValues(), fn ($value) => $value instanceof Effect);
     }
 
     /**

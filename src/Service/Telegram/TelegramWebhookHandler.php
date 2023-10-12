@@ -16,9 +16,8 @@ class TelegramWebhookHandler
     public function __construct(
         #[TaggedIterator('telegram.chat_command')]
         iterable $telegramChatCommands,
-        private TelegramService $telegramBaseService,
-    )
-    {
+        private readonly TelegramService $telegramBaseService,
+    ) {
         $this->handlers = $telegramChatCommands;
     }
 
