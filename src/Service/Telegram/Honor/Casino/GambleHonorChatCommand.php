@@ -95,7 +95,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $buff = $chance - 50;
                 $this->telegramService->sendText(
                     $chat->getChatId(),
-                    sprintf('luck buff: %s%%', $buff),
+                    sprintf('luck buff: %s%%', $buff * 2),
                     threadId: $threadId,
                 );
             }
@@ -103,7 +103,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $debuff = 50 - $chance;
                 $this->telegramService->sendText(
                     $chat->getChatId(),
-                    sprintf('luck debuff: %s%%', $debuff),
+                    sprintf('luck debuff: %s%%', $debuff * 2),
                     threadId: $threadId,
                 );
             }
