@@ -6,7 +6,7 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Collectable\Effect\Effect;
 use App\Model\Id;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -19,6 +19,7 @@ use Doctrine\ORM\Mapping\OneToMany;
 #[Entity]
 #[ApiResource(operations: [
     new Get(),
+    new GetCollection(),
 ])]
 #[ApiFilter(SearchFilter::class, properties: [
     'chat' => 'exact',
