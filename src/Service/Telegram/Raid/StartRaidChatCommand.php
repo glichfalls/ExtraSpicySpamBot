@@ -82,6 +82,7 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                     ]),
                 );
             } else {
+                $this->fail($raid);
                 $this->telegramService->replyTo(
                     $message,
                     $this->translator->trans('telegram.raid.raidFailed', [
@@ -136,6 +137,13 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
         }
         // remove honor from target
         $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getTarget(), -$raid->getAmount()));
+        $this->manager->flush();
+    }
+
+    private function fail(Raid $raid): void
+    {
+        $raid->setIsActive(false);
+        $raid->setIsSuccessful(false);
         $this->manager->flush();
     }
 
