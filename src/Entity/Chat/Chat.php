@@ -2,11 +2,10 @@
 
 namespace App\Entity\Chat;
 
-use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
 use App\Annotation\UserAware;
-use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Model\Id;
@@ -23,8 +22,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity(repositoryClass: ChatRepository::class)]
 #[ApiResource(
-    denormalizationContext: ['groups' => ['chat:public:write']],
     normalizationContext: ['groups' => ['public:read', 'chat:public:read', 'user:read']],
+    denormalizationContext: ['groups' => ['chat:public:write']],
     order: ['name' => 'ASC'],
 )]
 #[ApiFilter(SearchFilter::class, properties: [

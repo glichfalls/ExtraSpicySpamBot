@@ -2,6 +2,7 @@
 
 namespace App\Entity\Collectable\Effect;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Collectable\Collectable;
 use App\Model\Id;
 use App\Repository\EffectRepository;
@@ -12,6 +13,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToMany;
 
 #[Entity(repositoryClass: EffectRepository::class)]
+#[ApiResource]
 class Effect
 {
     use Id;

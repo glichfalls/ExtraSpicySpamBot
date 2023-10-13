@@ -2,6 +2,7 @@
 
 namespace App\Entity\Collectable;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
 use App\Model\Id;
@@ -12,6 +13,7 @@ use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[Entity]
+#[ApiResource]
 class CollectableItemInstance
 {
     use Id;

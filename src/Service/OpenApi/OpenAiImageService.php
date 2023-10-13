@@ -5,7 +5,6 @@ namespace App\Service\OpenApi;
 use App\Entity\OpenApi\GeneratedImage;
 use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
-use League\Flysystem\FilesystemOperator;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -17,7 +16,6 @@ class OpenAiImageService extends BaseOpenAiService
 
     public function __construct(
         private readonly KernelInterface $kernel,
-        private FilesystemOperator $gcloudGeneratedImages,
         HttpClientInterface $httpClient,
         EntityManagerInterface $entityManager,
         string $openAiApiKey
@@ -44,7 +42,6 @@ class OpenAiImageService extends BaseOpenAiService
         $publicPath = sprintf('/generated-images/%s.png', $generatedImage->getId());
         $serverPath = sprintf('%s/public/%s', $this->kernel->getProjectDir(), $publicPath);
         $this->filesystem->dumpFile($serverPath, base64_decode($base64Image));
-        $this->gcloudGeneratedImages->write($publicPath, base64_decode($base64Image));
         $generatedImage->setPublicPath($publicPath);
         $this->entityManager->flush();
     }

@@ -2,6 +2,11 @@
 
 namespace App\Entity\Collectable;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Collectable\Effect\Effect;
 use App\Model\Id;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -12,6 +17,15 @@ use Doctrine\ORM\Mapping\ManyToMany;
 use Doctrine\ORM\Mapping\OneToMany;
 
 #[Entity]
+#[ApiResource(operations: [
+    new Get(),
+])]
+#[ApiFilter(SearchFilter::class, properties: [
+    'chat' => 'exact',
+    'chat.id' => 'exact',
+    'effect' => 'exact',
+    'instances' => 'exact',
+])]
 class Collectable
 {
     use Id;
@@ -112,9 +126,9 @@ class Collectable
         return $this->instances;
     }
 
-    public function setInstances(Collection $instances): void
+    public function addInstance(CollectableItemInstance $instance): void
     {
-        $this->instances = $instances;
+        $this->instances->add($instance);
     }
 
     public function isInstancable(): bool

@@ -2,11 +2,13 @@
 
 namespace App\Entity\User;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\Collectable;
 use App\Entity\Collectable\CollectableItemInstance;
-use App\Entity\Collectable\Effect\Effect;
 use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Model\Id;
@@ -24,9 +26,14 @@ use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[Entity(repositoryClass: UserRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['user:read']],
+    operations: [
+        new Get(),
+        new GetCollection(),
+    ],
+    normalizationContext: ['groups' => ['public:read', 'user:read']],
     denormalizationContext: ['groups' => ['user:write']],
 )]
+#[ApiFilter(SearchFilter::class)]
 class User implements UserInterface
 {
     use Id;
@@ -64,7 +71,6 @@ class User implements UserInterface
     private Collection $messages;
 
     #[ManyToMany(targetEntity: Chat::class, mappedBy: "users")]
-    #[Ignore]
     private Collection $chats;
 
     #[OneToMany(mappedBy: "owner", targetEntity: CollectableItemInstance::class)]

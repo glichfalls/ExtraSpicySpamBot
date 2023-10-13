@@ -2,13 +2,12 @@
 
 namespace App\Entity\WarGame;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-
+#[Entity]
 class Unit
 {
     use Id;

@@ -2,10 +2,8 @@
 
 namespace App\Entity\Stocks\Transaction;
 
-use ApiPlatform\Core\Annotation\ApiFilter;
-use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Doctrine\Odm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Model\Id;
