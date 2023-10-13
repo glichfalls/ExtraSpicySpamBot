@@ -7,6 +7,7 @@ enum EffectType
     case LUCK;
     case GAMBLE_LUCK;
     case LOOTBOX_LUCK;
+    case PASSIVE_HONOR;
 
     public static function all(): array
     {
@@ -14,6 +15,7 @@ enum EffectType
             self::LUCK,
             self::GAMBLE_LUCK,
             self::LOOTBOX_LUCK,
+            self::PASSIVE_HONOR,
         ];
     }
 
@@ -23,6 +25,7 @@ enum EffectType
             self::LUCK->key() => self::LUCK->label(),
             self::GAMBLE_LUCK->key() => self::GAMBLE_LUCK->label(),
             self::LOOTBOX_LUCK->key() => self::LOOTBOX_LUCK->label(),
+            self::PASSIVE_HONOR->key() => self::PASSIVE_HONOR->label(),
         ];
     }
 
@@ -32,6 +35,7 @@ enum EffectType
             self::LUCK => 'LUCK',
             self::GAMBLE_LUCK => 'GAMBLE_LUCK',
             self::LOOTBOX_LUCK => 'LOOTBOX_LUCK',
+            self::PASSIVE_HONOR => 'PASSIVE_HONOR',
         };
     }
 
@@ -41,6 +45,7 @@ enum EffectType
             self::LUCK => 'Luck',
             self::GAMBLE_LUCK => 'Gamble Luck',
             self::LOOTBOX_LUCK => 'Lootbox Luck',
+            self::PASSIVE_HONOR => 'Passive Ehre',
         };
     }
 }
