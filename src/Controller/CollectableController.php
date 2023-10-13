@@ -189,4 +189,33 @@ class CollectableController extends AbstractController
         }
     }
 
+    #[Route('/nft/{id}/instances', methods: ['POST'])]
+    public function createInstance(string $id, Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+            /** @var Collectable $collectable */
+            $collectable = $this->collectableRepository->find($id);
+            if ($collectable === null) {
+                throw new NotFoundHttpException();
+            }
+            $chat = $this->chatRepository->find($data['chat']);
+            foreach ($data['users'] as $userData) {
+                $user = $this->userRepository->find($userData['id']);
+                $instance = CollectableFactory::instance(
+                    $collectable,
+                    $chat,
+                    $user,
+                    $data['price'] ?? 0,
+                );
+                $collectable->addInstance($instance);
+                $this->manager->persist($instance);
+            }
+            $this->manager->flush();
+            return $this->json(true);
+        } catch (\Exception $exception) {
+            return $this->json($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
 }
