@@ -7,7 +7,7 @@ use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\DrawRepository;
 use App\Service\Collectable\CollectableService;
-use App\Service\Collectable\EffectTypes;
+use App\Service\Collectable\EffectType;
 use App\Service\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
@@ -86,8 +86,8 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
     {
         try {
             $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, [
-                EffectTypes::GAMBLE_LUCK,
-                EffectTypes::LUCK,
+                EffectType::GAMBLE_LUCK,
+                EffectType::LUCK,
             ]);
             $this->logger->debug(sprintf('gamble luck effects: %s', $effects->count()));
             $chance = $effects->apply(50);

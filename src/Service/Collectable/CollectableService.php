@@ -158,7 +158,7 @@ class CollectableService
     public function getEffectsByUserAndType(User $user, Chat $chat, array $types): EffectCollection
     {
         foreach ($types as $type) {
-            if (!in_array($type, EffectTypes::ALL)) {
+            if (!in_array($type, EffectType::ALL)) {
                 $types = array_diff($types, [$type]);
             }
         }

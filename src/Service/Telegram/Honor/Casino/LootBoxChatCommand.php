@@ -10,7 +10,7 @@ use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Service\Collectable\CollectableService;
-use App\Service\Collectable\EffectTypes;
+use App\Service\Collectable\EffectType;
 use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
@@ -139,7 +139,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function getLootboxWin(Chat $chat, User $user, string $size): int|CollectableItemInstance
     {
         $hardFailChance = $this->collectableService->getEffectsByUserAndType($user, $chat, [
-            EffectTypes::LOOTBOX_LUCK,
+            EffectType::LOOTBOX_LUCK,
         ]);
         // nothing
         if (Random::getPercentChance(match($size) {
@@ -174,7 +174,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         }
         // collectable loot
         $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, [
-            EffectTypes::LUCK,
+            EffectType::LUCK,
         ]);
         if (Random::getPercentChance($effects->apply(match ($size) {
             self::SMALL => 1,

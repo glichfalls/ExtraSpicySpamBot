@@ -10,6 +10,7 @@ use App\Repository\ChatRepository;
 use App\Repository\CollectableRepository;
 use App\Repository\EffectRepository;
 use App\Repository\UserRepository;
+use App\Service\Collectable\EffectType;
 use Doctrine\ORM\EntityManagerInterface;
 use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,6 +34,12 @@ class CollectableController extends AbstractController
         private readonly EffectRepository $effectRepository,
         private readonly Filesystem $filesystem,
     ) {
+    }
+
+    #[Route('/nft/effect-types', methods: ['GET'])]
+    public function nftTypes(): Response
+    {
+        return $this->json(EffectType::keyValue());
     }
 
     #[Route('/nft', methods: ['POST'])]
