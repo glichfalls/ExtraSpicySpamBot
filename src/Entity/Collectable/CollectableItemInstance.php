@@ -2,6 +2,8 @@
 
 namespace App\Entity\Collectable;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
@@ -11,9 +13,22 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => [
+        'public:read',
+        'collectable:read',
+        'chat:public:read',
+    ]],
+)]
+#[ApiFilter(SearchFilter::class, properties: [
+    'collectable' => 'exact',
+    'collectable.id' => 'exact',
+    'chat' => 'exact',
+    'chat.id' => 'exact',
+])]
 class CollectableItemInstance
 {
     use Id;
@@ -25,9 +40,11 @@ class CollectableItemInstance
 
     #[ManyToOne(targetEntity: Chat::class)]
     #[JoinColumn(nullable: false)]
+    #[Groups(['collectable:read'])]
     private Chat $chat;
 
     #[ManyToOne(targetEntity: User::class, inversedBy: 'collectables')]
+    #[Groups(['collectable:read'])]
     private ?User $owner = null;
 
     #[Column(type: 'integer')]

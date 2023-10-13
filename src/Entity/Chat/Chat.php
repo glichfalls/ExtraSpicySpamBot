@@ -41,7 +41,7 @@ class Chat
     private string $chatId;
 
     #[Column]
-    #[Groups(['chat:public:read'])]
+    #[Groups(['chat:public:read', 'collectable:read'])]
     private string $name;
 
     #[OneToOne(targetEntity: ChatConfig::class, cascade: ["persist", "remove"])]

@@ -11,26 +11,39 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToMany;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity(repositoryClass: EffectRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: [
+        'groups' => [
+            'public:read',
+            'effect:read',
+        ],
+    ],
+)]
 class Effect
 {
     use Id;
 
     #[Column(type: 'string')]
+    #[Groups(['effect:read', 'collectable:read'])]
     private string $type;
 
     #[Column(type: 'float')]
+    #[Groups(['effect:read', 'collectable:read'])]
     private float $magnitude;
 
     #[Column(type: 'string')]
+    #[Groups(['effect:read', 'collectable:read'])]
     private string $operator;
 
     #[Column(type: 'string')]
+    #[Groups(['effect:read', 'collectable:read'])]
     private string $name;
 
     #[Column(type: 'text')]
+    #[Groups(['effect:read', 'collectable:read'])]
     private string $description;
 
     #[ManyToMany(targetEntity: Collectable::class, inversedBy: 'effects')]
@@ -90,6 +103,25 @@ class Effect
     public function setDescription(string $description): void
     {
         $this->description = $description;
+    }
+
+    public function getCollectables(): Collection
+    {
+        return $this->collectables;
+    }
+
+    public function addCollectable(Collectable $collectable): void
+    {
+        if (!$this->collectables->contains($collectable)) {
+            $this->collectables->add($collectable);
+        }
+    }
+
+    public function removeCollectable(Collectable $collectable): void
+    {
+        if ($this->collectables->contains($collectable)) {
+            $this->collectables->removeElement($collectable);
+        }
     }
 
     public function apply(int|float $value): int|float

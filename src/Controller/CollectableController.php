@@ -4,10 +4,13 @@ namespace App\Controller;
 
 use App\Entity\Collectable\Collectable;
 use App\Entity\Collectable\CollectableFactory;
+use App\Entity\Collectable\Effect\EffectCollection;
 use App\Repository\ChatRepository;
 use App\Repository\CollectableRepository;
+use App\Repository\EffectRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -26,6 +29,7 @@ class CollectableController extends AbstractController
         private readonly CollectableRepository $collectableRepository,
         private readonly ChatRepository $chatRepository,
         private readonly UserRepository $userRepository,
+        private readonly EffectRepository $effectRepository,
         private readonly Filesystem $filesystem,
     ) {
     }
@@ -84,6 +88,7 @@ class CollectableController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
+            /** @var Collectable $collectable */
             $collectable = $this->collectableRepository->find($id);
             if ($collectable === null) {
                 throw new NotFoundHttpException();
@@ -91,7 +96,18 @@ class CollectableController extends AbstractController
             $collectable->setName($data['name']);
             $collectable->setDescription($data['description']);
             $collectable->setTradeable($data['tradable']);
-            $collectable->setUnique($data['unique']);
+            if ($collectable->isUnique()) {
+                $collectable->setUnique($data['unique'] ?? true);
+            }
+            if (array_key_exists('effects', $data)) {
+                foreach ($collectable->getEffects() as $effect) {
+                    $collectable->removeEffect($effect);
+                }
+                foreach ($data['effects'] as $effectData) {
+                    $effect = $this->effectRepository->find($effectData['id']);
+                    $collectable->addEffect($effect);
+                }
+            }
             $this->manager->flush();
             return $this->json(true);
         } catch (\Exception $exception) {
@@ -116,7 +132,7 @@ class CollectableController extends AbstractController
         /** @var UploadedFile $image */
         $image = $request->files->get('image');
 
-        $publicPath = sprintf('/collectable/uploads/%s.jpg', $collectable->getId());
+        $publicPath = sprintf('collectable/uploads/%s.jpg', Uuid::uuid4());
         $serverPath = sprintf('%s/public/%s', $this->kernel->getProjectDir(), $publicPath);
         $this->filesystem->copy($image->getPathname(), $serverPath);
         $collectable->setImagePublicPath($publicPath);

@@ -15,12 +15,19 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToMany;
 use Doctrine\ORM\Mapping\OneToMany;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity]
-#[ApiResource(operations: [
-    new Get(),
-    new GetCollection(),
-])]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+    ],
+    normalizationContext: ['groups' => [
+        'public:read',
+        'collectable:read'
+    ]],
+)]
 #[ApiFilter(SearchFilter::class, properties: [
     'chat' => 'exact',
     'chat.id' => 'exact',
@@ -32,21 +39,27 @@ class Collectable
     use Id;
 
     #[Column(type: 'string')]
+    #[Groups(['collectable:read'])]
     private string $name;
 
     #[Column(type: 'text')]
+    #[Groups(['collectable:read'])]
     private string $description;
 
     #[Column(type: 'boolean')]
+    #[Groups(['collectable:read'])]
     private bool $tradeable;
 
     #[Column(type: 'boolean')]
+    #[Groups(['collectable:read'])]
     private bool $isUnique;
 
     #[Column(type: 'text', nullable: true)]
+    #[Groups(['collectable:read'])]
     private ?string $imagePublicPath = null;
 
-    #[ManyToMany(targetEntity: Effect::class, mappedBy: 'collectables')]
+    #[ManyToMany(targetEntity: Effect::class, mappedBy: 'collectables', cascade: ['persist', 'remove'])]
+    #[Groups(['collectable:read'])]
     private Collection $effects;
 
     #[OneToMany(mappedBy: 'collectable', targetEntity: CollectableItemInstance::class)]
@@ -115,6 +128,22 @@ class Collectable
     public function getEffects(): Collection
     {
         return $this->effects;
+    }
+
+    public function addEffect(Effect $effect): void
+    {
+        if (!$this->effects->contains($effect)) {
+            $this->effects->add($effect);
+            $effect->addCollectable($this);
+        }
+    }
+
+    public function removeEffect(Effect $effect): void
+    {
+        if ($this->effects->contains($effect)) {
+            $this->effects->removeElement($effect);
+            $effect->removeCollectable($this);
+        }
     }
 
     public function setEffects(Collection $effects): void
