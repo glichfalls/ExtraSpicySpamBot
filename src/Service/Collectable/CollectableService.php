@@ -152,17 +152,18 @@ class CollectableService
     /**
      * @param User $user
      * @param Chat $chat
-     * @param array<string> $types
+     * @param array<EffectType> $types
      * @return EffectCollection
      */
     public function getEffectsByUserAndType(User $user, Chat $chat, array $types): EffectCollection
     {
+        $validTypes = [];
         foreach ($types as $type) {
-            if (!in_array($type, EffectType::all())) {
-                $types = array_diff($types, [$type]);
+            if (in_array($type, EffectType::all())) {
+                $validTypes[] = $type->key();
             }
         }
-        return new EffectCollection($this->effectRepository->getByUserAndTypes($user, $chat, $types));
+        return new EffectCollection($this->effectRepository->getByUserAndTypes($user, $chat, $validTypes));
     }
 
 }
