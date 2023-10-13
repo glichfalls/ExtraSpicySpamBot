@@ -149,12 +149,20 @@ class CollectableService
         return $this->effectRepository->getByUser($user, $chat);
     }
 
-    public function getEffectsByUserAndType(User $user, Chat $chat, string $type): EffectCollection
+    /**
+     * @param User $user
+     * @param Chat $chat
+     * @param array<string> $types
+     * @return EffectCollection
+     */
+    public function getEffectsByUserAndType(User $user, Chat $chat, array $types): EffectCollection
     {
-        if (!in_array($type, EffectTypes::ALL)) {
-            throw new \InvalidArgumentException(sprintf('effect type %s does not exist', $type));
+        foreach ($types as $type) {
+            if (!in_array($type, EffectTypes::ALL)) {
+                $types = array_diff($types, [$type]);
+            }
         }
-        return new EffectCollection($this->effectRepository->getByUserAndType($user, $chat, $type));
+        return new EffectCollection($this->effectRepository->getByUserAndTypes($user, $chat, $types));
     }
 
 }

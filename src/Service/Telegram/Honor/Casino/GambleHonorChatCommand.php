@@ -85,16 +85,33 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
     private function gamble(User $user, Chat $chat): bool
     {
         try {
-            $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::GAMBLE_LUCK);
+            $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, [
+                EffectTypes::GAMBLE_LUCK,
+                EffectTypes::LUCK,
+            ]);
             $this->logger->debug(sprintf('gamble luck effects: %s', $effects->count()));
             $chance = $effects->apply(50);
+            if ($chance > 50) {
+                $buff = $chance - 50;
+                $this->telegramService->sendText(
+                    $chat->getChatId(),
+                    sprintf('luck buff: %s%%', $buff),
+                );
+            }
+            if ($chance < 50) {
+                $debuff = 50 - $chance;
+                $this->telegramService->sendText(
+                    $chat->getChatId(),
+                    sprintf('luck debuff: %s%%', $debuff),
+                );
+            }
             $this->logger->debug(sprintf('gamble chance: %s', $chance));
             return Random::getPercentChance((int) min($chance, 100));
         } catch (\Error $exception) {
             $this->logger->error('failed to apply gamble luck effects', [
                 'exception' => $exception,
             ]);
-            return false;
+            return Random::getPercentChance(50);
         }
     }
 

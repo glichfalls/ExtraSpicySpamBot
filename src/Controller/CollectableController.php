@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Collectable\Collectable;
 use App\Entity\Collectable\CollectableFactory;
+use App\Entity\Collectable\Effect\Effect;
 use App\Entity\Collectable\Effect\EffectCollection;
 use App\Repository\ChatRepository;
 use App\Repository\CollectableRepository;
@@ -138,6 +139,47 @@ class CollectableController extends AbstractController
         $collectable->setImagePublicPath($publicPath);
         $this->manager->flush();
         return $this->json($publicPath);
+    }
+
+    #[Route('/nft/effects', methods: ['POST'])]
+    public function createEffect(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+            $effect = new Effect();
+            $effect->setType($data['type']);
+            $effect->setName($data['name']);
+            $effect->setDescription($data['description']);
+            $effect->setMagnitude($data['magnitude']);
+            $effect->setOperator($data['operator']);
+            $this->manager->persist($effect);
+            $this->manager->flush();
+            return $this->json($effect->getId());
+        } catch (\Exception $exception) {
+            return $this->json($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/nft/effects/{id}', methods: ['PUT'])]
+    public function updateEffect(string $id, Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+            /** @var Effect $effect */
+            $effect = $this->effectRepository->find($id);
+            if ($effect === null) {
+                throw new NotFoundHttpException();
+            }
+            $effect->setType($data['type']);
+            $effect->setName($data['name']);
+            $effect->setDescription($data['description']);
+            $effect->setMagnitude($data['magnitude']);
+            $effect->setOperator($data['operator']);
+            $this->manager->flush();
+            return $this->json(true);
+        } catch (\Exception $exception) {
+            return $this->json($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
     }
 
 }

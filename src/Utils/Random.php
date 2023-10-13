@@ -2,13 +2,14 @@
 
 namespace App\Utils;
 
-use App\Strategy\Effect\EffectStrategyFactory;
-
 class Random
 {
 
     public static function getPercentChance(int $probability): bool
     {
+        if ($probability <= 0) {
+            return false;
+        }
         return self::getNumber(100) <= $probability;
     }
 

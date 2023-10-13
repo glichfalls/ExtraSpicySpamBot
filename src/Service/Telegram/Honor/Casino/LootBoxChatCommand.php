@@ -138,11 +138,14 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
 
     private function getLootboxWin(Chat $chat, User $user, string $size): int|CollectableItemInstance
     {
+        $hardFailChance = $this->collectableService->getEffectsByUserAndType($user, $chat, [
+            EffectTypes::LOOTBOX_LUCK,
+        ]);
         // nothing
         if (Random::getPercentChance(match($size) {
-            self::SMALL => 30,
-            self::MEDIUM => 20,
-            self::LARGE => 15,
+            self::SMALL => floor(30 / $hardFailChance->apply(1)),
+            self::MEDIUM => floor(20 / $hardFailChance->apply(1)),
+            self::LARGE => floor(15 / $hardFailChance->apply(1)),
             default => 100,
         })) {
             return 0;
@@ -170,7 +173,9 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             return Random::getNumber($max, $this->getPrice($size));
         }
         // collectable loot
-        $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, EffectTypes::LOOTBOX_LUCK);
+        $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, [
+            EffectTypes::LUCK,
+        ]);
         if (Random::getPercentChance($effects->apply(match ($size) {
             self::SMALL => 1,
             self::MEDIUM => 2,
@@ -185,11 +190,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function getRandomJunk(): string
     {
         $junk = [
-            'a piece of toilet paper',
-            'a used tissue',
-            'some trouser buttons',
-            'absolutely nothing',
-            'a bag of air',
+            'nothing',
             'a fake nft',
             'monopoly money',
         ];
