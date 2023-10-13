@@ -44,7 +44,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         if ($matches['count'] === 'max') {
             $count = $currentHonor;
         } else {
-            if (1 == 2 && NumberFormat::isAbbreviatedNumber($matches['count'])) {
+            if (NumberFormat::isAbbreviatedNumber($matches['count'])) {
                 $count = NumberFormat::unabbreviateNumber($matches['count']);
                 if ($count === null) {
                     $this->telegramService->replyTo($message, 'invalid number');
@@ -64,7 +64,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'not enough Ehre');
         } else {
             $this->logger->error(sprintf('GAMBLE %s start', $message->getUser()->getName()));
-            $win = $this->gamble($message->getUser(), $message->getChat());
+            $win = $this->gamble($message->getUser(), $message->getChat(), $message->getTelegramThreadId());
             if ($win) {
                 $this->logger->error(sprintf('GAMBLE %s won %s honor', $message->getUser()->getName(), $count));
                 $this->honorService->addHonor($message->getChat(), $message->getUser(), $count);
@@ -82,7 +82,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         }
     }
 
-    private function gamble(User $user, Chat $chat): bool
+    private function gamble(User $user, Chat $chat, ?string $threadId = null): bool
     {
         try {
             $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, [
@@ -96,6 +96,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf('luck buff: %s%%', $buff),
+                    threadId: $threadId,
                 );
             }
             if ($chance < 50) {
@@ -103,6 +104,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf('luck debuff: %s%%', $debuff),
+                    threadId: $threadId,
                 );
             }
             $this->logger->debug(sprintf('gamble chance: %s', $chance));
