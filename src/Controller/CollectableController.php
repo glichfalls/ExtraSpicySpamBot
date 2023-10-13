@@ -200,13 +200,24 @@ class CollectableController extends AbstractController
                 throw new NotFoundHttpException();
             }
             $chat = $this->chatRepository->find($data['chat']);
-            foreach ($data['users'] as $userData) {
-                $user = $this->userRepository->find($userData['id']);
+            if (array_key_exists('users', $data) && count($data['users']) > 0) {
+                foreach ($data['users'] as $userData) {
+                    $user = $this->userRepository->find($userData['id']);
+                    $instance = CollectableFactory::instance(
+                        $collectable,
+                        $chat,
+                        $user,
+                        $data['price'] ?? 0,
+                    );
+                    $collectable->addInstance($instance);
+                    $this->manager->persist($instance);
+                }
+            } else {
                 $instance = CollectableFactory::instance(
                     $collectable,
                     $chat,
-                    $user,
-                    $data['price'] ?? 0,
+                    null,
+                    $data['price'],
                 );
                 $collectable->addInstance($instance);
                 $this->manager->persist($instance);
