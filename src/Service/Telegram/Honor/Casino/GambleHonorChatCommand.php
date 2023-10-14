@@ -35,86 +35,84 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!(gamble|g)\s(?<count>\d+|max)[km]?$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('^!(gamble|g)\s(?<amount>\d+|max)(?<abbr>[km])?$', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
     {
         $currentHonor = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
-        if ($matches['count'] === 'max') {
-            $count = $currentHonor;
+        if ($matches['amount'] === 'max') {
+            $amount = $currentHonor;
         } else {
-            if (NumberFormat::isAbbreviatedNumber($matches['count'])) {
-                $count = NumberFormat::unabbreviateNumber($matches['count']);
-                if ($count === null) {
+            if (array_key_exists('abbr', $matches) && NumberFormat::isAbbreviatedNumber($matches['count'])) {
+                $amount = NumberFormat::unabbreviateNumber(sprintf('%s%s', $matches['amount'], $matches['abbr']));
+                if ($amount === null) {
                     $this->telegramService->replyTo($message, 'invalid number');
                     return;
                 }
             }
-            $count = (int) $matches['count'];
+            $amount = (int) $matches['amount'];
         }
-        $this->logger->error(sprintf('GAMBLE %s honor', $count));
-        if ($count < 0) {
-            $this->logger->error('GAMBLE failed, negative honor');
+        $this->logger->info(sprintf('GAMBLE %s honor', $amount));
+        if ($amount < 0) {
+            $this->logger->info('GAMBLE failed, negative honor');
             $this->telegramService->replyTo($message, 'you cannot gamble negative Ehre');
             return;
         }
-        if ($currentHonor < $count) {
-            $this->logger->error('GAMBLE failed, not enough honor');
+        if ($currentHonor < $amount) {
+            $this->logger->info('GAMBLE failed, not enough honor');
             $this->telegramService->replyTo($message, 'not enough Ehre');
         } else {
-            $this->logger->error(sprintf('GAMBLE %s start', $message->getUser()->getName()));
-            $win = $this->gamble($message->getUser(), $message->getChat(), $message->getTelegramThreadId());
-            if ($win) {
-                $this->logger->error(sprintf('GAMBLE %s won %s honor', $message->getUser()->getName(), $count));
-                $this->honorService->addHonor($message->getChat(), $message->getUser(), $count);
-                $this->manager->flush();
-                $this->telegramService->replyTo($message, sprintf('you have won %s Ehre', NumberFormat::format($count)));
+            $this->logger->info(sprintf('GAMBLE %s start', $message->getUser()->getName()));
+            $chance = $this->getChance($message->getUser(), $message->getChat());
+            if ($chance > 50) {
+                $buff = ($chance - 50) * 2;
             } else {
-                $this->logger->error(sprintf('GAMBLE %s lost %s honor', $message->getUser()->getName(), $count));
-                $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
-                $draw?->setGamblingLosses($draw->getGamblingLosses() + $count);
-                $this->honorService->removeHonor($message->getChat(), $message->getUser(), -$count);
-                $this->manager->flush();
-                $this->telegramService->replyTo($message, sprintf('you have lost %s Ehre', NumberFormat::format($count)));
+                $buff = (50 - $chance) * 2;
             }
-            $this->logger->error('GAMBLE end');
+            if ($this->gamble($chance)) {
+                $this->logger->info(sprintf('GAMBLE %s won %s honor', $message->getUser()->getName(), $amount));
+                $this->honorService->addHonor($message->getChat(), $message->getUser(), $amount);
+                $this->manager->flush();
+                $this->telegramService->replyTo(
+                    $message,
+                    sprintf('you have won %s Ehre (effect: %s%%)', NumberFormat::format($amount), $buff)
+                );
+            } else {
+                $this->logger->info(sprintf('GAMBLE %s lost %s honor', $message->getUser()->getName(), $amount));
+                $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
+                $draw?->setGamblingLosses($draw->getGamblingLosses() + $amount);
+                $this->honorService->removeHonor($message->getChat(), $message->getUser(), $amount);
+                $this->manager->flush();
+                $this->telegramService->replyTo(
+                    $message,
+                    sprintf('you have lost %s Ehre (effect: %s%%)', NumberFormat::format($amount), $buff),
+                );
+            }
         }
     }
 
-    private function gamble(User $user, Chat $chat, ?string $threadId = null): bool
+    private function getChance(User $user, Chat $chat): int
     {
         try {
             $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, [
                 EffectType::GAMBLE_LUCK,
                 EffectType::LUCK,
             ]);
-            $this->logger->debug(sprintf('gamble luck effects: %s', $effects->count()));
             $chance = $effects->apply(50);
-            if ($chance > 50) {
-                $buff = $chance - 50;
-                $this->telegramService->sendText(
-                    $chat->getChatId(),
-                    sprintf('luck buff: %s%%', $buff * 2),
-                    threadId: $threadId,
-                );
-            }
-            if ($chance < 50) {
-                $debuff = 50 - $chance;
-                $this->telegramService->sendText(
-                    $chat->getChatId(),
-                    sprintf('luck debuff: %s%%', $debuff * 2),
-                    threadId: $threadId,
-                );
-            }
-            $this->logger->debug(sprintf('gamble chance: %s', $chance));
-            return Random::getPercentChance((int) min($chance, 100));
-        } catch (\Error $exception) {
-            $this->logger->error('failed to apply gamble luck effects', [
+            $this->logger->info(sprintf('gamble luck effects: %s', $effects->count()));
+            return $chance;
+        } catch (\Exception $exception) {
+            $this->logger->info('failed to apply gamble luck effects', [
                 'exception' => $exception,
             ]);
-            return Random::getPercentChance(50);
+            return 50;
         }
+    }
+
+    private function gamble(int $chance): bool
+    {
+        return Random::getPercentChance((int) min($chance, 100));
     }
 
     public function getSyntax(): string
