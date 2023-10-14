@@ -51,6 +51,7 @@ class EffectRepository extends ServiceEntityRepository
             ->andWhere('u.id = :id')
             ->andWhere('i.chat = :chat')
             ->andWhere('e.type IN (:types)')
+            ->orderBy('e.priority', 'DESC')
             ->setParameter('id', $user->getId())
             ->setParameter('chat', $chat)
             ->setParameter('types', $types)

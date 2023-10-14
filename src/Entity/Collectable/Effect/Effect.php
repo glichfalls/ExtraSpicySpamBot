@@ -38,6 +38,10 @@ class Effect
     #[Groups(['effect:read', 'collectable:read'])]
     private string $operator;
 
+    #[Column(type: 'integer')]
+    #[Groups(['effect:read', 'collectable:read'])]
+    private int $priority = 100;
+
     #[Column(type: 'string')]
     #[Groups(['effect:read', 'collectable:read'])]
     private string $name;
@@ -83,6 +87,16 @@ class Effect
     public function setOperator(string $operator): void
     {
         $this->operator = $operator;
+    }
+
+    public function getPriority(): int
+    {
+        return $this->priority;
+    }
+
+    public function setPriority(int $priority): void
+    {
+        $this->priority = $priority;
     }
 
     public function getName(): string
@@ -131,6 +145,7 @@ class Effect
             '-' => $value - $this->magnitude,
             '*' => $value * $this->magnitude,
             '/' => $value / $this->magnitude,
+            '=' => $this->magnitude,
             default => throw new \RuntimeException(sprintf('Unknown operator "%s"', $this->operator)),
         };
     }

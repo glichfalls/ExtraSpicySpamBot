@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Chat\Chat;
 use App\Entity\Collectable\Collectable;
 use App\Entity\Collectable\CollectableFactory;
 use App\Entity\Collectable\Effect\Effect;
@@ -57,28 +58,7 @@ class CollectableController extends AbstractController
             if (array_key_exists('chat', $data)) {
                 foreach ($data['chat'] as $chatData) {
                     $chat = $this->chatRepository->find($chatData['id']);
-                    if (array_key_exists('users', $data) && count($data['users']) > 0) {
-                        foreach ($data['users'] as $userData) {
-                            $user = $this->userRepository->find($userData['id']);
-                            $instance = CollectableFactory::instance(
-                                $collectable,
-                                $chat,
-                                $user,
-                                $data['price'] ?? 0,
-                            );
-                            $collectable->addInstance($instance);
-                            $this->manager->persist($instance);
-                        }
-                    } else {
-                        $instance = CollectableFactory::instance(
-                            $collectable,
-                            $chat,
-                            null,
-                            $data['price'],
-                        );
-                        $collectable->addInstance($instance);
-                        $this->manager->persist($instance);
-                    }
+                    $this->createInstances($data, $collectable, $chat);
                 }
             }
             $this->manager->flush();
@@ -159,6 +139,7 @@ class CollectableController extends AbstractController
             $effect->setDescription($data['description']);
             $effect->setMagnitude($data['magnitude']);
             $effect->setOperator($data['operator']);
+            $effect->setPriority($data['priority'] ?? 100);
             $this->manager->persist($effect);
             $this->manager->flush();
             return $this->json($effect->getId());
@@ -182,6 +163,7 @@ class CollectableController extends AbstractController
             $effect->setDescription($data['description']);
             $effect->setMagnitude($data['magnitude']);
             $effect->setOperator($data['operator']);
+            $effect->setPriority($data['priority']);
             $this->manager->flush();
             return $this->json(true);
         } catch (\Exception $exception) {
@@ -200,32 +182,43 @@ class CollectableController extends AbstractController
                 throw new NotFoundHttpException();
             }
             $chat = $this->chatRepository->find($data['chat']);
-            if (array_key_exists('users', $data) && count($data['users']) > 0) {
-                foreach ($data['users'] as $userData) {
-                    $user = $this->userRepository->find($userData['id']);
-                    $instance = CollectableFactory::instance(
-                        $collectable,
-                        $chat,
-                        $user,
-                        $data['price'] ?? 0,
-                    );
-                    $collectable->addInstance($instance);
-                    $this->manager->persist($instance);
-                }
-            } else {
-                $instance = CollectableFactory::instance(
-                    $collectable,
-                    $chat,
-                    null,
-                    $data['price'],
-                );
-                $collectable->addInstance($instance);
-                $this->manager->persist($instance);
-            }
+            $this->createInstances($data, $collectable, $chat);
             $this->manager->flush();
             return $this->json(true);
         } catch (\Exception $exception) {
             return $this->json($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    /**
+     * @param mixed $data
+     * @param Collectable $collectable
+     * @param Chat $chat
+     * @return void
+     */
+    private function createInstances(mixed $data, Collectable $collectable, Chat $chat): void
+    {
+        if (array_key_exists('users', $data) && count($data['users']) > 0) {
+            foreach ($data['users'] as $userData) {
+                $user = $this->userRepository->find($userData['id']);
+                $instance = CollectableFactory::instance(
+                    $collectable,
+                    $chat,
+                    $user,
+                    $data['price'] ?? 0,
+                );
+                $collectable->addInstance($instance);
+                $this->manager->persist($instance);
+            }
+        } else {
+            $instance = CollectableFactory::instance(
+                $collectable,
+                $chat,
+                null,
+                $data['price'],
+            );
+            $collectable->addInstance($instance);
+            $this->manager->persist($instance);
         }
     }
 
