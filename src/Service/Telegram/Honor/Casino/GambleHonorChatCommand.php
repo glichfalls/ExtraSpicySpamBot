@@ -50,8 +50,9 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                     $this->telegramService->replyTo($message, 'invalid number');
                     return;
                 }
+            } else {
+                $amount = (int) $matches['amount'];
             }
-            $amount = (int) $matches['amount'];
         }
         $this->logger->info(sprintf('GAMBLE %s honor', $amount));
         if ($amount < 0) {
