@@ -64,4 +64,24 @@ class NumberFormat
         return is_numeric($numberWithoutSuffix);
     }
 
+    /**
+     * This method will return the integer value of a number string.
+     * If the number is abbreviated (e.g. 1.2K), it will be unabbreviated (e.g. 1200).
+     * If the number is not abbreviated, it will be cast to an integer.
+     */
+    public static function getIntValue(string $number, ?string $abbr = null): int
+    {
+        $number = trim($number);
+        if ($abbr !== null) {
+            $numberWithAbbr = sprintf('%s%s', $number, $abbr);
+            if (self::isAbbreviatedNumber($numberWithAbbr)) {
+                return self::unabbreviateNumber($numberWithAbbr);
+            }
+        }
+        if (self::isAbbreviatedNumber($number)) {
+            return self::unabbreviateNumber($number);
+        }
+        return (int) $number;
+    }
+
 }
