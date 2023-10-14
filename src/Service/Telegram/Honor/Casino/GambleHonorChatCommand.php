@@ -58,17 +58,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         } else {
             $this->logger->info(sprintf('GAMBLE %s start', $message->getUser()->getName()));
             $chance = $this->getChance($message->getUser(), $message->getChat());
-            if ($chance > 50) {
-                $buff = ($chance - 50) * 2;
-            } else {
-                $buff = (50 - $chance) * 2;
-            }
-            $buffMessage = sprintf(
-                '%s: %s%s%%',
-                $chance > 50 ? 'buff' : 'debuff',
-                $chance > 50 ? '+' : '-',
-                $buff
-            );
+            $buffMessage = sprintf('win chance: %s%%', $chance);
             if ($this->gamble($chance)) {
                 $this->logger->info(sprintf('GAMBLE %s won %s honor', $message->getUser()->getName(), $amount));
                 $this->honorService->addHonor($message->getChat(), $message->getUser(), $amount);
@@ -106,7 +96,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             if ($chance > 99) {
                 return 99;
             }
-            return (int) floor($chance);
+            return (int) round($chance);
         } catch (\Exception $exception) {
             $this->logger->info('failed to apply gamble luck effects', [
                 'exception' => $exception,
