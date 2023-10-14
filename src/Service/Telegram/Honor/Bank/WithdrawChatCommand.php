@@ -54,7 +54,7 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
         $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), $amount));
         $this->manager->flush();
         $this->telegramService->replyTo($message, sprintf(
-            'withdrew %d honor. you now have %s ehre in your bank account',
+            'withdrew %s honor. you now have %s ehre in your bank account',
             NumberFormat::format($amount),
             $account->getBalance(),
         ));
