@@ -70,13 +70,19 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             } else {
                 $buff = (50 - $chance) * 2;
             }
+            $buffMessage = sprintf(
+                 '%s: %s%s%%',
+                $chance > 50 ? 'buff' : 'debuff',
+                $chance > 50 ? '+' : '-',
+                $buff
+            );
             if ($this->gamble($chance)) {
                 $this->logger->info(sprintf('GAMBLE %s won %s honor', $message->getUser()->getName(), $amount));
                 $this->honorService->addHonor($message->getChat(), $message->getUser(), $amount);
                 $this->manager->flush();
                 $this->telegramService->replyTo(
                     $message,
-                    sprintf('you have won %s Ehre (effect: %s%%)', NumberFormat::format($amount), $buff)
+                    sprintf('you have won %s Ehre (%s)', NumberFormat::format($amount), $buffMessage)
                 );
             } else {
                 $this->logger->info(sprintf('GAMBLE %s lost %s honor', $message->getUser()->getName(), $amount));
@@ -86,7 +92,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $this->manager->flush();
                 $this->telegramService->replyTo(
                     $message,
-                    sprintf('you have lost %s Ehre (effect: %s%%)', NumberFormat::format($amount), $buff),
+                    sprintf('you have lost %s Ehre (%s)', NumberFormat::format($amount), $buffMessage),
                 );
             }
         }
