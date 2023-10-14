@@ -44,7 +44,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         if ($matches['amount'] === 'max') {
             $amount = $currentHonor;
         } else {
-            if (array_key_exists('abbr', $matches) && NumberFormat::isAbbreviatedNumber($matches['count'])) {
+            if (array_key_exists('abbr', $matches) && NumberFormat::isAbbreviatedNumber($matches['amount'])) {
                 $amount = NumberFormat::unabbreviateNumber(sprintf('%s%s', $matches['amount'], $matches['abbr']));
                 if ($amount === null) {
                     $this->telegramService->replyTo($message, 'invalid number');
@@ -117,7 +117,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     public function getSyntax(): string
     {
-        return '!gamble <count> | !g <count> | !gamble max | !g max';
+        return '!gamble [amount] | !g [amount] | !gamble max | !g max';
     }
 
     public function getDescription(): string

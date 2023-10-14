@@ -4,6 +4,7 @@ namespace App\Service\Telegram\Raid;
 
 use App\Entity\Honor\Raid\RaidFactory;
 use App\Entity\Message\Message;
+use App\Utils\Random;
 use TelegramBot\Api\Types\Update;
 
 class CreateRaidCommand extends AbstractRaidChatCommand
@@ -60,8 +61,28 @@ class CreateRaidCommand extends AbstractRaidChatCommand
             $this->telegramService->replyTo($message, 'target has no honor, no raid possible :(');
             return;
         }
+        $leader = $message->getUser();
+        if ($this->hasRaidGuard($target, $chat)) {
+            $chance = $this->getRaidGuards($target, $chat)->apply(50);
+            if (Random::getPercentChance($chance)) {
+                $this->telegramService->replyTo(
+                    $message,
+                    sprintf(
+                        'the raid guard protected %s. %s will be raided instead',
+                        $target->getName(),
+                        $leader->getName(),
+                    )
+                );
+                $leader = $target;
+                $target = $message->getUser();
+                $targetHonorCount = $this->honorRepository->getHonorCount($target, $chat);
+                if ($targetHonorCount < 10_000) {
+                    $targetHonorCount = 10_000;
+                }
+            }
+        }
         $raidAmount = $this->getRaidAmount($targetHonorCount);
-        $raid = RaidFactory::create($chat, $message->getUser(), $target, $raidAmount);
+        $raid = RaidFactory::create($chat, $leader, $target, $raidAmount);
         $this->manager->persist($raid);
         $this->manager->flush();
         $this->telegramService->videoReplyTo($message, 'https://extra-spicy-spam.portner.dev/assets/video/raid.mp4');

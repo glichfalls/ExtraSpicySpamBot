@@ -3,10 +3,14 @@
 namespace App\Service\Telegram\Raid;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Collectable\Effect\EffectCollection;
 use App\Entity\Honor\Raid\Raid;
+use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Repository\RaidRepository;
 use App\Repository\UserRepository;
+use App\Service\Collectable\CollectableService;
+use App\Service\Collectable\EffectType;
 use App\Service\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
@@ -27,8 +31,8 @@ abstract class AbstractRaidChatCommand extends AbstractTelegramChatCommand
         protected RaidRepository  $raidRepository,
         protected UserRepository $userRepository,
         protected HonorService $honorService,
-    )
-    {
+        protected CollectableService $collectableService,
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
@@ -64,6 +68,18 @@ abstract class AbstractRaidChatCommand extends AbstractTelegramChatCommand
                     'callback_data' => CancelRaidChatCommand::CALLBACK_KEYWORD,
                 ],
             ],
+        ]);
+    }
+
+    protected function hasRaidGuard(User $user, Chat $chat): bool
+    {
+        return $this->getRaidGuards($user, $chat)->count() > 0;
+    }
+
+    protected function getRaidGuards(User $user, Chat $chat): EffectCollection
+    {
+        return $this->collectableService->getEffectsByUserAndType($user, $chat, [
+            EffectType::RAID_GUARD,
         ]);
     }
 

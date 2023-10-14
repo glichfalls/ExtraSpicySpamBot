@@ -8,6 +8,7 @@ enum EffectType
     case GAMBLE_LUCK;
     case LOOTBOX_LUCK;
     case PASSIVE_HONOR;
+    case RAID_GUARD;
 
     public static function all(): array
     {
@@ -16,6 +17,7 @@ enum EffectType
             self::GAMBLE_LUCK,
             self::LOOTBOX_LUCK,
             self::PASSIVE_HONOR,
+            self::RAID_GUARD,
         ];
     }
 
@@ -26,6 +28,7 @@ enum EffectType
             self::GAMBLE_LUCK->key() => self::GAMBLE_LUCK->label(),
             self::LOOTBOX_LUCK->key() => self::LOOTBOX_LUCK->label(),
             self::PASSIVE_HONOR->key() => self::PASSIVE_HONOR->label(),
+            self::RAID_GUARD->key() => self::RAID_GUARD->label(),
         ];
     }
 
@@ -36,6 +39,7 @@ enum EffectType
             self::GAMBLE_LUCK => 'GAMBLE_LUCK',
             self::LOOTBOX_LUCK => 'LOOTBOX_LUCK',
             self::PASSIVE_HONOR => 'PASSIVE_HONOR',
+            self::RAID_GUARD => 'RAID_GUARD',
         };
     }
 
@@ -46,6 +50,7 @@ enum EffectType
             self::GAMBLE_LUCK => 'Gamble Luck',
             self::LOOTBOX_LUCK => 'Lootbox Luck',
             self::PASSIVE_HONOR => 'Passive Ehre',
+            self::RAID_GUARD => 'Raid Guard',
         };
     }
 }
