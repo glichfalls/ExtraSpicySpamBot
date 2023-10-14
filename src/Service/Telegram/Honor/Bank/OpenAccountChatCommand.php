@@ -20,9 +20,8 @@ class OpenAccountChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private BankAccountRepository $bankAccountRepository,
-    )
-    {
+        private readonly BankAccountRepository $bankAccountRepository,
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 

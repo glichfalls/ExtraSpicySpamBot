@@ -2,6 +2,7 @@
 
 namespace App\Service\Telegram\Honor\Bank;
 
+use App\Entity\Honor\Bank\BankAccount;
 use App\Entity\Honor\Bank\TransactionFactory;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
@@ -22,8 +23,8 @@ class DepositChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private BankAccountRepository $bankAccountRepository,
-        private HonorRepository $honorRepository,
+        private readonly BankAccountRepository $bankAccountRepository,
+        private readonly HonorRepository $honorRepository,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -37,8 +38,10 @@ class DepositChatCommand extends AbstractTelegramChatCommand
     {
         $account = $this->bankAccountRepository->getByChatAndUser($message->getChat(), $message->getUser());
         if ($account === null) {
-            $this->telegramService->replyTo($message, 'you do not have an account');
-            return;
+            $account = new BankAccount();
+            $account->setChat($message->getChat());
+            $account->setUser($message->getUser());
+            $this->manager->persist($account);
         }
         $amount = $matches['amount'];
         if ($amount === 'max') {
@@ -74,7 +77,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
 
     public function getDescription(): string
     {
-        return 'deposit honor into your bank account';
+        return 'deposit Ehre into your bank account';
     }
 
 }

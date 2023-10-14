@@ -19,9 +19,8 @@ class CheckBalanceChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private BankAccountRepository $bankAccountRepository,
-    )
-    {
+        private readonly BankAccountRepository $bankAccountRepository,
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
@@ -40,9 +39,14 @@ class CheckBalanceChatCommand extends AbstractTelegramChatCommand
         $this->telegramService->replyTo($message, sprintf('your bank balance is %d ehre', $account->getBalance()));
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!help   check your bank balance';
+        return '!withdraw [amount] or max';
+    }
+
+    public function getDescription(): string
+    {
+        return 'check your ehre bank balance';
     }
 
 }

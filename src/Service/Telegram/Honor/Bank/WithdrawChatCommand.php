@@ -2,7 +2,6 @@
 
 namespace App\Service\Telegram\Honor\Bank;
 
-use App\Entity\Honor\Bank\Transaction;
 use App\Entity\Honor\Bank\TransactionFactory;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
@@ -22,15 +21,14 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private BankAccountRepository $bankAccountRepository,
-    )
-    {
+        private readonly BankAccountRepository $bankAccountRepository,
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!withdraw\s*(?<amount>\d+)$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!withdraw\s*(?<amount>\d+|max)/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -40,7 +38,12 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'you do not have an account');
             return;
         }
-        $amount = (int) $matches['amount'];
+        $amount = $matches['amount'];
+        if ($amount === 'max') {
+            $amount = $account->getBalance();
+        } else {
+            $amount = (int) $amount;
+        }
         $balance = $account->getBalance();
         if ($balance < $amount) {
             $this->telegramService->replyTo($message, sprintf('there is not enough ehre in your bank account (balance: %d ehre)', $balance));
@@ -56,9 +59,14 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
         ));
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!withdraw <amount>   withdraw honor from your bank account';
+        return '!withdraw [amount] or max';
+    }
+
+    public function getDescription(): string
+    {
+        return 'withdraw Ehre from your bank account';
     }
 
 }
