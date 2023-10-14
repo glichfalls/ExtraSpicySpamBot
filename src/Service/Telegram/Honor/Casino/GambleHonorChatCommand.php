@@ -100,7 +100,13 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             ]);
             $chance = $effects->apply(50);
             $this->logger->info(sprintf('gamble luck effects: %s', $effects->count()));
-            return $chance;
+            if ($chance < 1) {
+                return 1;
+            }
+            if ($chance > 99) {
+                return 99;
+            }
+            return (int) floor($chance);
         } catch (\Exception $exception) {
             $this->logger->info('failed to apply gamble luck effects', [
                 'exception' => $exception,
