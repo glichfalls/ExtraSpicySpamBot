@@ -67,7 +67,7 @@ class TelegramService
         foreach ($update->getMessage()->getEntities() as $entity) {
             $user = match ($entity->getType()) {
                 MessageEntity::TYPE_MENTION => $this->userService->getByName(
-                    substr(
+                    mb_substr(
                         $update->getMessage()->getText(),
                         $entity->getOffset() + 1,
                         $entity->getLength() - 1

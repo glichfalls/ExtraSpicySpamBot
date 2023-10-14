@@ -6,6 +6,7 @@ use App\Entity\Message\Message;
 use App\Repository\BankAccountRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -36,7 +37,10 @@ class CheckBalanceChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'you dont have an account');
             return;
         }
-        $this->telegramService->replyTo($message, sprintf('your bank balance is %d ehre', $account->getBalance()));
+        $this->telegramService->replyTo(
+            $message,
+            sprintf('your bank balance is %s ehre', NumberFormat::format($account->getBalance()))
+        );
     }
 
     public function getSyntax(): string

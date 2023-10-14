@@ -10,6 +10,7 @@ use App\Repository\BankAccountRepository;
 use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -54,8 +55,8 @@ class DepositChatCommand extends AbstractTelegramChatCommand
             $account->addTransaction(TransactionFactory::create($amount));
             $this->manager->flush();
             $this->telegramService->replyTo($message, sprintf(
-                'deposited %d Ehre',
-                $amount,
+                'deposited %s Ehre',
+                NumberFormat::format($amount),
             ));
         }
     }

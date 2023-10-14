@@ -8,6 +8,7 @@ use App\Entity\Message\Message;
 use App\Repository\BankAccountRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -46,15 +47,15 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
         }
         $balance = $account->getBalance();
         if ($balance < $amount) {
-            $this->telegramService->replyTo($message, sprintf('there is not enough ehre in your bank account (balance: %d ehre)', $balance));
+            $this->telegramService->replyTo($message, sprintf('there is not enough ehre in your bank account (balance: %s ehre)', NumberFormat::format($balance)));
             return;
         }
         $account->addTransaction(TransactionFactory::create(-$amount));
         $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), $amount));
         $this->manager->flush();
         $this->telegramService->replyTo($message, sprintf(
-            'withdrew %d honor. you now have %d ehre in your bank account',
-            $amount,
+            'withdrew %d honor. you now have %s ehre in your bank account',
+            NumberFormat::format($amount),
             $account->getBalance(),
         ));
     }

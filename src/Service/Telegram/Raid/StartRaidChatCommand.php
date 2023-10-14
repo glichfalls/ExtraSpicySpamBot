@@ -8,6 +8,7 @@ use App\Entity\Honor\Raid\Raid;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Service\Telegram\TelegramCallbackQueryListener;
+use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Update;
 
 class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCallbackQueryListener
@@ -78,7 +79,7 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                     $message,
                     $this->translator->trans('telegram.raid.raidSuccessful', [
                         'target' => $raid->getTarget()->getName(),
-                        'honorCount' => $raid->getAmount(),
+                        'honorCount' => NumberFormat::format($raid->getAmount()),
                     ]),
                 );
             } else {
