@@ -20,10 +20,7 @@ class AtAllChatCommand extends AbstractTelegramChatCommand
         $userList = $message->getChat()->getUsers()->map(fn(User $user) => sprintf('@%s', $user->getName() ?? $user->getFirstName()));
         $this->telegramService->replyTo(
             $message,
-            sprintf('%s %s',
-                $message->getMessage(),
-                implode(' ', $userList->getValues()),
-            ),
+            implode(' ', $userList->getValues()),
         );
     }
 
