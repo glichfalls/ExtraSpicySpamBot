@@ -144,9 +144,9 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         ]);
         // nothing
         if (Random::getPercentChance(match($size) {
-            self::SMALL => floor(30 / $hardFailChance->apply(1)),
-            self::MEDIUM => floor(20 / $hardFailChance->apply(1)),
-            self::LARGE => floor(15 / $hardFailChance->apply(1)),
+            self::SMALL => floor(20 / $hardFailChance->apply(1)),
+            self::MEDIUM => floor(15 / $hardFailChance->apply(1)),
+            self::LARGE => floor(10 / $hardFailChance->apply(1)),
             default => 100,
         })) {
             return 0;
@@ -162,8 +162,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         }
         // high ehre loot
         if (Random::getPercentChance(match ($size) {
-            self::SMALL => 80,
-            self::MEDIUM => 85,
+            self::SMALL => 99,
+            self::MEDIUM => 95,
             self::LARGE => 90,
             default => 0,
         })) {
@@ -205,16 +205,6 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         $win->setOwner($user);
         $this->manager->flush();
         return $win;
-    }
-
-    private function getPercentChance(int $probability): bool
-    {
-        return $this->getNumber(100) <= $probability;
-    }
-
-    private function getNumber(int $max, int $min = 1): int
-    {
-        return mt_rand($min, $max);
     }
 
     private function getKeyboard(): InlineKeyboardMarkup
