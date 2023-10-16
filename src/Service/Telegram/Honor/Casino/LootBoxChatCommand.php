@@ -95,6 +95,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                         threadId: $callbackQuery->getMessage()->getMessageThreadId(),
                         parseMode: 'HTML',
                     );
+                    $this->manager->flush();
                     return;
                 }
             } catch (\RuntimeException) {
@@ -177,8 +178,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             $seed = (int) floor((Random::getNumber(15) + Random::getNumber(10)) / 2);
             // max = 200% - 1500% of price
             $max = $this->getPrice($size) * Random::getNumber($seed);
-            // win between 100% of price and max
-            return Random::getNumber($max, $this->getPrice($size));
+            // win between 200% of price and max
+            return Random::getNumber($max, $this->getPrice($size) * 2);
         }
         // collectable loot
         $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, [
