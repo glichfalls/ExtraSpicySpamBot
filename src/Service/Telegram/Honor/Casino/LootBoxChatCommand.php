@@ -125,8 +125,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             }
             $this->addHonor($chat, $user, $result);
             $this->manager->flush();
-            $this->telegramService->answerCallbackQuery($callbackQuery, sprintf('You won %s honor', NumberFormat::format($result)));
             if ($result > $price * 2) {
+                $this->telegramService->answerCallbackQuery($callbackQuery);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf(
@@ -137,6 +137,12 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                     ),
                     threadId: $callbackQuery->getMessage()->getMessageThreadId(),
                     parseMode: 'HTML',
+                );
+            } else {
+                $this->telegramService->answerCallbackQuery(
+                    $callbackQuery,
+                    sprintf('You won %s honor', NumberFormat::format($result)),
+                    true
                 );
             }
         }
