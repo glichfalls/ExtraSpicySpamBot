@@ -29,7 +29,6 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         LoggerInterface $logger,
         TelegramService $telegramService,
         private readonly HonorService $honorService,
-
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -104,7 +103,11 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
                 @%s wins %s Ehre
                 TEXT;
             $this->honorService->removeHonor($chat, $user, self::PRICE);
-            $this->telegramService->sendText($chat->getChatId(), sprintf($text, $user->getName(), NumberFormat::format($amount)));
+            $this->telegramService->sendText(
+                $chat->getChatId(),
+                sprintf($text, $user->getName(), NumberFormat::format($amount)),
+                threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+            );
             $jackpot->setAmount(0);
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery);
@@ -119,7 +122,11 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             
             @%s lost %s Ehre
             TEXT;
-            $this->telegramService->sendText($chat->getChatId(), sprintf($text, $user->getName(), NumberFormat::format($amount)));
+            $this->telegramService->sendText(
+                $chat->getChatId(),
+                sprintf($text, $user->getName(), NumberFormat::format($amount)),
+                threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+            );
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery);
             $this->telegramService->editMessage(
@@ -144,7 +151,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
                 implode(' ', $result),
                 $user->getName(),
                 NumberFormat::format($amount),
-            ));
+            ), threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId());
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery);
             return;
