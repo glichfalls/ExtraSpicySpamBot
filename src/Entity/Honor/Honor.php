@@ -26,7 +26,7 @@ class Honor
     #[ManyToOne(targetEntity: Chat::class)]
     private Chat $chat;
 
-    #[Column(type: 'integer')]
+    #[Column(type: 'bigint')]
     private int $amount = 0;
 
     public function __construct()

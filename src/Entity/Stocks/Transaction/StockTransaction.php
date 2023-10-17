@@ -35,7 +35,7 @@ class StockTransaction
     #[Groups(['stock:read', 'portfolio:read'])]
     private StockPrice $price;
 
-    #[Column(type: 'integer', nullable: false)]
+    #[Column(type: 'bigint', nullable: false)]
     #[Groups(['stock:read', 'portfolio:read'])]
     private int $amount;
 

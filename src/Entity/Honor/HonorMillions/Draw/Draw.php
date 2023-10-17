@@ -23,7 +23,7 @@ class Draw
     #[Column(type: 'integer')]
     private int $previousJackpot;
 
-    #[Column(type: 'integer', options: ['default' => 0])]
+    #[Column(type: 'bigint', options: ['default' => 0])]
     private int $gamblingLosses = 0;
 
     #[Column(type: 'date')]

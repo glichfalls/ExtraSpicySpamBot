@@ -17,7 +17,7 @@ class Transaction
     #[ManyToOne(targetEntity: BankAccount::class)]
     private BankAccount $bankAccount;
 
-    #[Column(type: 'integer', nullable: false)]
+    #[Column(type: 'bigint', nullable: false)]
     private int $amount = 0;
 
     public function __construct()
