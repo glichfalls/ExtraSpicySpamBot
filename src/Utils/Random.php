@@ -18,4 +18,9 @@ class Random
         return mt_rand($min, $max);
     }
 
+    public static function arrayElement(array $options): mixed
+    {
+        return $options[array_rand($options)];
+    }
+
 }

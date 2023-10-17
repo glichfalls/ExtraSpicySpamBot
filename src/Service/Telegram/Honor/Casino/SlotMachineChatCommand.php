@@ -47,7 +47,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand
         if (isset($matches['amount'])) {
             $amount = NumberFormat::getIntValue($matches['amount']);
             if ($amount > 5) {
-                $this->telegramService->replyTo($message, 'you can only run the slot machine 10 times at once');
+                $this->telegramService->replyTo($message, 'you can only run the slot machine 5 times at once');
                 return;
             }
             if ($amount > 0) {
@@ -104,14 +104,15 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand
     }
 
     /**
-     * @return array<int, int>
+     * @return array<int, int|string>
      */
     private function run(): array
     {
+        $options = ['🍒', '🍋', '🍊', '🍇', '🍉', '🍓', '🍍', '🍌', 7, '🍎'];
         return [
-            Random::getNumber(9, 0),
-            Random::getNumber(9, 0),
-            Random::getNumber(9, 0),
+            Random::arrayElement($options),
+            Random::arrayElement($options),
+            Random::arrayElement($options),
         ];
     }
 
