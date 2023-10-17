@@ -30,10 +30,12 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private const SMALL = 's';
     private const MEDIUM = 'm';
     private const LARGE = 'l';
+    private const XL = 'xl';
     private const SIZES = [
         self::SMALL,
         self::MEDIUM,
         self::LARGE,
+        self::XL,
     ];
 
     public function __construct(
@@ -42,7 +44,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         LoggerInterface $logger,
         TelegramService $telegramService,
         HonorRepository $honorRepository,
-        private CollectableService $collectableService,
+        private readonly CollectableService $collectableService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService, $honorRepository);
     }
@@ -151,6 +153,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::SMALL => floor(20 / $hardFailChance->apply(1)),
             self::MEDIUM => floor(15 / $hardFailChance->apply(1)),
             self::LARGE => floor(10 / $hardFailChance->apply(1)),
+            self::XL => floor(5 / $hardFailChance->apply(1)),
             default => 100,
         })) {
             return 0;
@@ -160,6 +163,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::SMALL => 59,
             self::MEDIUM => 58,
             self::LARGE => 57,
+            self::XL => 56,
             default => 100,
         })) {
             return (int) floor($this->getPrice($size) / Random::getNumber(8));
@@ -168,7 +172,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         if (Random::getPercentChance(match ($size) {
             self::SMALL => 90,
             self::MEDIUM => 75,
-            self::LARGE => 50,
+            self::LARGE, self::XL => 60,
             default => 0,
         })) {
             // win between 100% and 200% of price
@@ -190,6 +194,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::SMALL => 1,
             self::MEDIUM => 2,
             self::LARGE => 15,
+            self::XL => 20,
             default => 0,
         }))) {
             return $this->winCollectable($chat, $user);
@@ -242,6 +247,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::SMALL => 10_000,
             self::MEDIUM => 100_000,
             self::LARGE => 1_000_000,
+            self::XL => 100_000_000,
             default => null,
         };
     }
