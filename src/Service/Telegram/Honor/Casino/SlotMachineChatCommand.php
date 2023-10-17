@@ -44,8 +44,8 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         $text = <<<TEXT
         🎰 SLOT MACHINE 🎰
         
-        JACKPOT: %s Ehre
-        COST: %s Ehre
+        jackpot: %s Ehre
+        cost: %s Ehre
         TEXT;
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
@@ -82,7 +82,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         $callbackQuery = $update->getCallbackQuery();
         $currentHonor = $this->honorService->getCurrentHonorAmount($chat, $user);
         if ($currentHonor < self::PRICE) {
-            $this->telegramService->answerCallbackQuery($callbackQuery, 'not enough Ehre');
+            $this->telegramService->answerCallbackQuery($callbackQuery, 'not enough Ehre', true);
             return;
         }
         $jackpot = $this->honorService->getSlotMachineJackpot($chat);
@@ -101,6 +101,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             $this->telegramService->sendText($chat->getChatId(), sprintf($text, $user->getName(), NumberFormat::format($amount)));
             $jackpot->setAmount(0);
             $this->manager->flush();
+            $this->telegramService->answerCallbackQuery($callbackQuery);
             return;
         }
         $this->manager->flush();
@@ -111,6 +112,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
                 implode(' ', $result),
                 NumberFormat::format(self::PRICE)
             ),
+            true,
         );
     }
 
