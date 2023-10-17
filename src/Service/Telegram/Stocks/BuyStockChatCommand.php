@@ -58,8 +58,8 @@ class BuyStockChatCommand extends AbstractStockChatCommand implements TelegramCa
 
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
+        $callbackQuery = $update->getCallbackQuery();
         try {
-            $callbackQuery = $update->getCallbackQuery();
             $parts = explode(':', $callbackQuery->getData());
             $transaction = $this->buy($chat, $user, end($parts), 'max');
             $this->telegramService->sendText(
@@ -89,6 +89,9 @@ class BuyStockChatCommand extends AbstractStockChatCommand implements TelegramCa
         $portfolio = $this->getPortfolioByUserAndChat($chat, $user);
         if ($amount === 'max') {
             $price = $this->stockService->getPriceBySymbol($symbol);
+            if ($price->getHonorPrice() <= 0) {
+                throw new AmountZeroOrNegativeException(sprintf('Stock price for %s is zero', $symbol));
+            }
             $honor = $this->honorRepository->getHonorCount($user, $chat);
             $amount = floor($honor / $price->getHonorPrice());
             if ($amount <= 0) {
