@@ -141,7 +141,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             } else {
                 $this->telegramService->answerCallbackQuery(
                     $callbackQuery,
-                    sprintf('You won %s honor', NumberFormat::format($result)),
+                    sprintf('You win %s Ehre', NumberFormat::format($result)),
                     true
                 );
             }
