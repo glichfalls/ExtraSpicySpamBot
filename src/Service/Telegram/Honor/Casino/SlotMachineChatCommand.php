@@ -69,7 +69,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         if (Random::getNumber(1000) === 1) {
             return ['✡️', '✡️', '✡️'];
         }
-        $options = ['🍒', '🍋', '🍊', '🍇', '🍉', '🍓', '🍍', '🍌', 7, '🍎'];
+        $options = ['🍒', '🍋', '🍊', '🍇', '🍉', '🍓', '🍍', '🍌', '💰', '🍎'];
         return [
             Random::arrayElement($options),
             Random::arrayElement($options),
@@ -94,11 +94,11 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         $this->honorService->removeHonor($chat, $user, self::PRICE);
         $jackpot->setAmount($jackpot->getAmount() + self::PRICE);
         $result = $this->run();
-        if ($result === [7,7,7]) {
+        if ($result === ['💰', '💰', '💰']) {
             $amount = $jackpot->getAmount();
             $this->honorService->addHonor($chat, $user, $amount);
             $text = <<<TEXT
-                🎰 777 🎰
+                🎰 💰💰💰 🎰
                 
                 JACKPOT
                 @%s wins %s Ehre
@@ -111,7 +111,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             return;
         }
         if ($result === ['✡️', '✡️', '✡️']) {
-            $amount = 10_000_000;
+            $amount = 1_000_000;
             $this->honorService->removeHonor($chat, $user, $amount);
             $jackpot->setAmount($jackpot->getAmount() + $amount);
             $text = <<<TEXT
@@ -128,6 +128,25 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
                 $this->getStartText($jackpot),
                 replyMarkup: $this->getKeyboard(),
             );
+            return;
+        }
+        // if all 3 are the same
+        if ($result[0] === $result[1] && $result[1] === $result[2]) {
+            $amount = 1;
+            $text = <<<TEXT
+            🎰 %s 🎰
+            
+            @%s wins %s Ehre
+            TEXT;
+            $this->honorService->addHonor($chat, $user, $amount);
+            $this->telegramService->sendText($chat->getChatId(), sprintf(
+                $text,
+                implode(' ', $result),
+                $user->getName(),
+                NumberFormat::format($amount),
+            ));
+            $this->manager->flush();
+            $this->telegramService->answerCallbackQuery($callbackQuery);
             return;
         }
         $this->manager->flush();
