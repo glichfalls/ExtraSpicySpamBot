@@ -63,10 +63,10 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand
         }
         $text = <<<TEXT
         🎰 %s 🎰
-        you win %s honor
+        you win %s Ehre
         TEXT;
         $this->manager->flush();
-        $this->telegramService->replyTo($message, sprintf($text, implode(' ', $result), $resultAmount));
+        $this->telegramService->replyTo($message, sprintf($text, implode(' ', $result), NumberFormat::format($resultAmount)));
     }
 
     /**
