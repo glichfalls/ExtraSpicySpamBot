@@ -131,6 +131,12 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             return;
         }
         $this->manager->flush();
+        $this->telegramService->editMessage(
+            $update->getCallbackQuery()->getMessage()->getChat()->getId(),
+            $update->getCallbackQuery()->getMessage()->getMessageId(),
+            $this->getStartText($jackpot),
+            replyMarkup: $this->getKeyboard(),
+        );
         $this->telegramService->answerCallbackQuery(
             $callbackQuery,
             implode(' ', $result),
