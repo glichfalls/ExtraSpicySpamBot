@@ -48,6 +48,9 @@ abstract class AbstractStockChatCommand extends AbstractTelegramChatCommand
     private function createStockTransaction(Portfolio $portfolio, string $symbol, int $amount): StockTransaction
     {
         $price = $this->stockService->getPriceBySymbol($symbol);
+        if ($price->getHonorPrice() <= 0) {
+            throw new AmountZeroOrNegativeException(sprintf('Stock price for %s is zero', $symbol));
+        }
         $transaction = StockTransactionFactory::create($price, $amount);
         $portfolio->addTransaction($transaction);
         return $transaction;
