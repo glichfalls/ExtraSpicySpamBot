@@ -31,7 +31,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!(slot)\s(?<amount>\d+|max)(?<abbr>[km])?$/', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!slot$/', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
