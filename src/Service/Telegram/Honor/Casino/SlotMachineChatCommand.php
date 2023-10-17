@@ -16,7 +16,7 @@ use TelegramBot\Api\Types\Update;
 class SlotMachineChatCommand extends AbstractTelegramChatCommand
 {
 
-    private const PRICE = 1000;
+    private const PRICE = 10_000;
 
     public function __construct(
         EntityManagerInterface $manager,
