@@ -45,14 +45,12 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         🎰 SLOT MACHINE 🎰
         
         jackpot: %s Ehre
-        cost: %s Ehre
         TEXT;
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
             sprintf(
                 $text,
                 NumberFormat::format($jackpot->getAmount()),
-                NumberFormat::format(self::PRICE),
             ),
             threadId: $message->getTelegramThreadId(),
             replyMarkup: $this->getKeyboard(),
@@ -107,11 +105,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         $this->manager->flush();
         $this->telegramService->answerCallbackQuery(
             $callbackQuery,
-            sprintf(
-                '%s you lose %s Ehre',
-                implode(' ', $result),
-                NumberFormat::format(self::PRICE)
-            ),
+            implode(' ', $result),
             true,
         );
     }
@@ -120,7 +114,10 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
     {
         return new InlineKeyboardMarkup([
             [
-                ['text' => 'play', 'callback_data' => 'slot'],
+                [
+                    'text' => sprintf('play (%s Ehre)', NumberFormat::format(self::PRICE)),
+                    'callback_data' => 'slot'
+                ],
             ],
         ]);
     }
