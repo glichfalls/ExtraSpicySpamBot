@@ -111,7 +111,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf(
-                        '%s won a <strong>%s</strong> collectable from a <strong>%s</strong> lootbox',
+                        '%s won a <strong>%s</strong> nft from a <strong>%s</strong> lootbox',
                         $user->getName() ?? $user->getFirstName(),
                         $result->getCollectable()->getName(),
                         ucfirst($size),
@@ -123,18 +123,20 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             }
             $this->addHonor($chat, $user, $result);
             $this->manager->flush();
-            $this->telegramService->answerCallbackQuery($callbackQuery, sprintf('You won %s honor', NumberFormat::format($result)), false);
-            $this->telegramService->sendText(
-                $chat->getChatId(),
-                sprintf(
-                    '%s won %s Ehre from a <strong>%s</strong> lootbox',
-                    $user->getName() ?? $user->getFirstName(),
-                    NumberFormat::format($result),
-                    ucfirst($size),
-                ),
-                threadId: $callbackQuery->getMessage()->getMessageThreadId(),
-                parseMode: 'HTML',
-            );
+            $this->telegramService->answerCallbackQuery($callbackQuery, sprintf('You won %s honor', NumberFormat::format($result)));
+            if ($result > $price * 2) {
+                $this->telegramService->sendText(
+                    $chat->getChatId(),
+                    sprintf(
+                        '%s won %s Ehre from a <strong>%s</strong> lootbox',
+                        $user->getName() ?? $user->getFirstName(),
+                        NumberFormat::format($result),
+                        ucfirst($size),
+                    ),
+                    threadId: $callbackQuery->getMessage()->getMessageThreadId(),
+                    parseMode: 'HTML',
+                );
+            }
         }
     }
 
@@ -142,6 +144,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     {
         $hardFailChance = $this->collectableService->getEffectsByUserAndType($user, $chat, [
             EffectType::LOOTBOX_LUCK,
+            EffectType::LUCK,
         ]);
         // nothing
         if (Random::getPercentChance(match($size) {
