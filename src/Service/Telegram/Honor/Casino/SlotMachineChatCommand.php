@@ -69,7 +69,9 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand
                 after %s tries
                 you win %s Ehre
                 TEXT;
-                $this->telegramService->replyTo($message, sprintf($text, $losses + 1, NumberFormat::format($amount)));
+                $totalTries = $losses + 1;
+                $this->honorService->removeHonor($message->getChat(), $message->getUser(), $totalTries * self::PRICE);
+                $this->telegramService->replyTo($message, sprintf($text, $totalTries, NumberFormat::format($amount)));
                 $jackpot->setAmount(0);
                 $this->manager->flush();
                 return;
@@ -78,6 +80,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand
                 $jackpot->setAmount($jackpot->getAmount() + self::PRICE);
             }
         }
+        $this->honorService->removeHonor($message->getChat(), $message->getUser(), $losses * self::PRICE);
         $this->manager->flush();
         if ($runs === 1) {
             $text = <<<TEXT
