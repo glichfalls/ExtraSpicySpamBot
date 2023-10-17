@@ -46,7 +46,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand
         $runs = 1;
         if (isset($matches['amount'])) {
             $amount = NumberFormat::getIntValue($matches['amount']);
-            if ($amount > 10) {
+            if ($amount > 5) {
                 $this->telegramService->replyTo($message, 'you can only run the slot machine 10 times at once');
                 return;
             }
