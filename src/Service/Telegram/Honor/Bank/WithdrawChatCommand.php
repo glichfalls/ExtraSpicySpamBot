@@ -29,7 +29,7 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!withdraw\s*(?<amount>\d+|max)/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!withdraw\s*(?<amount>\d+|max)(?<abbr>[km])?$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -39,13 +39,12 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'you do not have an account');
             return;
         }
-        $amount = $matches['amount'];
-        if ($amount === 'max') {
-            $amount = $account->getBalance();
-        } else {
-            $amount = (int) $amount;
-        }
         $balance = $account->getBalance();
+        if ($matches['amount'] === 'max') {
+            $amount = $balance;
+        } else {
+            $amount = NumberFormat::getIntValue($matches['amount'], $matches['abbr'] ?? null);
+        }
         if ($balance < $amount) {
             $this->telegramService->replyTo($message, sprintf('there is not enough ehre in your bank account (balance: %s ehre)', NumberFormat::format($balance)));
             return;

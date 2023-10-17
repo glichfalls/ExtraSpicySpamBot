@@ -32,7 +32,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!deposit\s*(?<amount>\d+|max)/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!deposit\s*(?<amount>\d+|max)(?<abbr>[km])?$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -44,11 +44,10 @@ class DepositChatCommand extends AbstractTelegramChatCommand
             $account->setUser($message->getUser());
             $this->manager->persist($account);
         }
-        $amount = $matches['amount'];
-        if ($amount === 'max') {
+        if ($matches['amount'] === 'max') {
             $amount = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
         } else {
-            $amount = (int) $amount;
+            $amount = NumberFormat::getIntValue($matches['amount'], $matches['abbr'] ?? null);
         }
         if ($this->canDepositAmount($message, $amount)) {
             $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$amount));
