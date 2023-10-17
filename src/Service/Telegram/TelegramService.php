@@ -392,6 +392,22 @@ class TelegramService
         );
     }
 
+    public function editMessage(
+        string|int $chatId,
+        int $messageId,
+        string $text,
+        mixed $parseMode = null,
+        mixed $replyMarkup = null,
+    ): void {
+        $this->bot->editMessageText(
+            $chatId,
+            $messageId,
+            $text,
+            parseMode: $parseMode,
+            replyMarkup: $replyMarkup,
+        );
+    }
+
     public function changeInlineKeyboard(
         string $chatId,
         string $messageId,

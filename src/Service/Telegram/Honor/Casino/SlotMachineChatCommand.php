@@ -3,6 +3,7 @@
 namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\SlotMachine\SlotMachineJackpot;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Service\HonorService;
@@ -41,20 +42,23 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
     public function handle(Update $update, Message $message, array $matches): void
     {
         $jackpot = $this->honorService->getSlotMachineJackpot($message->getChat());
+
+        $this->telegramService->sendText(
+            $message->getChat()->getChatId(),
+            $this->getStartText($jackpot),
+            threadId: $message->getTelegramThreadId(),
+            replyMarkup: $this->getKeyboard(),
+        );
+    }
+
+    private function getStartText(SlotMachineJackpot $jackpot): string
+    {
         $text = <<<TEXT
         🎰 SLOT MACHINE 🎰
         
         jackpot: %s Ehre
         TEXT;
-        $this->telegramService->sendText(
-            $message->getChat()->getChatId(),
-            sprintf(
-                $text,
-                NumberFormat::format($jackpot->getAmount()),
-            ),
-            threadId: $message->getTelegramThreadId(),
-            replyMarkup: $this->getKeyboard(),
-        );
+        return sprintf($text, NumberFormat::format($jackpot->getAmount()));
     }
 
     /**
@@ -118,6 +122,12 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             $this->telegramService->sendText($chat->getChatId(), sprintf($text, $user->getName(), NumberFormat::format($amount)));
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery);
+            $this->telegramService->editMessage(
+                $update->getCallbackQuery()->getMessage()->getChat()->getId(),
+                $update->getCallbackQuery()->getMessage()->getMessageId(),
+                $this->getStartText($jackpot),
+                replyMarkup: $this->getKeyboard(),
+            );
             return;
         }
         $this->manager->flush();
