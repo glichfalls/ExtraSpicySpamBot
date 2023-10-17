@@ -85,6 +85,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         }
         $jackpot = $this->honorService->getSlotMachineJackpot($chat);
         $this->honorService->removeHonor($chat, $user, self::PRICE);
+        $jackpot->setAmount($jackpot->getAmount() + self::PRICE);
         $result = $this->run();
         if ($result === [7,7,7]) {
             $amount = $jackpot->getAmount();
