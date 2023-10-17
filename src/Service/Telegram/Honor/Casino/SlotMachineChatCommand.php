@@ -62,6 +62,9 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
      */
     private function run(): array
     {
+        if (Random::getNumber(1000) === 1) {
+            return ['✡️', '✡️', '✡️'];
+        }
         $options = ['🍒', '🍋', '🍊', '🍇', '🍉', '🍓', '🍍', '🍌', 7, '🍎'];
         return [
             Random::arrayElement($options),
@@ -99,6 +102,20 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             $this->honorService->removeHonor($chat, $user, self::PRICE);
             $this->telegramService->sendText($chat->getChatId(), sprintf($text, $user->getName(), NumberFormat::format($amount)));
             $jackpot->setAmount(0);
+            $this->manager->flush();
+            $this->telegramService->answerCallbackQuery($callbackQuery);
+            return;
+        }
+        if ($result === ['✡️', '✡️', '✡️']) {
+            $amount = 10_000_000;
+            $this->honorService->removeHonor($chat, $user, $amount);
+            $jackpot->setAmount($jackpot->getAmount() + $amount);
+            $text = <<<TEXT
+            🎰 ✡️ ✡️ ✡️ 🎰
+            
+            @%s lost %s Ehre
+            TEXT;
+            $this->telegramService->sendText($chat->getChatId(), sprintf($text, $user->getName(), NumberFormat::format($amount)));
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery);
             return;
