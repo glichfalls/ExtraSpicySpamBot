@@ -3,7 +3,6 @@
 namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Message\Message;
-use App\Repository\DrawRepository;
 use App\Service\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
@@ -17,13 +16,15 @@ use TelegramBot\Api\Types\Update;
 class SlotMachineChatCommand extends AbstractTelegramChatCommand
 {
 
+    private const PRICE = 1000;
+
     public function __construct(
         EntityManagerInterface $manager,
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
         private readonly HonorService $honorService,
-        private readonly DrawRepository $drawRepository,
+
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -36,37 +37,35 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand
     public function handle(Update $update, Message $message, array $matches): void
     {
         $currentHonor = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
-        if ($matches['amount'] === 'max') {
-            $amount = $currentHonor;
-        } else {
-            $amount = NumberFormat::getIntValue($matches['amount'], $matches['abbr'] ?? null);
-        }
-        if ($amount < 0) {
-            $this->logger->info('GAMBLE failed, negative honor');
-            $this->telegramService->replyTo($message, 'you cannot gamble negative Ehre');
-            return;
-        }
-        if ($currentHonor < $amount) {
-            $this->logger->info('GAMBLE failed, not enough honor');
+        if ($currentHonor < self::PRICE) {
             $this->telegramService->replyTo($message, 'not enough Ehre');
             return;
         }
+        $jackpot = $this->honorService->getSlotMachineJackpot($message->getChat());
+        $this->honorService->removeHonor($message->getChat(), $message->getUser(), self::PRICE);
         $result = $this->run();
-        $multiplier = $this->getMultiplier($result);
-        $resultAmount = $amount * $multiplier;
-        if ($resultAmount > 0) {
-            $this->honorService->addHonor($message->getChat(), $message->getUser(), $resultAmount);
+        if ($result === [7,7,7]) {
+            $amount = $jackpot->getAmount();
+            $this->honorService->addHonor($message->getChat(), $message->getUser(), $amount);
+            $text = <<<TEXT
+            🎰 %s 🎰
+            
+            JACKPOT
+            you win %s Ehre
+            TEXT;
+            $this->telegramService->replyTo($message, sprintf($text, implode(' ', $result), NumberFormat::format($amount)));
+            $jackpot->setAmount(0);
         } else {
-            $this->honorService->removeHonor($message->getChat(), $message->getUser(), $amount);
-            $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
-            $draw?->setGamblingLosses($draw->getGamblingLosses() + $amount);
+            $jackpot->setAmount($jackpot->getAmount() + self::PRICE);
+            $text = <<<TEXT
+            🎰 %s 🎰
+            
+            you lose
+            new jackpot: %s Ehre
+            TEXT;
+            $this->telegramService->replyTo($message, sprintf($text, implode(' ', $result), NumberFormat::format($jackpot->getAmount())));
         }
-        $text = <<<TEXT
-        🎰 %s 🎰
-        you win %s Ehre
-        TEXT;
         $this->manager->flush();
-        $this->telegramService->replyTo($message, sprintf($text, implode(' ', $result), NumberFormat::format($resultAmount)));
     }
 
     /**
@@ -79,14 +78,6 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand
             Random::getNumber(9, 0),
             Random::getNumber(9, 0),
         ];
-    }
-
-    private function getMultiplier(array $numbers): int
-    {
-        return match ($numbers) {
-            [7, 7, 7] => 1000,
-            default => 0,
-        };
     }
 
     public function getDescription(): string

@@ -5,8 +5,10 @@ namespace App\Service;
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
+use App\Entity\Honor\SlotMachine\SlotMachineJackpot;
 use App\Entity\User\User;
 use App\Repository\HonorRepository;
+use App\Repository\SlotMachineJackpotRepository;
 use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnexpectedResultException;
@@ -17,6 +19,7 @@ class HonorService
     public function __construct(
         private EntityManagerInterface $manager,
         private HonorRepository $honorRepository,
+        private SlotMachineJackpotRepository $slotMachineJackpotRepository,
     ) {
 
     }
@@ -56,6 +59,19 @@ class HonorService
     public function removeHonor(Chat $chat, User $recipient, int $amount, ?User $sender = null): void
     {
         $this->manager->persist(HonorFactory::create($chat, $sender, $recipient, -abs($amount)));
+    }
+
+    public function getSlotMachineJackpot(Chat $chat): SlotMachineJackpot
+    {
+        $jackpot = $this->slotMachineJackpotRepository->findOneBy(['chat' => $chat]);
+        if ($jackpot === null) {
+            $jackpot = new SlotMachineJackpot();
+            $jackpot->setChat($chat);
+            $jackpot->setAmount(0);
+            $jackpot->setActive(true);
+            $this->manager->persist($jackpot);
+        }
+        return $jackpot;
     }
 
 }
