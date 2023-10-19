@@ -7,8 +7,10 @@ use App\Entity\Honor\HonorFactory;
 use App\Entity\Honor\Raid\Raid;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
+use App\Service\Collectable\EffectType;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Utils\NumberFormat;
+use App\Utils\Random;
 use TelegramBot\Api\Types\Update;
 
 class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCallbackQueryListener
@@ -111,19 +113,25 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
 
     private function isSuccessful(Raid $raid): bool
     {
-        $baseChance = 50;
-        if ($raid->getSupporters()->count() + $raid->getDefenders()->count() === 1) {
-            return mt_rand(0, 1) === 1;
-        }
-        $baseChance -= $raid->getDefenders()->count() * 20;
-        $baseChance += $raid->getSupporters()->count() * 20;
-        if ($baseChance <= 0) {
+        $leaderEffects = $this->collectableService->getEffectsByUserAndType($raid->getLeader(), $raid->getChat(), [
+            EffectType::OFFENSIVE_RAID_SUCCESS,
+        ]);
+        $successChance = $leaderEffects->apply(50);
+        $targetEffects = $this->collectableService->getEffectsByUserAndType($raid->getTarget(), $raid->getChat(), [
+            EffectType::DEFENSIVE_RAID_SUCCESS,
+        ]);
+        $successChance = $targetEffects->apply($successChance);
+        if ($successChance <= 0) {
             return false;
         }
-        if ($baseChance >= 100) {
+        if ($successChance >= 100) {
             return true;
         }
-        return mt_rand(0, 100) <= $baseChance;
+        if ($raid->getSupporters()->count() + $raid->getDefenders()->count() === 1) {
+            return
+        }
+
+        return Random::getPercentChance($successChance);
     }
 
     private function success(Raid $raid): void
