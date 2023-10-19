@@ -16,10 +16,10 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
 
     public function __construct(
         EntityManagerInterface $manager,
-        TranslatorInterface    $translator,
-        LoggerInterface        $logger,
-        TelegramService        $telegramService,
-        private HonorService   $honorService,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly HonorService $honorService
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }

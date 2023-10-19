@@ -36,7 +36,7 @@ class HonorRepository extends ServiceEntityRepository
     public function getLeaderboard(Chat $chat): array
     {
         return $this->createQueryBuilder('h')
-            ->select('r.name, r.firstName, SUM(h.amount) as amount')
+            ->select('r.id, r.name, r.firstName, SUM(h.amount) as amount')
             ->join('h.recipient', 'r')
             ->where('h.chat = :chat')
             ->setParameter('chat', $chat)

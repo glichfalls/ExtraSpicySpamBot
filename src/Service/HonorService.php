@@ -3,23 +3,26 @@
 namespace App\Service;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Honor\SlotMachine\SlotMachineJackpot;
 use App\Entity\User\User;
+use App\Repository\BankAccountRepository;
 use App\Repository\HonorRepository;
 use App\Repository\SlotMachineJackpotRepository;
+use App\Repository\UserRepository;
 use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnexpectedResultException;
 
-class HonorService
+readonly class HonorService
 {
 
     public function __construct(
         private EntityManagerInterface $manager,
         private HonorRepository $honorRepository,
+        private BankAccountRepository $bankAccountRepository,
         private SlotMachineJackpotRepository $slotMachineJackpotRepository,
+        private UserRepository $userRepository,
     ) {
 
     }
@@ -30,12 +33,24 @@ class HonorService
         if (count($leaderboard) === 0) {
             return null;
         } else {
-            $text = array_map(function ($entry) {
-                $name = $entry['firstName'] ?? $entry['name'];
+            $text = array_map(function ($entry) use ($chat) {
+                $honor = $entry['amount'];
+                $user = $this->userRepository->find($entry['id']);
+                if ($user !== null) {
+                    $balance = $this->bankAccountRepository->getByChatAndUser($chat, $user)?->getBalance();
+                } else {
+                    $balance = null;
+                }
+                $text = <<<TEXT
+                <strong>%s</strong>
+                %s Ehre
+                %s Bank
+                TEXT;
                 return sprintf(
-                    '%s: %s Ehre',
-                    $name,
-                    NumberFormat::format($entry['amount'])
+                    $text,
+                    $user->getName() ?? $user->getFirstName(),
+                    NumberFormat::format($honor),
+                    NumberFormat::format($balance ?? 0),
                 );
             }, $leaderboard);
             return implode(PHP_EOL, $text);
