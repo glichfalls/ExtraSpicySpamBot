@@ -32,7 +32,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!deposit\s*(?<amount>\d+|max)(?<abbr>[km])?$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!deposit\s*(?<amount>\d+|max)(?<abbr>[kmbt])?$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void

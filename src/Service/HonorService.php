@@ -70,15 +70,15 @@ readonly class HonorService
                 TEXT;
                 return sprintf(
                     $text,
-                    NumberFormat::format($portfolioValue ?? 0),
-                    NumberFormat::format($balance ?? 0),
-                    NumberFormat::format($honor),
+                    str_pad(NumberFormat::format($portfolioValue ?? 0), 6),
+                    str_pad(NumberFormat::format($balance ?? 0), 6),
+                    str_pad(NumberFormat::format($honor), 6),
                     $user->getName() ?? $user->getFirstName(),
                 );
             }, $leaderboard);
             $header = <<<TEXT
             <b>Leaderboard</b>
-            [ stocks | bank | cash ]
+            [ stocks |  bank  |  cash  ]
             TEXT;
             array_unshift($text, $header);
             return implode(PHP_EOL, $text);
