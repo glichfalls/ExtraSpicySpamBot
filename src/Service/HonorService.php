@@ -53,15 +53,15 @@ readonly class HonorService
                 TEXT;
                 return sprintf(
                     $text,
-                    NumberFormat::format($honor),
-                    NumberFormat::format($balance ?? 0),
                     NumberFormat::format($honor + ($balance ?? 0)),
+                    NumberFormat::format($balance ?? 0),
+                    NumberFormat::format($honor),
                     $user->getName() ?? $user->getFirstName(),
                 );
             }, $leaderboard);
             $header = <<<TEXT
             <b>Leaderboard</b>
-            [ cash | bank | total ]
+            [ total | bank | cash ]
             TEXT;
             array_unshift($text, $header);
             return implode(PHP_EOL, $text);
