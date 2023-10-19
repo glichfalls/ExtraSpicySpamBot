@@ -49,11 +49,10 @@ readonly class HonorService
                 $balance = $entry['balance'];
                 $user = $entry['user'];
                 $text = <<<TEXT
-                [%s | %s | %s] <b>%s</b>
+                [ %s | %s ] <b>%s</b>
                 TEXT;
                 return sprintf(
                     $text,
-                    NumberFormat::format($honor + ($balance ?? 0)),
                     NumberFormat::format($balance ?? 0),
                     NumberFormat::format($honor),
                     $user->getName() ?? $user->getFirstName(),
@@ -61,7 +60,7 @@ readonly class HonorService
             }, $leaderboard);
             $header = <<<TEXT
             <b>Leaderboard</b>
-            [ total | bank | cash ]
+            [ bank | cash ]
             TEXT;
             array_unshift($text, $header);
             return implode(PHP_EOL, $text);

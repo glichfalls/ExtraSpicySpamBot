@@ -15,7 +15,7 @@ class NumberFormat
 
     public static function format(float|int $number): string
     {
-        if ($number > 1_000) {
+        if ($number >= 1_000) {
             return self::abbreviateNumber($number);
         }
         return number_format($number, thousands_separator: '\'');
