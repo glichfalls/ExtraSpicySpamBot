@@ -66,7 +66,7 @@ readonly class HonorService
                 $portfolioValue = $entry['portfolio'];
                 $user = $entry['user'];
                 $text = <<<TEXT
-                [ %s | %s | %s ] <b>%s</b>
+                [ <code>%s</code> | <code>%s</code> | <code>%s</code> ] <b>%s</b>
                 TEXT;
                 return sprintf(
                     $text,
@@ -78,7 +78,7 @@ readonly class HonorService
             }, $leaderboard);
             $header = <<<TEXT
             <b>Leaderboard</b>
-            [ stocks |  bank  |  cash  ]
+            [ <code>stocks</code> |  <code>bank</code>  |  <code>cash</code>  ]
             TEXT;
             array_unshift($text, $header);
             return implode(PHP_EOL, $text);
