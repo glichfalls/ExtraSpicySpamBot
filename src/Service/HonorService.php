@@ -59,6 +59,11 @@ readonly class HonorService
                     $user->getName() ?? $user->getFirstName(),
                 );
             }, $leaderboard);
+            $header = <<<TEXT
+            <b>Leaderboard</b>
+            [ cash | bank | total ]
+            TEXT;
+            array_unshift($text, $header);
             return implode(PHP_EOL, $text);
         }
     }
