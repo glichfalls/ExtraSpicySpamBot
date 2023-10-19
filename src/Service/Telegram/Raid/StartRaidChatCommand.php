@@ -127,10 +127,6 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
         if ($successChance >= 100) {
             return true;
         }
-        if ($raid->getSupporters()->count() + $raid->getDefenders()->count() === 1) {
-            return
-        }
-
         return Random::getPercentChance($successChance);
     }
 
@@ -138,7 +134,26 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
     {
         $raid->setIsActive(false);
         $raid->setIsSuccessful(true);
-        $honorPerSupporter = (int) ceil($raid->getAmount() / ($raid->getSupporters()->count() + 1));
+        $amount = $raid->getAmount();
+        for ($i = 0; $i < $raid->getSupporters()->count(); $i++) {
+            $amount *= 1.2; // 20% more for each supporter
+        }
+        $additionalAmount = $amount - $raid->getAmount();
+        for ($i = 0; $i < $raid->getDefenders()->count(); $i++) {
+            $amount *= 0.75; // 25% less for each defender
+        }
+        $reducedAmount = $raid->getAmount() - $amount;
+        $amount = (int) round($amount);
+        $this->logger->info(sprintf(
+            'raid successful total %s | +%s Ehre (%s sup), -%s Ehre (%s def)',
+            NumberFormat::format($amount),
+            NumberFormat::format($additionalAmount),
+            $raid->getSupporters()->count(),
+            NumberFormat::format($reducedAmount),
+            $raid->getDefenders()->count(),
+        ));
+        $numberOfSupporters = $raid->getSupporters()->count() + 1;
+        $honorPerSupporter = (int) ceil($amount / $numberOfSupporters);
         // add honor to leader
         $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getLeader(), $honorPerSupporter));
         // add honor to supporters

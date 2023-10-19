@@ -13,6 +13,7 @@ use App\Repository\DrawRepository;
 use App\Repository\HonorRepository;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -82,10 +83,10 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
             $this->manager->flush();
             sort($numbers);
             $this->telegramService->replyTo($message, sprintf(
-                'you bought %d tickets (%s) for %d ehre',
+                'you bought %d tickets (%s) for %s ehre',
                 count($numbers),
                 implode(', ', $numbers),
-                $total,
+                NumberFormat::format($total),
             ));
         } catch (\InvalidArgumentException $exception) {
             $this->manager->clear();
@@ -133,9 +134,9 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
             $honor = $this->honorRepository->getHonorCount($user, $chat);
             if ($ticketPrice > $honor) {
                 throw new \InvalidArgumentException(sprintf(
-                    'you need %d ehre to buy a ticket, but you only have %d ehre',
-                    $ticketPrice,
-                    $honor,
+                    'you need %s ehre to buy a ticket, but you only have %s ehre',
+                    NumberFormat::format($ticketPrice),
+                    NumberFormat::format($honor),
                 ));
             }
             $this->manager->persist(HonorFactory::create($chat, null, $user, -$ticketPrice));
