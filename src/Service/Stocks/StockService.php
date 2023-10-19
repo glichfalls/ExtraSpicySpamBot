@@ -28,7 +28,7 @@ use Psr\Log\LoggerInterface;
 class StockService
 {
 
-    public const STOCK_UPDATE_INTERVAL_MINUTES = 5;
+    public const STOCK_UPDATE_INTERVAL_HOURS = 12;
 
     private DefaultApi $client;
 
@@ -95,19 +95,7 @@ class StockService
         if (RateLimitUtils::getDaysFrom($stockPrice->getCreatedAt()) > 0) {
             return true;
         }
-        // Always update if the price is older than 5 minutes and it's trading hours
-        if ($now->format('H') >= 8 || $now->format('H') <= 23) {
-            return RateLimitUtils::getMinutesFrom($stockPrice->getCreatedAt()) >= self::STOCK_UPDATE_INTERVAL_MINUTES;
-        }
-        // Don't update on weekends
-        if ($now->format('N') >= 6) {
-            return false;
-        }
-        // Don't update outside of trading hours
-        if ($stockPrice->getCreatedAt()->format('H') < 23 || $stockPrice->getCreatedAt()->format('H') > 15) {
-            return true;
-        }
-        return false;
+        return RateLimitUtils::getHoursFrom($stockPrice->getCreatedAt()) >= self::STOCK_UPDATE_INTERVAL_HOURS;
     }
 
     /**
