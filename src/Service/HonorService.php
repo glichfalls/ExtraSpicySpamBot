@@ -33,24 +33,30 @@ readonly class HonorService
         if (count($leaderboard) === 0) {
             return null;
         } else {
+            // fetch user and balance
+            foreach ($leaderboard as $key => $entry) {
+                $user = $this->userRepository->find($entry['id']);
+                $leaderboard[$key]['user'] = $user;
+                $balance = $this->bankAccountRepository->getByChatAndUser($chat, $user)?->getBalance();
+                $leaderboard[$key]['balance'] = $balance;
+                $leaderboard[$key]['total'] = $entry['amount'] + $balance;
+            }
+            // sort by total
+            usort($leaderboard, fn ($a, $b) => $b['total'] <=> $a['total']);
+            // format text
             $text = array_map(function ($entry) use ($chat) {
                 $honor = $entry['amount'];
-                $user = $this->userRepository->find($entry['id']);
-                if ($user !== null) {
-                    $balance = $this->bankAccountRepository->getByChatAndUser($chat, $user)?->getBalance();
-                } else {
-                    $balance = null;
-                }
+                $balance = $entry['balance'];
+                $user = $entry['user'];
                 $text = <<<TEXT
-                <strong>%s</strong>
-                %s Ehre
-                %s Bank
+                [%s | %s | %s] <b>%s</b>
                 TEXT;
                 return sprintf(
                     $text,
-                    $user->getName() ?? $user->getFirstName(),
                     NumberFormat::format($honor),
                     NumberFormat::format($balance ?? 0),
+                    NumberFormat::format($honor + ($balance ?? 0)),
+                    $user->getName() ?? $user->getFirstName(),
                 );
             }, $leaderboard);
             return implode(PHP_EOL, $text);
