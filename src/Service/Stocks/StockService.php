@@ -2,12 +2,18 @@
 
 namespace App\Service\Stocks;
 
+use App\Entity\Chat\Chat;
+use App\Entity\Stocks\Portfolio\Portfolio;
+use App\Entity\Stocks\Portfolio\PortfolioFactory;
 use App\Entity\Stocks\Stock\Stock;
 use App\Entity\Stocks\Stock\StockFactory;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Stock\StockPriceFactory;
+use App\Entity\User\User;
 use App\Exception\StockSymbolUpdateException;
+use App\Repository\Stocks\PortfolioRepository;
 use App\Repository\Stocks\StockRepository;
+use App\Utils\NumberFormat;
 use App\Utils\RateLimitUtils;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -30,10 +36,35 @@ class StockService
         private LoggerInterface $logger,
         private EntityManagerInterface $manager,
         private StockRepository $stockRepository,
+        protected PortfolioRepository $portfolioRepository,
         string $finnhubApiKey,
     ) {
         $config = Configuration::getDefaultConfiguration()->setApiKey('token', $finnhubApiKey);
         $this->client = new DefaultApi(new Client(), $config);
+    }
+
+    public function getPortfolioByUserAndChat(Chat $chat, User $user): Portfolio
+    {
+        $portfolio = $this->portfolioRepository->getByChatAndUser($chat, $user);
+        if ($portfolio === null) {
+            $portfolio = PortfolioFactory::create($chat, $user);
+            $this->manager->persist($portfolio);
+            $this->manager->flush();
+        }
+        return $portfolio;
+    }
+
+    public function getPortfolioBalance(Portfolio $portfolio): int
+    {
+        $total = 0;
+        foreach ($portfolio->getBalance() as $transactions) {
+            if ($transactions->getTotalAmount() === 0) {
+                continue;
+            }
+            $currentPrice = $this->getPriceBySymbol($transactions->getSymbol());
+            $total += $transactions->getCurrentHonorTotal($currentPrice);
+        }
+        return $total;
     }
 
     public function getPriceBySymbol(string $symbol): ?StockPrice

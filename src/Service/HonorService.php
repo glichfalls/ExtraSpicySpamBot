@@ -10,19 +10,23 @@ use App\Repository\BankAccountRepository;
 use App\Repository\HonorRepository;
 use App\Repository\SlotMachineJackpotRepository;
 use App\Repository\UserRepository;
+use App\Service\Stocks\StockService;
 use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnexpectedResultException;
+use Psr\Log\LoggerInterface;
 
 readonly class HonorService
 {
 
     public function __construct(
+        private LoggerInterface $logger,
         private EntityManagerInterface $manager,
         private HonorRepository $honorRepository,
         private BankAccountRepository $bankAccountRepository,
         private SlotMachineJackpotRepository $slotMachineJackpotRepository,
         private UserRepository $userRepository,
+        private StockService $stockService,
     ) {
 
     }
@@ -39,7 +43,19 @@ readonly class HonorService
                 $leaderboard[$key]['user'] = $user;
                 $balance = $this->bankAccountRepository->getByChatAndUser($chat, $user)?->getBalance();
                 $leaderboard[$key]['balance'] = $balance;
-                $leaderboard[$key]['total'] = $entry['amount'] + $balance;
+                $portfolio = $this->stockService->getPortfolioByUserAndChat($chat, $user);
+                try {
+                    $portfolioValue = $this->stockService->getPortfolioBalance($portfolio);
+                } catch (\Exception $exception) {
+                    $portfolioValue = 0;
+                    $this->logger->error('failed to get portfolio balance', [
+                        'exception' => $exception,
+                        'chat' => $chat->getId(),
+                        'user' => $user->getId(),
+                    ]);
+                }
+                $leaderboard[$key]['portfolio'] = $portfolioValue;
+                $leaderboard[$key]['total'] = $entry['amount'] + $balance + $portfolioValue;
             }
             // sort by total
             usort($leaderboard, fn ($a, $b) => $b['total'] <=> $a['total']);
@@ -47,12 +63,14 @@ readonly class HonorService
             $text = array_map(function ($entry) use ($chat) {
                 $honor = $entry['amount'];
                 $balance = $entry['balance'];
+                $portfolioValue = $entry['portfolio'];
                 $user = $entry['user'];
                 $text = <<<TEXT
-                [ %s | %s ] <b>%s</b>
+                [ %s | %s | %s ] <b>%s</b>
                 TEXT;
                 return sprintf(
                     $text,
+                    NumberFormat::format($portfolioValue ?? 0),
                     NumberFormat::format($balance ?? 0),
                     NumberFormat::format($honor),
                     $user->getName() ?? $user->getFirstName(),
@@ -60,7 +78,7 @@ readonly class HonorService
             }, $leaderboard);
             $header = <<<TEXT
             <b>Leaderboard</b>
-            [ bank | cash ]
+            [ stocks | bank | cash ]
             TEXT;
             array_unshift($text, $header);
             return implode(PHP_EOL, $text);

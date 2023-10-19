@@ -4,6 +4,7 @@ namespace App\Service\Telegram\Honor;
 
 use App\Entity\Message\Message;
 use App\Service\HonorService;
+use App\Service\Stocks\StockService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,7 +20,7 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private readonly HonorService $honorService
+        private readonly HonorService $honorService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
