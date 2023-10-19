@@ -33,9 +33,9 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
     {
         $leaderboard = $this->honorService->getLeaderboardByChat($message->getChat());
         if ($leaderboard === null) {
-            $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.noLeaderboard'), parseMode: 'HTML');
+            $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.noLeaderboard'));
         } else {
-            $this->telegramService->replyTo($message, $leaderboard);
+            $this->telegramService->replyTo($message, $leaderboard, parseMode: 'HTML');
         }
     }
 
