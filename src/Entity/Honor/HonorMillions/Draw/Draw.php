@@ -20,7 +20,7 @@ class Draw
 {
     use Id;
 
-    #[Column(type: 'integer')]
+    #[Column(type: 'bigint')]
     private int $previousJackpot;
 
     #[Column(type: 'bigint', options: ['default' => 0])]
