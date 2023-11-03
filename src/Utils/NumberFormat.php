@@ -6,6 +6,8 @@ class NumberFormat
 {
 
     public const ABBREVIATION = [
+        18 => 'Qi',
+        15 => 'Q',
         12 => 'T',
         9 => 'B',
         6 => 'M',
@@ -35,13 +37,12 @@ class NumberFormat
         foreach (self::ABBREVIATION as $exponent => $abbrev) {
             if (abs($number) >= pow(10, $exponent)) {
                 $display = $number / pow(10, $exponent);
-                $decimals = ($exponent >= 3 && round($display) < 100) ? 1 : 0;
-                $number = number_format($display, $decimals) . $abbrev;
-                break;
+                $decimals = (int) ($exponent >= 3 && $display < 100);
+                $display = floor($display * pow(10, $decimals)) / pow(10, $decimals);
+                return number_format($display, $decimals) . $abbrev;
             }
         }
-
-        return $number;
+        return (string) $number;
     }
 
     public static function unabbreviateNumber(string $number): ?int
@@ -49,22 +50,20 @@ class NumberFormat
         if (!self::isAbbreviatedNumber($number)) {
             return null;
         }
-        $number = trim($number);
-        $number = preg_replace('/K$/i', '000', $number);
-        $number = preg_replace('/M$/i', '000000', $number);
-        $number = preg_replace('/B$/i', '000000000', $number);
-        $number = preg_replace('/T$/i', '000000000000', $number);
+        $number = strtoupper(trim($number));
+        foreach (self::ABBREVIATION as $multiplier => $suffix) {
+            if (str_ends_with($number, $suffix)) {
+                $value = substr($number, 0, -strlen($suffix));
+                return (int) $value . str_repeat('0', $multiplier);
+            }
+        }
         return (int) $number;
     }
 
     public static function isAbbreviatedNumber(string $number): bool
     {
-        // number must end with K, M, B or T
-        if (preg_match('/[KMBT]$/i', $number) === false) {
-            return false;
-        }
-        $numberWithoutSuffix = substr(trim($number), 0, -1);
-        return is_numeric($numberWithoutSuffix);
+        $suffixGroup = implode('|', array_values(self::ABBREVIATION));
+        return preg_match('/^\d+(\.\d+)?(' . $suffixGroup . ')$/i', $number) === 1;
     }
 
     /**

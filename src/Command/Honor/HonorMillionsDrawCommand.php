@@ -6,6 +6,8 @@ use App\Entity\Honor\HonorFactory;
 use App\Entity\Honor\HonorMillions\Draw\DrawFactory;
 use App\Repository\DrawRepository;
 use App\Service\Telegram\TelegramService;
+use App\Utils\NumberFormat;
+use App\Utils\Random;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -17,9 +19,9 @@ class HonorMillionsDrawCommand extends Command
 {
 
     public function __construct(
-        private EntityManagerInterface $manager,
-        private DrawRepository $drawRepository,
-        private TelegramService $telegramService,
+        private readonly EntityManagerInterface $manager,
+        private readonly DrawRepository $drawRepository,
+        private readonly TelegramService $telegramService,
     ) {
         parent::__construct();
     }
@@ -27,20 +29,13 @@ class HonorMillionsDrawCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         foreach ($this->drawRepository->getDrawsByDate(new \DateTime()) as $draw) {
-            // use the winning number from the draw if it exists, otherwise generate a random number
-            // this is useful to re-run the command if something went wrong without changing the winning number
-            $number = $draw->getWinningNumber() ?? random_int(1, 100);
-            $this->telegramService->sendText(
-                $draw->getChat()->getChatId(),
-                sprintf('The ehre Millions draw has been made! The winning number is %d', $number),
-                $draw->getTelegramThreadId(),
-            );
+            $number = $draw->getWinningNumber() ?? Random::getNumber(100);
             $draw->setWinningNumber($number);
             $winners = $draw->getWinners();
             if ($winners->count() === 0) {
                 $this->telegramService->sendText(
                     $draw->getChat()->getChatId(),
-                    'Unfortunately, there are no winners this time.',
+                    sprintf('[no winner] Ehre Millions winning number: %d', $number),
                     $draw->getTelegramThreadId(),
                 );
                 $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());
@@ -52,23 +47,24 @@ class HonorMillionsDrawCommand extends Command
                 foreach ($winners as $winner) {
                     $this->telegramService->sendText(
                         $draw->getChat()->getChatId(),
-                        sprintf('Congratulations %s, you have won %d ehre!', $winner->getUser()->getName(), $amountPerWinner),
+                        sprintf(
+                            '[@%s] Ehre Millions winning number <strong>%d</strong> [WIN %s Ehre]',
+                            $winner->getUser()->getName() ?? $winner->getUser()->getFirstName(),
+                            $number,
+                            NumberFormat::format($amountPerWinner),
+                        ),
                         $draw->getTelegramThreadId(),
+                        parseMode: 'HTML',
                     );
                     $this->manager->persist(HonorFactory::create($draw->getChat(), null, $winner->getUser(), $amountPerWinner));
                 }
                 $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());
                 $nextDraw->setChat($draw->getChat());
                 $nextDraw->setPreviousDraw(null);
-                $nextDraw->setPreviousJackpot(100_000);
+                $nextDraw->setPreviousJackpot(1_000_000);
             }
             $this->manager->persist($nextDraw);
             $this->manager->flush();
-            $this->telegramService->sendText(
-                $draw->getChat()->getChatId(),
-                sprintf('The next draw will be on %s', $nextDraw->getDate()->format('d.m.Y')),
-                $draw->getTelegramThreadId(),
-            );
         }
         return Command::SUCCESS;
     }
