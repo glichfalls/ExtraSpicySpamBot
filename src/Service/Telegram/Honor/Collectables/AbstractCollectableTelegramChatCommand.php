@@ -2,10 +2,11 @@
 
 namespace App\Service\Telegram\Honor\Collectables;
 
-use App\Repository\CollectableItemInstanceRepository;
-use App\Repository\CollectableRepository;
+use App\Repository\ItemInstanceRepository;
+use App\Repository\ItemRepository;
 use App\Repository\HonorRepository;
-use App\Service\Collectable\CollectableService;
+use App\Service\Items\CollectableService;
+use App\Service\Items\ItemService;
 use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,8 +25,9 @@ abstract class AbstractCollectableTelegramChatCommand extends AbstractTelegramHo
         TelegramService $telegramService,
         HonorRepository $honorRepository,
         protected CollectableService $collectableService,
-        protected CollectableRepository $collectableRepository,
-        protected CollectableItemInstanceRepository $collectableItemInstanceRepository,
+        protected ItemRepository $collectableRepository,
+        protected ItemInstanceRepository $collectableItemInstanceRepository,
+        protected ItemService $itemService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService, $honorRepository);
     }

@@ -2,9 +2,10 @@
 
 namespace App\Service\Telegram\Honor\Collectables;
 
-use App\Entity\Collectable\CollectableItemInstance;
+use App\Entity\Item\ItemInstance;
 use App\Entity\Message\Message;
-use App\Service\Telegram\Honor\Collectables\Trade\ShowCollectableInfoChatCommand;
+use App\Service\Telegram\Honor\Collectables\Trade\ShowItemInfoChatCommand;
+use Doctrine\Common\Collections\Collection;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
@@ -18,7 +19,7 @@ final class ShowCollectionChatCommand extends AbstractCollectableTelegramChatCom
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $collection = $this->collectableService->getCollection($message->getChat(), $message->getUser());
+        $collection = $this->itemService->getInstanceCollection($message->getChat(), $message->getUser());
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
             sprintf('%s\'s collection', $message->getUser()->getName()),
@@ -28,17 +29,17 @@ final class ShowCollectionChatCommand extends AbstractCollectableTelegramChatCom
     }
 
     /**
-     * @param CollectableItemInstance[] $collectables
+     * @param Collection<ItemInstance> $instances
      * @return InlineKeyboardMarkup
      */
-    public function getKeyboards(array $collectables): InlineKeyboardMarkup
+    public function getKeyboards(Collection $instances): InlineKeyboardMarkup
     {
         $keyboard = [];
         $row = [];
-        foreach ($collectables as $collectable) {
-            $data = sprintf('%s:%s', ShowCollectableInfoChatCommand::CALLBACK_KEYWORD, $collectable->getId());
+        foreach ($instances as $instance) {
+            $data = sprintf('%s:%s', ShowItemInfoChatCommand::CALLBACK_KEYWORD, $instance->getId());
             $row[] = [
-                'text' => $collectable->getCollectable()->getName(),
+                'text' => $instance->getItem()->getName(),
                 'callback_data' => $data,
             ];
             if (count($row) === 3) {

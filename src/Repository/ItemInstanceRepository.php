@@ -3,25 +3,25 @@
 namespace App\Repository;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\CollectableItemInstance;
+use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-class CollectableItemInstanceRepository extends ServiceEntityRepository
+class ItemInstanceRepository extends ServiceEntityRepository
 {
 
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, CollectableItemInstance::class);
+        parent::__construct($registry, ItemInstance::class);
     }
 
     /**
      * @param Chat $chat
      * @param User $user
-     * @return CollectableItemInstance[]
+     * @return ItemInstance[]
      */
-    public function getCurrentCollectionByChatAndUser(Chat $chat, User $user): array
+    public function getCollectionByChatAndUser(Chat $chat, User $user): array
     {
         return $this->createQueryBuilder('i')
             ->andWhere('i.chat = :chat')

@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Entity\Collectable;
+namespace App\Entity\Item;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use App\Entity\Collectable\Effect\Effect;
+use App\Entity\Item\Attribute\ItemAttribute;
+use App\Entity\Item\Attribute\ItemRarity;
+use App\Entity\Item\Effect\Effect;
 use App\Model\Id;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -34,7 +36,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
     'effect' => 'exact',
     'instances' => 'exact',
 ])]
-class Collectable
+class Item
 {
     use Id;
 
@@ -46,13 +48,21 @@ class Collectable
     #[Groups(['collectable:read'])]
     private string $description;
 
-    #[Column(type: 'boolean')]
+    #[Column(type: 'string', enumType: ItemRarity::class)]
     #[Groups(['collectable:read'])]
-    private bool $tradeable;
+    private ItemRarity $rarity;
 
     #[Column(type: 'boolean')]
     #[Groups(['collectable:read'])]
-    private bool $isUnique;
+    private bool $permanent;
+
+    #[Column(type: 'json')]
+    #[Groups(['collectable:read'])]
+    private array $attributes;
+
+    #[Column(type: 'bigint', nullable: true)]
+    #[Groups(['collectable:read'])]
+    private ?int $price = null;
 
     #[Column(type: 'text', nullable: true)]
     #[Groups(['collectable:read'])]
@@ -62,7 +72,7 @@ class Collectable
     #[Groups(['collectable:read'])]
     private Collection $effects;
 
-    #[OneToMany(mappedBy: 'collectable', targetEntity: CollectableItemInstance::class)]
+    #[OneToMany(mappedBy: 'item', targetEntity: ItemInstance::class)]
     private Collection $instances;
 
     public function __construct()
@@ -92,24 +102,61 @@ class Collectable
         $this->description = $description;
     }
 
-    public function isTradeable(): bool
+    public function getRarity(): ItemRarity
     {
-        return $this->tradeable;
+        return $this->rarity;
     }
 
-    public function setTradeable(bool $tradeable): void
+    public function setRarity(ItemRarity $rarity): void
     {
-        $this->tradeable = $tradeable;
+        $this->rarity = $rarity;
     }
 
-    public function isUnique(): bool
+    public function isPermanent(): bool
     {
-        return $this->isUnique;
+        return $this->permanent;
     }
 
-    public function setUnique(bool $unique): void
+    public function setPermanent(bool $permanent): void
     {
-        $this->isUnique = $unique;
+        $this->permanent = $permanent;
+    }
+
+    /**
+     * @return array<ItemAttribute>
+     */
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    /**
+     * @param array<ItemAttribute> $attributes
+     * @return void
+     */
+    public function setAttributes(array $attributes): void
+    {
+        $this->attributes = $attributes;
+    }
+
+    public function addAttribute(string $key, ItemAttribute $value): void
+    {
+        $this->attributes[$key] = $value;
+    }
+
+    public function removeAttribute(string $key): void
+    {
+        unset($this->attributes[$key]);
+    }
+
+    public function getPrice(): ?int
+    {
+        return $this->price;
+    }
+
+    public function setPrice(?int $price): void
+    {
+        $this->price = $price;
     }
 
     public function getImagePublicPath(): ?string
@@ -156,17 +203,14 @@ class Collectable
         return $this->instances;
     }
 
-    public function addInstance(CollectableItemInstance $instance): void
+    public function addInstance(ItemInstance $instance): void
     {
         $this->instances->add($instance);
     }
 
     public function isInstancable(): bool
     {
-        if (!$this->isUnique()) {
-            return true;
-        }
-        return $this->getInstances()->count() === 0;
+        return true;
     }
 
 }

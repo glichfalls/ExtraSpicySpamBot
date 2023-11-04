@@ -13,6 +13,14 @@ class Random
         return self::getNumber(100) <= $probability;
     }
 
+    public static function getBiasedRandomNumber(int $max, int $min = 1): bool
+    {
+        $bias = log($max);
+        $random = rand(1, $max);
+        $biasedRandom = floor(exp($random / $bias));
+        return max($min, min($max, $biasedRandom));
+    }
+
     public static function getNumber(int $max, int $min = 1): int
     {
         return mt_rand($min, $max);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Collectable\Effect;
+namespace App\Entity\Item\Effect;
 
 use Doctrine\Common\Collections\ArrayCollection;
 

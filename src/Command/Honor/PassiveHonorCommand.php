@@ -3,10 +3,10 @@
 namespace App\Command\Honor;
 
 use App\Entity\Honor\HonorFactory;
+use App\Entity\Item\Effect\EffectType;
 use App\Repository\ChatRepository;
 use App\Repository\UserRepository;
-use App\Service\Collectable\CollectableService;
-use App\Service\Collectable\EffectType;
+use App\Service\Items\CollectableService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

@@ -3,14 +3,14 @@
 namespace App\Service\Telegram\Honor\Collectables\Trade;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\CollectableItemInstance;
+use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
-use App\Service\Telegram\Honor\Collectables\AbstractCollectableTelegramCallbackQuery;
+use App\Service\Telegram\Honor\Collectables\AbstractItemTelegramCallbackQuery;
 use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramCallbackQuery
+class OpenItemTradeChatCommand extends AbstractItemTelegramCallbackQuery
 {
 
     public const CALLBACK_KEYWORD = 'trade:open';
@@ -22,22 +22,19 @@ class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramCallbac
 
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
-        $data = explode(':', $update->getCallbackQuery()->getData());
-        $collectableId = array_pop($data);
-        $collectable = $this->collectableService->getInstanceById($collectableId);
-        if ($collectable === null) {
-            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Collectable not found.', true);
+        $instance = $this->collectableService->getInstanceById($this->getCallbackDataId($update));
+        if ($instance === null) {
+            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Item not found.', true);
             return;
         }
-        $activeAuction = $this->collectableService->getActiveAuction($collectable);
+        $activeAuction = $this->collectableService->getActiveAuction($instance);
         if ($activeAuction === null) {
-            $this->collectableService->createAuction($collectable);
-            $format = <<<MESSAGE
-            @%s: someone wants to buy %s
-            
-            You can now start bidding.
-            MESSAGE;
-            $message = sprintf($format, $collectable->getOwner()->getName(), $collectable->getCollectable()->getName());
+            $this->collectableService->createAuction($instance);
+            $message = sprintf(
+                '@%s: someone wants to buy %s',
+                $instance->getOwner()->getName(),
+                $instance->getItem()->getName()
+            );
         } else {
             $message = sprintf('current bid: %s Ehre', NumberFormat::format($activeAuction->getHighestBid()));
         }
@@ -45,16 +42,16 @@ class OpenCollectableTradeChatCommand extends AbstractCollectableTelegramCallbac
             $chat->getChatId(),
             $message,
             threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
-            replyMarkup: $this->getKeyboard($collectable),
+            replyMarkup: $this->getKeyboard($instance),
         );
         $this->telegramService->answerCallbackQuery($update->getCallbackQuery());
     }
 
-    private function getKeyboard(CollectableItemInstance $instance): InlineKeyboardMarkup
+    private function getKeyboard(ItemInstance $instance): InlineKeyboardMarkup
     {
         $keyboard = [];
-        $data = sprintf('%s:%s', CreateCollectableBidChatCommand::CALLBACK_KEYWORD, $instance->getId());
-        $options = [1_000, 10_000, 100_000];
+        $data = sprintf('%s:%s', CreateItemBidChatCommand::CALLBACK_KEYWORD, $instance->getId());
+        $options = [1_000, 10_000, 100_000, 1_000_000];
         $row = [];
         foreach ($options as $option) {
             $row[] = [

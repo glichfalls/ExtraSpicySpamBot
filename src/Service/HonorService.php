@@ -16,7 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnexpectedResultException;
 use Psr\Log\LoggerInterface;
 
-readonly class HonorService
+class HonorService
 {
 
     public function __construct(

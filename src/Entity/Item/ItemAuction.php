@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Entity\Collectable;
+namespace App\Entity\Item;
 
 use App\Entity\User\User;
 use App\Model\Id;
-use App\Repository\CollectableAuctionRepository;
+use App\Repository\ItemAuctionRepository;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[Entity(repositoryClass: CollectableAuctionRepository::class)]
-class CollectableAuction
+#[Entity(repositoryClass: ItemAuctionRepository::class)]
+class ItemAuction
 {
     use Id;
     use TimestampableEntity;
 
-    #[ManyToOne(targetEntity: CollectableItemInstance::class)]
-    private CollectableItemInstance $instance;
+    #[ManyToOne(targetEntity: ItemInstance::class)]
+    private ItemInstance $instance;
 
     #[ManyToOne(targetEntity: User::class)]
     private ?User $seller = null;
@@ -36,12 +36,12 @@ class CollectableAuction
         $this->generateId();
     }
 
-    public function getInstance(): CollectableItemInstance
+    public function getInstance(): ItemInstance
     {
         return $this->instance;
     }
 
-    public function setInstance(CollectableItemInstance $instance): void
+    public function setInstance(ItemInstance $instance): void
     {
         $this->instance = $instance;
     }

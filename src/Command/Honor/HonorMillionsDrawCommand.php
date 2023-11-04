@@ -29,13 +29,22 @@ class HonorMillionsDrawCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         foreach ($this->drawRepository->getDrawsByDate(new \DateTime()) as $draw) {
-            $number = $draw->getWinningNumber() ?? Random::getNumber(100);
-            $draw->setWinningNumber($number);
+            if ($draw->getWinningNumber() !== null) {
+                continue;
+            }
+            $winningNumber = Random::getNumber(100);
+            $draw->setWinningNumber($winningNumber);
             $winners = $draw->getWinners();
             if ($winners->count() === 0) {
+                $message = <<<MESSAGE
+                Ehre Millions
+                The number is <strong>%s</strong>
+
+                No winner this time.
+                MESSAGE;
                 $this->telegramService->sendText(
                     $draw->getChat()->getChatId(),
-                    sprintf('[no winner] Ehre Millions winning number: %d', $number),
+                    sprintf($message, $winningNumber),
                     $draw->getTelegramThreadId(),
                 );
                 $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());
@@ -45,12 +54,19 @@ class HonorMillionsDrawCommand extends Command
                 $jackpot = $draw->getJackpot();
                 $amountPerWinner = (int) ceil(abs($jackpot) / $winners->count());
                 foreach ($winners as $winner) {
+                    $message = <<<MESSAGE
+                    Ehre Millions
+                    The number is <strong>%s</strong>
+                    
+                    @%s
+                    WINS %s Ehre
+                    MESSAGE;
                     $this->telegramService->sendText(
                         $draw->getChat()->getChatId(),
                         sprintf(
-                            '[@%s] Ehre Millions winning number <strong>%d</strong> [WIN %s Ehre]',
+                            $message,
                             $winner->getUser()->getName() ?? $winner->getUser()->getFirstName(),
-                            $number,
+                            $winningNumber,
                             NumberFormat::format($amountPerWinner),
                         ),
                         $draw->getTelegramThreadId(),

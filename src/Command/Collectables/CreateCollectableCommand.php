@@ -2,9 +2,9 @@
 
 namespace App\Command\Collectables;
 
-use App\Entity\Collectable\Collectable;
+use App\Entity\Item\Item;
 use App\Repository\ChatRepository;
-use App\Service\Collectable\CollectableService;
+use App\Service\Items\CollectableService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -36,7 +36,7 @@ class CreateCollectableCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $collectable = new Collectable();
+        $collectable = new Item();
         $collectable->setName($input->getArgument('name'));
         $collectable->setDescription($input->getArgument('description'));
         $collectable->setImagePublicPath(sprintf('collectable/%s', $input->getArgument('image')));

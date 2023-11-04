@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\Effect\Effect;
+use App\Entity\Item\Effect\Effect;
 use App\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\Collection;

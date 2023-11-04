@@ -3,14 +3,13 @@
 namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\Collectable;
-use App\Entity\Collectable\CollectableItemInstance;
-use App\Entity\Collectable\Effect\Effect;
+use App\Entity\Item\Attribute\ItemRarity;
+use App\Entity\Item\Effect\EffectType;
+use App\Entity\Item\ItemInstance;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\HonorRepository;
-use App\Service\Collectable\CollectableService;
-use App\Service\Collectable\EffectType;
+use App\Service\Items\CollectableService;
 use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
@@ -77,7 +76,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             $size = $data[1];
             $price = $this->getPrice($size);
             if ($price === null) {
-                $this->telegramService->answerCallbackQuery($callbackQuery, 'Invalid size');
+                $this->telegramService->answerCallbackQuery($callbackQuery, 'Invalid size', true);
                 return;
             }
             $currentHonor = $this->getCurrentHonorAmount($chat, $user);
@@ -90,32 +89,26 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                 $result = $this->getLootboxWin($chat, $user, $size);
                 if ($result === 0) {
                     $result = $this->getRandomJunk();
-                    $this->telegramService->answerCallbackQuery($callbackQuery, sprintf('You won %s', $result));
-                    $this->telegramService->sendText(
-                        $chat->getChatId(),
-                        sprintf('%s won %s from a <strong>%s</strong> lootbox', $user->getName() ?? $user->getFirstName(), $result, ucfirst($size)),
-                        threadId: $callbackQuery->getMessage()->getMessageThreadId(),
-                        parseMode: 'HTML',
-                    );
+                    $this->telegramService->answerCallbackQuery($callbackQuery, sprintf('You won %s', $result), true);
                     $this->manager->flush();
                     return;
                 }
             } catch (\RuntimeException) {
                 $this->telegramService->sendText(
                     $chat->getChatId(),
-                    'you won a collectable, but theres no collectable left to win. You win the jackpot instead.',
+                    '@%s skull emoji: ',
                     threadId: $callbackQuery->getMessage()->getMessageThreadId(),
                 );
-                $result = 10_000_000;
+                return;
             }
-            if ($result instanceof CollectableItemInstance) {
-                $this->telegramService->answerCallbackQuery($callbackQuery, 'You won a collectable', false);
+            if ($result instanceof ItemInstance) {
+                $this->telegramService->answerCallbackQuery($callbackQuery, 'You win a nft', true);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf(
                         '%s won a <strong>%s</strong> nft from a <strong>%s</strong> lootbox',
                         $user->getName() ?? $user->getFirstName(),
-                        $result->getCollectable()->getName(),
+                        $result->getItem()->getName(),
                         ucfirst($size),
                     ),
                     threadId: $callbackQuery->getMessage()->getMessageThreadId(),
@@ -125,7 +118,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             }
             $this->addHonor($chat, $user, $result);
             $this->manager->flush();
-            if ($result > $price * 2) {
+            if ($result > $price * 4) {
                 $this->telegramService->answerCallbackQuery($callbackQuery);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
@@ -148,7 +141,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         }
     }
 
-    private function getLootboxWin(Chat $chat, User $user, string $size): int|CollectableItemInstance
+    private function getLootboxWin(Chat $chat, User $user, string $size): int|ItemInstance
     {
         $hardFailChance = $this->collectableService->getEffectsByUserAndType($user, $chat, [
             EffectType::LOOTBOX_LUCK,
@@ -176,9 +169,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         }
         // medium ehre loot
         if (Random::getPercentChance(match ($size) {
-            self::SMALL => 90,
-            self::MEDIUM => 80,
-            self::LARGE, self::XL => 75,
+            self::SMALL, self::MEDIUM => 90,
+            self::LARGE, self::XL => 85,
             default => 0,
         })) {
             // win between 100% and 200% of price
@@ -186,8 +178,8 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         }
         // high ehre loot
         if (Random::getPercentChance(90)) {
-            $seed = (int) floor((Random::getNumber(15) + Random::getNumber(10)) / 2);
-            // max = 200% - 1500% of price
+            $seed = (int) floor((Random::getNumber(1000)));
+            // max = 2-200x price
             $max = $this->getPrice($size) * Random::getNumber($seed);
             // win between 200% of price and max
             return Random::getNumber($max, $this->getPrice($size) * 2);
@@ -198,9 +190,9 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         ]);
         if (Random::getPercentChance($effects->apply(match ($size) {
             self::SMALL => 1,
-            self::MEDIUM => 2,
-            self::LARGE => 5,
-            self::XL => 7,
+            self::MEDIUM => 3,
+            self::LARGE => 10,
+            self::XL => 15,
             default => 0,
         }))) {
             return $this->winCollectable($chat, $user);
@@ -218,9 +210,9 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         return $junk[array_rand($junk)];
     }
 
-    private function winCollectable(Chat $chat, User $user): CollectableItemInstance
+    private function winCollectable(Chat $chat, User $user): ItemInstance
     {
-        $collectables = $this->collectableService->getAvailableInstances($chat);
+        $collectables = $this->collectableService->getInstancableCollectables($chat, ItemRarity::random());
         $win = $collectables[array_rand($collectables)];
         $win->setOwner($user);
         $this->manager->flush();

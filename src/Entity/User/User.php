@@ -8,7 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\CollectableItemInstance;
+use App\Entity\Item\ItemInstance;
 use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Model\Id;
@@ -73,7 +73,7 @@ class User implements UserInterface
     #[ManyToMany(targetEntity: Chat::class, mappedBy: "users")]
     private Collection $chats;
 
-    #[OneToMany(mappedBy: "owner", targetEntity: CollectableItemInstance::class)]
+    #[OneToMany(mappedBy: "owner", targetEntity: ItemInstance::class)]
     #[Ignore]
     private Collection $collectables;
 
@@ -168,7 +168,7 @@ class User implements UserInterface
     }
 
     /**
-     * @return Collection<CollectableItemInstance>
+     * @return Collection<ItemInstance>
      */
     public function getCollectables(): Collection
     {

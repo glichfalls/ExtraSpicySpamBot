@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Collectable;
+namespace App\Entity\Item;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
@@ -19,50 +19,55 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(
     normalizationContext: ['groups' => [
         'public:read',
-        'collectable:read',
+        'item:read',
         'chat:public:read',
     ]],
 )]
 #[ApiFilter(SearchFilter::class, properties: [
-    'collectable' => 'exact',
-    'collectable.id' => 'exact',
+    'item' => 'exact',
+    'item.id' => 'exact',
     'chat' => 'exact',
     'chat.id' => 'exact',
 ])]
-class CollectableItemInstance
+class ItemInstance
 {
     use Id;
     use TimestampableEntity;
 
-    #[ManyToOne(targetEntity: Collectable::class, inversedBy: 'instances')]
+    #[ManyToOne(targetEntity: Item::class, inversedBy: 'instances')]
     #[JoinColumn(nullable: false)]
-    private Collectable $collectable;
+    private Item $item;
 
     #[ManyToOne(targetEntity: Chat::class)]
     #[JoinColumn(nullable: false)]
-    #[Groups(['collectable:read'])]
+    #[Groups(['item:read'])]
     private Chat $chat;
 
     #[ManyToOne(targetEntity: User::class, inversedBy: 'collectables')]
-    #[Groups(['collectable:read'])]
+    #[Groups(['item:read'])]
     private ?User $owner = null;
 
-    #[Column(type: 'integer')]
-    private int $price;
+    #[Column(type: 'boolean')]
+    #[Groups(['item:read'])]
+    private bool $tradeable;
+
+    #[Column(type: 'datetime', nullable: true)]
+    #[Groups(['item:read'])]
+    private ?\DateTimeInterface $expiresAt = null;
 
     public function __construct()
     {
         $this->generateId();
     }
 
-    public function getCollectable(): Collectable
+    public function getItem(): Item
     {
-        return $this->collectable;
+        return $this->item;
     }
 
-    public function setCollectable(Collectable $collectable): void
+    public function setItem(Item $collectable): void
     {
-        $this->collectable = $collectable;
+        $this->item = $collectable;
     }
 
     public function getChat(): Chat
@@ -85,14 +90,29 @@ class CollectableItemInstance
         $this->owner = $owner;
     }
 
-    public function getPrice(): int
+    public function isTradeable(): bool
     {
-        return $this->price;
+        return $this->tradeable;
     }
 
-    public function setPrice(int $price): void
+    public function setTradeable(bool $tradeable): void
     {
-        $this->price = $price;
+        $this->tradeable = $tradeable;
+    }
+
+    public function getExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->expiresAt;
+    }
+
+    public function setExpiresAt(?\DateTimeInterface $expiresAt): void
+    {
+        $this->expiresAt = $expiresAt;
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expiresAt !== null && $this->expiresAt < new \DateTime();
     }
 
 }

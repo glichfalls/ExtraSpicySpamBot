@@ -2,7 +2,7 @@
 
 namespace App\Strategy\Effect;
 
-use App\Entity\Collectable\Effect\Effect;
+use App\Entity\Item\Effect\Effect;
 
 class LuckEffectStrategy
 {

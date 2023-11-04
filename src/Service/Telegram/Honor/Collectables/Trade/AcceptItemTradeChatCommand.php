@@ -4,11 +4,11 @@ namespace App\Service\Telegram\Honor\Collectables\Trade;
 
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
-use App\Service\Telegram\Honor\Collectables\AbstractCollectableTelegramCallbackQuery;
+use App\Service\Telegram\Honor\Collectables\AbstractItemTelegramCallbackQuery;
 use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Update;
 
-class AcceptCollectableTradeChatCommand extends AbstractCollectableTelegramCallbackQuery
+class AcceptItemTradeChatCommand extends AbstractItemTelegramCallbackQuery
 {
 
     public const CALLBACK_KEYWORD = 'trade:accept';
@@ -20,33 +20,28 @@ class AcceptCollectableTradeChatCommand extends AbstractCollectableTelegramCallb
 
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
-        $data = explode(':', $update->getCallbackQuery()->getData());
-        if (count($data) !== 3) {
-            throw new \InvalidArgumentException('Invalid callback data for collectable bid.');
-        }
-        $collectableId = array_pop($data);
-        $collectable = $this->collectableService->getInstanceById($collectableId);
-        if ($collectable === null) {
-            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Collectable not found.', true);
+        $instance = $this->itemService->getInstance($this->getCallbackDataId($update));
+        if ($instance === null) {
+            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Item not found.', true);
             return;
         }
-        if ($collectable->getOwner() !== $user) {
-            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'You are not the owner of this collectable.', true);
+        if ($instance->getOwner() !== $user) {
+            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'You are not the owner of this item.', true);
             return;
         }
         try {
-            $auction = $this->collectableService->getActiveAuction($collectable);
+            $auction = $this->itemTradeService->getActiveAuction($instance);
             if ($auction === null) {
                 $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'No active auction found.', true);
                 return;
             }
-            $this->collectableService->acceptAuction($auction);
+            $this->itemTradeService->acceptAuction($auction);
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Auction accepted.', true);
             $this->telegramService->sendText(
                 $chat->getChatId(),
                 sprintf(
                     '%s sold! %s paid %s Ehre to %s.',
-                    $collectable->getCollectable()->getName(),
+                    $instance->getItem()->getName(),
                     $auction->getHighestBidder()->getName(),
                     NumberFormat::format($auction->getHighestBid()),
                     $auction->getSeller()->getName(),

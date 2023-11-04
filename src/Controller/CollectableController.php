@@ -3,16 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\Collectable;
-use App\Entity\Collectable\CollectableFactory;
-use App\Entity\Collectable\Effect\Effect;
-use App\Entity\Collectable\Effect\EffectCollection;
+use App\Entity\Item\Effect\Effect;
+use App\Entity\Item\Effect\EffectType;
+use App\Entity\Item\Item;
+use App\Entity\Item\ItemFactory;
 use App\Repository\ChatRepository;
-use App\Repository\CollectableRepository;
+use App\Repository\ItemRepository;
 use App\Repository\EffectRepository;
 use App\Repository\UserRepository;
-use App\Service\Collectable\EffectType;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
@@ -29,7 +29,7 @@ class CollectableController extends AbstractController
     public function __construct(
         private readonly KernelInterface $kernel,
         private readonly EntityManagerInterface $manager,
-        private readonly CollectableRepository $collectableRepository,
+        private readonly ItemRepository $collectableRepository,
         private readonly ChatRepository $chatRepository,
         private readonly UserRepository $userRepository,
         private readonly EffectRepository $effectRepository,
@@ -48,11 +48,11 @@ class CollectableController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
-            $collectable = CollectableFactory::create(
+            $collectable = ItemFactory::create(
                 $data['name'],
                 $data['description'],
-                $data['tradable'],
-                $data['unique']
+                $data['rarity'],
+                $data['permanent'],
             );
             $this->manager->persist($collectable);
             if (array_key_exists('chat', $data)) {
@@ -66,7 +66,7 @@ class CollectableController extends AbstractController
                 $collectable->getId(),
                 $collectable->getInstances()->map(fn ($instance) => $instance->getId())->getValues(),
             ]);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             return $this->json($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
@@ -76,7 +76,7 @@ class CollectableController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
-            /** @var Collectable $collectable */
+            /** @var Item $collectable */
             $collectable = $this->collectableRepository->find($id);
             if ($collectable === null) {
                 throw new NotFoundHttpException();
@@ -98,7 +98,7 @@ class CollectableController extends AbstractController
             }
             $this->manager->flush();
             return $this->json(true);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             return $this->json($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
@@ -110,11 +110,11 @@ class CollectableController extends AbstractController
             return $this->json('No image provided', Response::HTTP_BAD_REQUEST);
         }
 
-        /** @var Collectable $collectable */
+        /** @var Item $collectable */
         $collectable = $this->collectableRepository->find($id);
 
         if ($collectable === null) {
-            return $this->json('Collectable not found', Response::HTTP_NOT_FOUND);
+            return $this->json('Item not found', Response::HTTP_NOT_FOUND);
         }
 
         /** @var UploadedFile $image */
@@ -143,7 +143,7 @@ class CollectableController extends AbstractController
             $this->manager->persist($effect);
             $this->manager->flush();
             return $this->json($effect->getId());
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             return $this->json($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
@@ -166,7 +166,7 @@ class CollectableController extends AbstractController
             $effect->setPriority($data['priority']);
             $this->manager->flush();
             return $this->json(true);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             return $this->json($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
@@ -176,46 +176,54 @@ class CollectableController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
-            /** @var Collectable $collectable */
+            /** @var Item $collectable */
             $collectable = $this->collectableRepository->find($id);
             if ($collectable === null) {
-                throw new NotFoundHttpException();
+                throw $this->createNotFoundException();
             }
             $chat = $this->chatRepository->find($data['chat']);
             $this->createInstances($data, $collectable, $chat);
             $this->manager->flush();
             return $this->json(true);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             return $this->json($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
 
     /**
      * @param mixed $data
-     * @param Collectable $collectable
+     * @param Item $collectable
      * @param Chat $chat
      * @return void
+     * @throws Exception
      */
-    private function createInstances(mixed $data, Collectable $collectable, Chat $chat): void
+    private function createInstances(mixed $data, Item $collectable, Chat $chat): void
     {
+        if (array_key_exists('expiresAt', $data) && $data['expiresAt'] !== null) {
+            $expiresAt = new \DateTime($data['expiresAt']);
+        } else {
+            $expiresAt = null;
+        }
         if (array_key_exists('users', $data) && count($data['users']) > 0) {
             foreach ($data['users'] as $userData) {
                 $user = $this->userRepository->find($userData['id']);
-                $instance = CollectableFactory::instance(
+                $instance = ItemFactory::instance(
                     $collectable,
                     $chat,
                     $user,
-                    $data['price'] ?? 0,
+                    $data['tradeable'],
+                    $expiresAt,
                 );
                 $collectable->addInstance($instance);
                 $this->manager->persist($instance);
             }
         } else {
-            $instance = CollectableFactory::instance(
+            $instance = ItemFactory::instance(
                 $collectable,
                 $chat,
                 null,
-                $data['price'],
+                $data['tradeable'],
+                $expiresAt,
             );
             $collectable->addInstance($instance);
             $this->manager->persist($instance);

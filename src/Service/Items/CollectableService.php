@@ -1,62 +1,83 @@
 <?php
 
-namespace App\Service\Collectable;
+namespace App\Service\Items;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\Collectable;
-use App\Entity\Collectable\CollectableAuction;
-use App\Entity\Collectable\CollectableItemInstance;
-use App\Entity\Collectable\Effect\Effect;
-use App\Entity\Collectable\Effect\EffectCollection;
+use App\Entity\Item\Attribute\ItemRarity;
+use App\Entity\Item\Effect\Effect;
+use App\Entity\Item\Effect\EffectCollection;
+use App\Entity\Item\Effect\EffectType;
+use App\Entity\Item\Item;
+use App\Entity\Item\ItemAuction;
+use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
-use App\Repository\CollectableAuctionRepository;
-use App\Repository\CollectableItemInstanceRepository;
-use App\Repository\CollectableRepository;
+use App\Repository\ItemAuctionRepository;
+use App\Repository\ItemInstanceRepository;
+use App\Repository\ItemRepository;
 use App\Repository\EffectRepository;
 use App\Service\HonorService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 
-class CollectableService
+readonly class CollectableService
 {
 
     public function __construct(
         private EntityManagerInterface $manager,
-        private CollectableRepository $collectableRepository,
-        private CollectableItemInstanceRepository $instanceRepository,
-        private CollectableAuctionRepository $auctionRepository,
+        private ItemRepository $collectableRepository,
+        private ItemInstanceRepository $instanceRepository,
+        private ItemAuctionRepository $auctionRepository,
         private HonorService $honorService,
         private EffectRepository $effectRepository,
     ) {
     }
 
     /**
-     * @return array|Collectable[]
+     * @return array|Item[]
      */
     public function getInstancableCollectables(): array
     {
         $collectables = $this->collectableRepository->findAll();
-        return array_filter($collectables, fn (Collectable $collectable) => $collectable->isInstancable());
+        return array_filter($collectables, fn (Item $collectable) => $collectable->isInstancable());
     }
 
-    /**
-     * @return CollectableItemInstance[]
-     */
-    public function getAvailableInstances(Chat $chat): array
+    public function getAvailablePermanentInstances(): Collection
     {
-        return $this->instanceRepository->findBy([
-            'chat' => $chat,
-            'owner' => null,
+        $items = $this->collectableRepository->findBy([
+            'permanent' => true,
+        ]);
+        return new ArrayCollection($items);
+    }
+
+    public function getAvailableTemporaryItems(): Collection
+    {
+        $items = $this->collectableRepository->findBy([
+            'permanent' => false,
         ]);
     }
 
-    public function getInstanceById(string $id): ?CollectableItemInstance
+    /**
+     * @return ItemInstance[]
+     */
+    public function getAvailableInstances(Chat $chat, ?ItemRarity $rarity = null): array
+    {
+        $query = [
+            'chat' => $chat,
+            'owner' => null,
+        ];
+        if ($rarity !== null) {
+            $query['rarity'] = $rarity;
+        }
+        return $this->instanceRepository->findBy($query);
+    }
+
+    public function getInstanceById(string $id): ?ItemInstance
     {
         return $this->instanceRepository->find($id);
     }
 
-    public function acceptAuction(CollectableAuction $auction): void
+    public function acceptAuction(ItemAuction $auction): void
     {
         if (!$auction->isActive()) {
             throw new \RuntimeException('Auction is not active.');
@@ -78,14 +99,14 @@ class CollectableService
         $this->manager->flush();
     }
 
-    public function createCollectableInstance(Collectable $collectable, Chat $chat, ?User $user): CollectableItemInstance
+    public function createCollectableInstance(Item $collectable, Chat $chat, ?User $user): ItemInstance
     {
         if ($collectable->isUnique() && $collectable->getInstances()->count() > 0) {
-            throw new \RuntimeException('Collectable is unique');
+            throw new \RuntimeException('Item is unique');
         }
-        $instance = new CollectableItemInstance();
+        $instance = new ItemInstance();
         $instance->setChat($chat);
-        $instance->setCollectable($collectable);
+        $instance->setItem($collectable);
         $instance->setCreatedAt(new \DateTime());
         $instance->setUpdatedAt(new \DateTime());
         $instance->setOwner($user);
@@ -93,12 +114,12 @@ class CollectableService
         return $instance;
     }
 
-    public function createAuction(CollectableItemInstance $instance): CollectableAuction
+    public function createAuction(ItemInstance $instance): ItemAuction
     {
-        if (!$instance->getCollectable()->isTradeable()) {
-            throw new \RuntimeException('Collectable is not tradeable.');
+        if (!$instance->getItem()->isTradeable()) {
+            throw new \RuntimeException('Item is not tradeable.');
         }
-        $auction = new CollectableAuction();
+        $auction = new ItemAuction();
         $auction->setInstance($instance);
         $auction->setSeller($instance->getOwner());
         $auction->setHighestBidder(null);
@@ -111,13 +132,13 @@ class CollectableService
         return $auction;
     }
 
-    public function buyCollectable(CollectableItemInstance $instance, User $user): void
+    public function buyCollectable(ItemInstance $instance, User $user): void
     {
-        if (!$instance->getCollectable()->isTradeable()) {
-            throw new \RuntimeException('Collectable is not tradeable.');
+        if (!$instance->getItem()->isTradeable()) {
+            throw new \RuntimeException('Item is not tradeable.');
         }
         if ($instance->getOwner() !== null) {
-            throw new \RuntimeException('Collectable is not for sale.');
+            throw new \RuntimeException('Item is not for sale.');
         }
         $honor = $this->honorService->getCurrentHonorAmount($instance->getChat(), $user);
         if ($instance->getPrice() > $honor) {
@@ -128,7 +149,7 @@ class CollectableService
         $this->manager->flush();
     }
 
-    public function getActiveAuction(CollectableItemInstance $instance): ?CollectableAuction
+    public function getActiveAuction(ItemInstance $instance): ?ItemAuction
     {
         return $this->auctionRepository->findOneBy([
             'instance' => $instance,
@@ -138,7 +159,7 @@ class CollectableService
 
     public function getCollection(Chat $chat, User $user): array
     {
-        return $this->instanceRepository->getCurrentCollectionByChatAndUser($chat, $user);
+        return $this->instanceRepository->getCollectionByChatAndUser($chat, $user);
     }
 
     /**
@@ -157,13 +178,11 @@ class CollectableService
      */
     public function getEffectsByUserAndType(User $user, Chat $chat, array $types): EffectCollection
     {
-        $validTypes = [];
-        foreach ($types as $type) {
-            if (in_array($type, EffectType::all())) {
-                $validTypes[] = $type->key();
-            }
-        }
-        return new EffectCollection($this->effectRepository->getByUserAndTypes($user, $chat, $validTypes));
+        return new EffectCollection($this->effectRepository->getByUserAndTypes(
+            $user,
+            $chat,
+            array_map(fn (EffectType $type) => $type->value, $types),
+        ));
     }
 
 }

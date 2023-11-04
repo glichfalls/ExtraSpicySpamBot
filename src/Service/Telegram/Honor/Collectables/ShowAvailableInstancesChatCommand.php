@@ -2,9 +2,9 @@
 
 namespace App\Service\Telegram\Honor\Collectables;
 
-use App\Entity\Collectable\CollectableItemInstance;
+use App\Entity\Item\ItemInstance;
 use App\Entity\Message\Message;
-use App\Service\Telegram\Honor\Collectables\Trade\ShowCollectableInfoChatCommand;
+use App\Service\Telegram\Honor\Collectables\Trade\ShowItemInfoChatCommand;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
@@ -32,7 +32,7 @@ class ShowAvailableInstancesChatCommand extends AbstractCollectableTelegramChatC
     }
 
     /**
-     * @param CollectableItemInstance[] $collectables
+     * @param ItemInstance[] $collectables
      * @return InlineKeyboardMarkup
      */
     private function getKeyboard(array $collectables): InlineKeyboardMarkup
@@ -40,9 +40,9 @@ class ShowAvailableInstancesChatCommand extends AbstractCollectableTelegramChatC
         $keyboard = [];
         $row = [];
         foreach ($collectables as $collectable) {
-            $data = sprintf('%s:%s', ShowCollectableInfoChatCommand::CALLBACK_KEYWORD, $collectable->getId());
+            $data = sprintf('%s:%s', ShowItemInfoChatCommand::CALLBACK_KEYWORD, $collectable->getId());
             $row[] = [
-                'text' => $collectable->getCollectable()->getName(),
+                'text' => $collectable->getItem()->getName(),
                 'callback_data' => $data,
             ];
             if (count($row) === 3) {

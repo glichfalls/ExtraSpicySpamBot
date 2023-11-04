@@ -3,14 +3,14 @@
 namespace App\Service\Telegram\Honor\Collectables\Trade;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\CollectableAuction;
+use App\Entity\Item\ItemAuction;
 use App\Entity\User\User;
-use App\Service\Telegram\Honor\Collectables\AbstractCollectableTelegramCallbackQuery;
+use App\Service\Telegram\Honor\Collectables\AbstractItemTelegramCallbackQuery;
 use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramCallbackQuery
+final class CreateItemBidChatCommand extends AbstractItemTelegramCallbackQuery
 {
 
     public const CALLBACK_KEYWORD = 'trade:bid';
@@ -22,26 +22,21 @@ final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramC
 
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
-        $data = explode(':', $update->getCallbackQuery()->getData());
-        if (count($data) !== 4) {
-            $this->logger->error('Invalid callback data for collectable bid.', [
-                'data' => $data,
-            ]);
-        }
+        $data = $this->getCallbackDataParts($update, 2);
         $bid = (int) array_pop($data);
-        $collectableId = array_pop($data);
-        $collectable = $this->collectableService->getInstanceById($collectableId);
-        if ($collectable === null) {
-            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Collectable not found.', true);
+        $instanceId = array_pop($data);
+        $instance = $this->itemService->getInstance($instanceId);
+        if ($instance === null) {
+            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Item not found.', true);
             return;
         }
-        $auction = $this->collectableService->getActiveAuction($collectable);
+        $auction = $this->collectableService->getActiveAuction($instance);
         if ($auction === null) {
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'No active auction found.', true);
             return;
         }
         $bid = $auction->getHighestBid() + $bid;
-        $honor = $this->honorRepository->getHonorCount($user, $chat);
+        $honor = $this->honorService->getCurrentHonorAmount($chat, $user);
         if ($honor < $bid) {
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'You dont have enough Ehre');
             return;
@@ -51,7 +46,7 @@ final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramC
         $this->manager->flush();
         $this->telegramService->sendText(
             $chat->getChatId(),
-            sprintf('%s bid %s Ehre for %s', $user->getName(), NumberFormat::format($auction->getHighestBid()), $collectable->getCollectable()->getName()),
+            sprintf('%s bid %s Ehre for %s', $user->getName(), NumberFormat::format($auction->getHighestBid()), $instance->getItem()->getName()),
             threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             replyMarkup: $this->getKeyboard($auction),
         );
@@ -62,10 +57,10 @@ final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramC
         $this->telegramService->answerCallbackQuery($update->getCallbackQuery());
     }
 
-    private function getKeyboard(CollectableAuction $auction): InlineKeyboardMarkup
+    private function getKeyboard(ItemAuction $auction): InlineKeyboardMarkup
     {
         $keyboard = [];
-        $data = sprintf('%s:%s', CreateCollectableBidChatCommand::CALLBACK_KEYWORD, $auction->getInstance()->getId());
+        $data = sprintf('%s:%s', CreateItemBidChatCommand::CALLBACK_KEYWORD, $auction->getInstance()->getId());
         $options = [1000, 100_000, 1_000_000];
         $row = [];
         foreach ($options as $option) {
@@ -78,11 +73,11 @@ final class CreateCollectableBidChatCommand extends AbstractCollectableTelegramC
         $keyboard[] = [
             [
                 'text' => 'Accept',
-                'callback_data' => sprintf('%s:%s', AcceptCollectableTradeChatCommand::CALLBACK_KEYWORD, $auction->getInstance()->getId()),
+                'callback_data' => sprintf('%s:%s', AcceptItemTradeChatCommand::CALLBACK_KEYWORD, $auction->getInstance()->getId()),
             ],
             [
                 'text' => 'Decline',
-                'callback_data' => sprintf('%s:%s', DeclineCollectableTradeChatCommand::CALLBACK_KEYWORD, $auction->getInstance()->getId()),
+                'callback_data' => sprintf('%s:%s', DeclineItemTradeChatCommand::CALLBACK_KEYWORD, $auction->getInstance()->getId()),
             ],
         ];
         return new InlineKeyboardMarkup($keyboard);

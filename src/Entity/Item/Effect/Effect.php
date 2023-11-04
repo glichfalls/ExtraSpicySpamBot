@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Entity\Collectable\Effect;
+namespace App\Entity\Item\Effect;
 
 use ApiPlatform\Metadata\ApiResource;
-use App\Entity\Collectable\Collectable;
+use App\Entity\Item\Item;
 use App\Model\Id;
 use App\Repository\EffectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -50,7 +50,7 @@ class Effect
     #[Groups(['effect:read', 'collectable:read'])]
     private string $description;
 
-    #[ManyToMany(targetEntity: Collectable::class, inversedBy: 'effects')]
+    #[ManyToMany(targetEntity: Item::class, inversedBy: 'effects')]
     private Collection $collectables;
 
     public function __construct()
@@ -124,14 +124,14 @@ class Effect
         return $this->collectables;
     }
 
-    public function addCollectable(Collectable $collectable): void
+    public function addCollectable(Item $collectable): void
     {
         if (!$this->collectables->contains($collectable)) {
             $this->collectables->add($collectable);
         }
     }
 
-    public function removeCollectable(Collectable $collectable): void
+    public function removeCollectable(Item $collectable): void
     {
         if ($this->collectables->contains($collectable)) {
             $this->collectables->removeElement($collectable);

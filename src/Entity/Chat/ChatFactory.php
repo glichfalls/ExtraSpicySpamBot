@@ -8,31 +8,39 @@ use TelegramBot\Api\Types\Update;
 class ChatFactory
 {
 
+    public static function create(string $id, string $name): Chat
+    {
+        $chat = new Chat();
+        $chat->setConfig(new ChatConfig());
+        $chat->setChatId($id);
+        $chat->setName($name);
+        $chat->setCreatedAt(new \DateTime());
+        $chat->setUpdatedAt(new \DateTime());
+        return $chat;
+    }
+
     public static function createFromUpdate(Update $update): Chat
     {
         $telegramChat = $update->getMessage()->getChat();
-        return self::extracted($telegramChat);
+        return self::createFromTelegramChat($telegramChat);
     }
 
     public static function createFromMessage(Message $message): Chat
     {
         $telegramChat = $message->getChat();
-        return self::extracted($telegramChat);
+        return self::createFromTelegramChat($telegramChat);
     }
 
-    private static function extracted(\TelegramBot\Api\Types\Chat $telegramChat): Chat
+    private static function createFromTelegramChat(\TelegramBot\Api\Types\Chat $telegramChat): Chat
     {
-        $chat = new Chat();
-        $chat->setConfig(new ChatConfig());
-        $chat->setChatId($telegramChat->getId());
         if ($telegramChat->getType() === 'private') {
-            $chat->setName($telegramChat->getUsername());
+            return self::create(
+                $telegramChat->getId(),
+                sprintf('Private Chat with %s', $telegramChat->getUsername() ?? $telegramChat->getFirstName())
+            );
         } else {
-            $chat->setName($telegramChat->getTitle());
+            return self::create($telegramChat->getId(), $telegramChat->getTitle());
         }
-        $chat->setCreatedAt(new \DateTime());
-        $chat->setUpdatedAt(new \DateTime());
-        return $chat;
     }
 
 }

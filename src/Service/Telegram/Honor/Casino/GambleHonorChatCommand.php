@@ -3,11 +3,11 @@
 namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Item\Effect\EffectType;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\DrawRepository;
-use App\Service\Collectable\CollectableService;
-use App\Service\Collectable\EffectType;
+use App\Service\Items\CollectableService;
 use App\Service\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;

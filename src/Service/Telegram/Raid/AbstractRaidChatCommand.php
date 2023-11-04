@@ -3,14 +3,14 @@
 namespace App\Service\Telegram\Raid;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Collectable\Effect\EffectCollection;
 use App\Entity\Honor\Raid\Raid;
+use App\Entity\Item\Effect\EffectCollection;
+use App\Entity\Item\Effect\EffectType;
 use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Repository\RaidRepository;
 use App\Repository\UserRepository;
-use App\Service\Collectable\CollectableService;
-use App\Service\Collectable\EffectType;
+use App\Service\Items\CollectableService;
 use App\Service\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
