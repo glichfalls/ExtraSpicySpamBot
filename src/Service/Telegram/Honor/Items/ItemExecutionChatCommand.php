@@ -3,6 +3,7 @@
 namespace App\Service\Telegram\Honor\Items;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Item\Attribute\ItemKeyword;
 use App\Entity\Item\Effect\EffectType;
 use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
@@ -24,10 +25,7 @@ use TelegramBot\Api\Types\Update;
 
 class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
 {
-    // short commands to save space
     public const CALLBACK_KEYWORD = 'item:exec';
-    private const SEND_ITEM = 'snd';
-    private const RECEIVE_ITEM = 'rsv';
 
     public function __construct(
         EntityManagerInterface $manager,
@@ -53,12 +51,12 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
             $argumentCount = $this->countCallbackDataParts($update);
             if ($argumentCount === 1) {
                 $instance = $this->itemService->getInstance($this->getCallbackDataId($update));
-                $this->itemService->executeItem($instance, $user);
+                $this->itemService->validateItemExecution($instance, $user);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf('%s executed %s.', $user->getName(), $instance->getItem()->getName()),
                     threadId: $update->getCallbackQuery()->getMessage()->getMessageId(),
-                    replyMarkup: $this->getKeyboard($instance),
+                    replyMarkup: $this->getActionKeyboard($instance),
                 );
             } else {
                 $arguments = $this->getCallbackDataParts($update, 2);
@@ -66,17 +64,17 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
                 if ($instance->getOwner()->getId() !== $user->getId()) {
                     throw new \RuntimeException('You are not the owner of this item.');
                 }
-                switch ($arguments[0]) {
-                    case self::SEND_ITEM:
+                switch (ItemKeyword::tryFrom($arguments[0])) {
+                    case ItemKeyword::SEND_ITEM:
                         $users = $instance->getChat()->getUsers();
                         $this->telegramService->sendText(
                             $chat->getChatId(),
                             sprintf('Who should receive %s?', $instance->getItem()->getName()),
                             threadId: $update->getCallbackQuery()->getMessage()->getMessageId(),
-                            replyMarkup: $this->getGiftKeyboard($instance, $users),
+                            replyMarkup: $this->getSendKeyboard($instance, $users),
                         );
                         break;
-                    case self::RECEIVE_ITEM:
+                    case ItemKeyword::RECEIVE_ITEM:
                         $receiver = $this->userService->getUserByTelegramId($arguments[2]);
                         if ($receiver === null) {
                             throw new \InvalidArgumentException('User not found.');
@@ -95,6 +93,10 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
                             );
                         }
                         $this->manager->flush();
+                        $this->telegramService->deleteMessage(
+                            $chat->getChatId(),
+                            $update->getCallbackQuery()->getMessage()->getMessageId(),
+                        );
                         break;
                     default:
                         throw new \InvalidArgumentException('Invalid callback data.');
@@ -126,7 +128,7 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
         return $effects->apply(33);
     }
 
-    private function getGiftKeyboard(ItemInstance $instance, Collection $users): InlineKeyboardMarkup
+    private function getSendKeyboard(ItemInstance $instance, Collection $users): InlineKeyboardMarkup
     {
         return $this->telegramService->createKeyboard(new TelegramKeyboard(
             $users->map(
@@ -134,7 +136,7 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
                 new TelegramButton($user->getName(), sprintf(
                     '%s:%s:%s:%s',
                     self::CALLBACK_KEYWORD,
-                    self::SEND_ITEM,
+                    ItemKeyword::RECEIVE_ITEM->value,
                     $instance->getId(),
                     $user->getTelegramUserId(),
                 )),
@@ -142,13 +144,19 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
         ));
     }
 
-    private function getKeyboard(ItemInstance $instance): InlineKeyboardMarkup
+    private function getActionKeyboard(ItemInstance $instance): InlineKeyboardMarkup
     {
         return $this->telegramService->createKeyboard(new TelegramKeyboard([
             new TelegramButton(
-                'Challenge',
-                sprintf('%s:%s', self::CALLBACK_KEYWORD, $instance->getId())
+                'Gi',
+                sprintf(
+                    '%s:%s:%s',
+                    self::CALLBACK_KEYWORD,
+                    ItemKeyword::SEND_ITEM->value,
+                    $instance->getId()
+                )
             ),
+            new TelegramButton('Pay to remove (coming soon)')
         ]));
     }
 

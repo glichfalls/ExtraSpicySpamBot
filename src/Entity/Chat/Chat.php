@@ -92,6 +92,9 @@ class Chat
         $this->config = $config;
     }
 
+    /**
+     * @return Collection<User>
+     */
     public function getUsers(): Collection
     {
         return $this->users;
