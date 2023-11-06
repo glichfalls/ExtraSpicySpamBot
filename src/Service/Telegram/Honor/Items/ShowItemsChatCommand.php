@@ -1,15 +1,30 @@
 <?php
 
-namespace App\Service\Telegram\Honor\Collectables;
+namespace App\Service\Telegram\Honor\Items;
 
 use App\Entity\Item\ItemInstance;
 use App\Entity\Message\Message;
-use App\Service\Telegram\Honor\Collectables\Trade\ShowItemInfoChatCommand;
+use App\Service\Items\ItemService;
+use App\Service\Telegram\AbstractTelegramChatCommand;
+use App\Service\Telegram\TelegramService;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-class ShowAvailableInstancesChatCommand extends AbstractCollectableTelegramChatCommand
+class ShowItemsChatCommand extends AbstractTelegramChatCommand
 {
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly ItemService $itemService,
+    ) {
+        parent::__construct($manager, $translator, $logger, $telegramService);
+    }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
@@ -18,7 +33,7 @@ class ShowAvailableInstancesChatCommand extends AbstractCollectableTelegramChatC
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $collectables = $this->collectableService->getAvailableInstances($message->getChat());
+        $collectables = $this->itemService->getAvailableInstances($message->getChat());
         if (count($collectables) === 0) {
             $this->telegramService->replyTo($message, 'No items available.');
         } else {

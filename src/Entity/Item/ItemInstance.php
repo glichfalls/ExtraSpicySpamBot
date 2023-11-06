@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
 use App\Model\Id;
+use App\Model\Payload;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
@@ -33,6 +34,7 @@ class ItemInstance
 {
     use Id;
     use TimestampableEntity;
+    use Payload;
 
     #[ManyToOne(targetEntity: Item::class, inversedBy: 'instances')]
     #[JoinColumn(nullable: false)]

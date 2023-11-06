@@ -1,18 +1,39 @@
 <?php
 
-namespace App\Service\Telegram\Honor\Collectables\Trade;
+namespace App\Service\Telegram\Honor\Items;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Item\ItemInstance;
+use App\Entity\Item\Attribute\ItemAttribute;
 use App\Entity\Item\Effect\Effect;
+use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
-use App\Service\Telegram\Honor\Collectables\AbstractItemTelegramCallbackQuery;
+use App\Service\Items\ItemEffectService;
+use App\Service\Items\ItemService;
+use App\Service\Telegram\AbstractTelegramCallbackQuery;
+use App\Service\Telegram\Button\TelegramButton;
+use App\Service\Telegram\Button\TelegramKeyboard;
+use App\Service\Telegram\Honor\Items\Trade\OpenItemTradeChatCommand;
+use App\Service\Telegram\TelegramService;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-class ShowItemInfoChatCommand extends AbstractItemTelegramCallbackQuery
+class ShowItemInfoChatCommand extends AbstractTelegramCallbackQuery
 {
-    public const CALLBACK_KEYWORD = 'collectable:show';
+    public const CALLBACK_KEYWORD = 'item:show';
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly ItemService $itemService,
+        private readonly ItemEffectService $itemEffectService,
+    ) {
+        parent::__construct($manager, $translator, $logger, $telegramService);
+    }
 
     public function getCallbackKeyword(): string
     {
@@ -21,7 +42,7 @@ class ShowItemInfoChatCommand extends AbstractItemTelegramCallbackQuery
 
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
-        $instance = $this->collectableService->getInstanceById($this->getCallbackDataId($update));
+        $instance = $this->itemService->getInstance($this->getCallbackDataId($update));
         if ($instance === null) {
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Item not found.', true);
             return;
@@ -62,18 +83,20 @@ class ShowItemInfoChatCommand extends AbstractItemTelegramCallbackQuery
         $this->telegramService->answerCallbackQuery($update->getCallbackQuery());
     }
 
-    private function getKeyboard(ItemInstance $collectable): ?InlineKeyboardMarkup
+    private function getKeyboard(ItemInstance $instance): ?InlineKeyboardMarkup
     {
-        return $this->createKeyboard([
-            [
-                'text' => 'Trade',
-                'callback_data' => sprintf(
+        $buttons = new TelegramKeyboard();
+        $buttons->add(new TelegramButton('Trade', sprintf('%s:%s', OpenItemTradeChatCommand::CALLBACK_KEYWORD, $instance->getId())));
+        foreach ($instance->getItem()->getAttributes() as $attribute) {
+            if ($attribute == ItemAttribute::Executable) {
+                $buttons->add(new TelegramButton($instance->getPayloadValue('executable_name') ?? 'execute', sprintf(
                     '%s:%s',
-                    OpenItemTradeChatCommand::CALLBACK_KEYWORD,
-                    $collectable->getId(),
-                ),
-            ],
-        ]);
+                    ItemExecutionChatCommand::CALLBACK_KEYWORD,
+                    $instance->getId(),
+                )));
+            }
+        }
+        return $this->telegramService->createKeyboard($buttons);
     }
 
 }

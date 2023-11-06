@@ -19,13 +19,16 @@ use App\Repository\MessageRepository;
 use App\Repository\StickerFileRepository;
 use App\Repository\StickerSetRepository;
 use App\Repository\UserRepository;
+use App\Service\Telegram\Button\TelegramKeyboard;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
+use JetBrains\PhpStorm\ArrayShape;
 use PHPStan\Analyser\IgnoredError;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Types\CallbackQuery;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\InputMedia\ArrayOfInputMedia;
 use TelegramBot\Api\Types\InputMedia\InputMediaVideo;
 use TelegramBot\Api\Types\Message as TelegramMessage;
@@ -426,6 +429,11 @@ class TelegramService
             $chatId,
             $messageId,
         );
+    }
+
+    public function createKeyboard(TelegramKeyboard $buttons, int $numberOfCols = 3): InlineKeyboardMarkup
+    {
+        return new InlineKeyboardMarkup($buttons->getRows($numberOfCols));
     }
 
 }

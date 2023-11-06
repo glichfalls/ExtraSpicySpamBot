@@ -20,23 +20,6 @@ abstract class AbstractTelegramCallbackQuery implements TelegramCallbackQueryLis
 
     }
 
-    protected function createKeyboard(array $buttons): InlineKeyboardMarkup
-    {
-        $keyboard = [];
-        $row = [];
-        foreach ($buttons as $button) {
-            $row[] = $button;
-            if (count($row) === 2) {
-                $keyboard[] = $row;
-                $row = [];
-            }
-        }
-        if (count($row) > 0) {
-            $keyboard[] = $row;
-        }
-        return new InlineKeyboardMarkup($keyboard);
-    }
-
     protected function getCallbackDataParts(Update $update, $numberOfArgs = 1): array
     {
         // commands should always have at least 2 parts (e.g. 'domain:command:arg1:arg2')
@@ -45,6 +28,11 @@ abstract class AbstractTelegramCallbackQuery implements TelegramCallbackQueryLis
             throw new \InvalidArgumentException(sprintf('Invalid callback data for %s.', static::class));
         }
         return array_slice($parts, 2, $numberOfArgs);
+    }
+
+    protected function countCallbackDataParts(Update $update): int
+    {
+        return count(explode(':', $update->getCallbackQuery()->getData()));
     }
 
     protected function getCallbackDataId(Update $update): string

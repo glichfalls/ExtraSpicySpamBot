@@ -24,6 +24,11 @@ class UserService
         return $this->userRepository->findOneBy(['name' => $name]);
     }
 
+    public function getUserByTelegramId(int $id): ?User
+    {
+        return $this->userRepository->getByTelegramId($id);
+    }
+
     public function createUserFromMessageEntity(MessageEntity $entity): ?User
     {
         if ($entity->getType() !== MessageEntity::TYPE_TEXT_MENTION || $entity->getUser()?->getId() === null) {

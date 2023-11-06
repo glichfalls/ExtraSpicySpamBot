@@ -15,7 +15,7 @@ class EnableDevWebhookCommand extends Command
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
-        private readonly string $telegramToken
+        private readonly string $telegramToken,
     ) {
         parent::__construct();
     }
@@ -35,7 +35,7 @@ class EnableDevWebhookCommand extends Command
                 $apiUrl,
             ));
             if ($response->getStatusCode() === 200) {
-                $output->writeln(sprintf('Webhook set to %s', $this->telegramToken, $apiUrl));
+                $output->writeln(sprintf('Webhook set to %s', $apiUrl));
                 return Command::SUCCESS;
             }
             $output->writeln(sprintf('Error: %s', $response->getContent(false)));

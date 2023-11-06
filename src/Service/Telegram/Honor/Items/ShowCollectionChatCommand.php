@@ -1,16 +1,31 @@
 <?php
 
-namespace App\Service\Telegram\Honor\Collectables;
+namespace App\Service\Telegram\Honor\Items;
 
 use App\Entity\Item\ItemInstance;
 use App\Entity\Message\Message;
-use App\Service\Telegram\Honor\Collectables\Trade\ShowItemInfoChatCommand;
+use App\Service\Items\ItemService;
+use App\Service\Telegram\AbstractTelegramChatCommand;
+use App\Service\Telegram\TelegramService;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-final class ShowCollectionChatCommand extends AbstractCollectableTelegramChatCommand
+final class ShowCollectionChatCommand extends AbstractTelegramChatCommand
 {
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly ItemService $itemService,
+    ) {
+        parent::__construct($manager, $translator, $logger, $telegramService);
+    }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {

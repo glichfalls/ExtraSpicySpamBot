@@ -10,8 +10,8 @@ use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Repository\RaidRepository;
 use App\Repository\UserRepository;
-use App\Service\Items\CollectableService;
 use App\Service\HonorService;
+use App\Service\Items\ItemEffectService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,7 +31,7 @@ abstract class AbstractRaidChatCommand extends AbstractTelegramChatCommand
         protected RaidRepository  $raidRepository,
         protected UserRepository $userRepository,
         protected HonorService $honorService,
-        protected CollectableService $collectableService,
+        protected ItemEffectService $effectService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -78,7 +78,7 @@ abstract class AbstractRaidChatCommand extends AbstractTelegramChatCommand
 
     protected function getRaidGuards(User $user, Chat $chat): EffectCollection
     {
-        return $this->collectableService->getEffectsByUserAndType($user, $chat, [
+        return $this->effectService->getEffectsByUserAndType($user, $chat, [
             EffectType::RAID_GUARD,
         ]);
     }

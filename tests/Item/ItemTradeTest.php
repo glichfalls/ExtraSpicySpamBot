@@ -10,10 +10,9 @@ use App\Entity\User\UserFactory;
 use App\Repository\HonorRepository;
 use App\Repository\ItemAuctionRepository;
 use App\Service\HonorService;
-use App\Service\Items\CollectableService;
 use App\Service\Items\ItemService;
 use App\Service\Items\ItemTradeService;
-use App\Service\Telegram\Honor\Collectables\Trade\OpenItemTradeChatCommand;
+use App\Service\Telegram\Honor\Items\Trade\OpenItemTradeChatCommand;
 use App\Service\Telegram\TelegramService;
 use App\Tests\Telegram\TelegramTest;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,20 +40,11 @@ class ItemTradeTest extends TelegramTest
         $auction->setHighestBid(100);
         $auction->setActive(true);
 
-        $auctionRepository = $this->createMock(ItemAuctionRepository::class);
-        //$auctionRepository->expects(self::once())->method('Item')->willReturn(new ItemAuction());
+        $manager = $this->getEntityManager();
+        $manager->persist($auction);
+        $manager->flush();
 
-        $command = new OpenItemTradeChatCommand(
-            $this->getEntityManager(),
-            $this->getTranslator(),
-            $this->getLogger(),
-            $this->getTelegramService(),
-            $this->getHonorService(),
-            $container->get(HonorRepository::class),
-            $container->get(CollectableService::class),
-            $container->get(ItemService::class),
-            $container->get(ItemTradeService::class),
-        );
+        $command = $container->get(OpenItemTradeChatCommand::class);
 
         $callbackQuery = $this->createCallbackQuery('trade:open:1');
         $update = $this->createUpdate(callbackQuery: $callbackQuery);

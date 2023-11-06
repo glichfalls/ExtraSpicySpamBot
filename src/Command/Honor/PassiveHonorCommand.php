@@ -6,7 +6,7 @@ use App\Entity\Honor\HonorFactory;
 use App\Entity\Item\Effect\EffectType;
 use App\Repository\ChatRepository;
 use App\Repository\UserRepository;
-use App\Service\Items\CollectableService;
+use App\Service\Items\ItemEffectService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -21,7 +21,7 @@ class PassiveHonorCommand extends Command
         private readonly EntityManagerInterface $manager,
         private readonly ChatRepository $chatRepository,
         private readonly UserRepository $userRepository,
-        private readonly CollectableService $collectableService,
+        private readonly ItemEffectService $itemEffectService,
     ) {
         parent::__construct();
     }
@@ -32,9 +32,9 @@ class PassiveHonorCommand extends Command
         foreach ($chats as $chat) {
             $users = $this->userRepository->getUsersByChat($chat);
             foreach ($users as $user) {
-                $collectables = $this->collectableService->getEffectsByUserAndType($user, $chat, [EffectType::PASSIVE_HONOR]);
+                $effects = $this->itemEffectService->getEffectsByUserAndType($user, $chat, EffectType::PASSIVE_HONOR);
                 $baseAmount = $chat->getConfig()->getPassiveHonorAmount();
-                $finalAmount = $collectables->apply($baseAmount);
+                $finalAmount = $effects->apply($baseAmount);
                 $this->manager->persist(HonorFactory::create($chat, null, $user, $finalAmount));
             }
         }

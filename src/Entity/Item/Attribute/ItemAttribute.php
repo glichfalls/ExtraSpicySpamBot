@@ -2,7 +2,7 @@
 
 namespace App\Entity\Item\Attribute;
 
-enum ItemAttribute
+enum ItemAttribute: string
 {
-    case CHALLENGE;
+    case Executable = 'executable';
 }

@@ -1,19 +1,36 @@
 <?php
 
-namespace App\Service\Telegram\Honor\Collectables\Trade;
+namespace App\Service\Telegram\Honor\Items\Trade;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
-use App\Service\Telegram\Honor\Collectables\AbstractItemTelegramCallbackQuery;
+use App\Service\Items\ItemService;
+use App\Service\Items\ItemTradeService;
+use App\Service\Telegram\AbstractTelegramCallbackQuery;
+use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-class OpenItemTradeChatCommand extends AbstractItemTelegramCallbackQuery
+class OpenItemTradeChatCommand extends AbstractTelegramCallbackQuery
 {
 
     public const CALLBACK_KEYWORD = 'trade:open';
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly ItemService $itemService,
+        private readonly ItemTradeService $itemTradeService,
+    ) {
+        parent::__construct($manager, $translator, $logger, $telegramService);
+    }
 
     public function getCallbackKeyword(): string
     {
@@ -22,14 +39,14 @@ class OpenItemTradeChatCommand extends AbstractItemTelegramCallbackQuery
 
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
-        $instance = $this->collectableService->getInstanceById($this->getCallbackDataId($update));
+        $instance = $this->itemService->getInstance($this->getCallbackDataId($update));
         if ($instance === null) {
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Item not found.', true);
             return;
         }
-        $activeAuction = $this->collectableService->getActiveAuction($instance);
+        $activeAuction = $this->itemTradeService->getActiveAuction($instance);
         if ($activeAuction === null) {
-            $this->collectableService->createAuction($instance);
+            $this->itemTradeService->createAuction($instance);
             $message = sprintf(
                 '@%s: someone wants to buy %s',
                 $instance->getOwner()->getName(),

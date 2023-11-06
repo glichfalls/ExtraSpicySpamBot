@@ -130,6 +130,11 @@ class Item
         return $this->attributes;
     }
 
+    public function hasAttribute(ItemAttribute $attribute): bool
+    {
+        return in_array($attribute, $this->getAttributes(), true);
+    }
+
     /**
      * @param array<ItemAttribute> $attributes
      * @return void

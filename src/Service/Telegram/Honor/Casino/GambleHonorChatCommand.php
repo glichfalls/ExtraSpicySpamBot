@@ -7,8 +7,8 @@ use App\Entity\Item\Effect\EffectType;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\DrawRepository;
-use App\Service\Items\CollectableService;
 use App\Service\HonorService;
+use App\Service\Items\ItemEffectService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
@@ -28,7 +28,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         TelegramService $telegramService,
         private readonly HonorService $honorService,
         private readonly DrawRepository $drawRepository,
-        private readonly CollectableService $collectableService,
+        private readonly ItemEffectService $itemEffectService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -86,7 +86,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
     private function getChance(User $user, Chat $chat): int
     {
         try {
-            $effects = $this->collectableService->getEffectsByUserAndType($user, $chat, [
+            $effects = $this->itemEffectService->getEffectsByUserAndType($user, $chat, [
                 EffectType::GAMBLE_LUCK,
                 EffectType::LUCK,
             ]);

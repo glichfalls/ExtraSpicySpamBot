@@ -113,11 +113,11 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
 
     private function isSuccessful(Raid $raid): bool
     {
-        $leaderEffects = $this->collectableService->getEffectsByUserAndType($raid->getLeader(), $raid->getChat(), [
+        $leaderEffects = $this->effectService->getEffectsByUserAndType($raid->getLeader(), $raid->getChat(), [
             EffectType::OFFENSIVE_RAID_SUCCESS,
         ]);
         $successChance = $leaderEffects->apply(50);
-        $targetEffects = $this->collectableService->getEffectsByUserAndType($raid->getTarget(), $raid->getChat(), [
+        $targetEffects = $this->effectService->getEffectsByUserAndType($raid->getTarget(), $raid->getChat(), [
             EffectType::DEFENSIVE_RAID_SUCCESS,
         ]);
         $successChance = $targetEffects->apply($successChance);

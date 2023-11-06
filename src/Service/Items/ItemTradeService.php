@@ -4,6 +4,7 @@ namespace App\Service\Items;
 
 use App\Entity\Item\ItemAuction;
 use App\Entity\Item\ItemInstance;
+use App\Entity\User\User;
 use App\Repository\ItemAuctionRepository;
 use App\Service\HonorService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,9 +61,41 @@ readonly class ItemTradeService
         }
         $this->honorService->removeHonor($chat, $buyer, $auction->getHighestBid());
         $this->honorService->addHonor($chat, $auction->getSeller(), $auction->getHighestBid());
-        $auction->getInstance()->setOwner($buyer);
+        $this->transferItem($auction->getInstance(), $buyer);
         $auction->setActive(false);
         $auction->setUpdatedAt(new \DateTime());
+        $this->manager->flush();
+    }
+
+    public function declineItemAuction(ItemInstance $instance, User $owner): void
+    {
+        if ($instance->getOwner() !== $owner) {
+            throw new \RuntimeException('Auction can only be declined by owner.');
+        }
+        $auction = $this->getActiveAuction($instance);
+        if ($auction === null) {
+            throw new \RuntimeException('No active auction found.');
+        }
+        $auction->setActive(false);
+        $auction->setUpdatedAt(new \DateTime());
+        $this->manager->flush();
+    }
+
+    public function transferItem(ItemInstance $instance, User $user): void
+    {
+        if (!$instance->hasPayloadValue('owner_history')) {
+            $instance->setPayloadValue('owner_history', []);
+        }
+        $instance->setPayloadValue('owner_history', array_merge(
+            $instance->getPayloadValue('owner_history'),
+            [
+                [
+                    'user' => $instance->getOwner()->getId(),
+                    'date' => $instance->getUpdatedAt()->format('Y-m-d H:i:s'),
+                ],
+            ],
+        ));
+        $instance->setOwner($user);
         $this->manager->flush();
     }
 

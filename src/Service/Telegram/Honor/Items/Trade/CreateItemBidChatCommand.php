@@ -1,19 +1,38 @@
 <?php
 
-namespace App\Service\Telegram\Honor\Collectables\Trade;
+namespace App\Service\Telegram\Honor\Items\Trade;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Item\ItemAuction;
 use App\Entity\User\User;
-use App\Service\Telegram\Honor\Collectables\AbstractItemTelegramCallbackQuery;
+use App\Service\HonorService;
+use App\Service\Items\ItemService;
+use App\Service\Items\ItemTradeService;
+use App\Service\Telegram\AbstractTelegramCallbackQuery;
+use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-final class CreateItemBidChatCommand extends AbstractItemTelegramCallbackQuery
+final class CreateItemBidChatCommand extends AbstractTelegramCallbackQuery
 {
 
     public const CALLBACK_KEYWORD = 'trade:bid';
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly ItemService $itemService,
+        private readonly ItemTradeService $itemTradeService,
+        private readonly HonorService $honorService,
+    ) {
+        parent::__construct($manager, $translator, $logger, $telegramService);
+    }
 
     public function getCallbackKeyword(): string
     {
@@ -30,7 +49,7 @@ final class CreateItemBidChatCommand extends AbstractItemTelegramCallbackQuery
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Item not found.', true);
             return;
         }
-        $auction = $this->collectableService->getActiveAuction($instance);
+        $auction = $this->itemTradeService->getActiveAuction($instance);
         if ($auction === null) {
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'No active auction found.', true);
             return;

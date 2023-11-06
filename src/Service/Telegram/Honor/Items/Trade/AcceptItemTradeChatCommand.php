@@ -1,17 +1,34 @@
 <?php
 
-namespace App\Service\Telegram\Honor\Collectables\Trade;
+namespace App\Service\Telegram\Honor\Items\Trade;
 
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
-use App\Service\Telegram\Honor\Collectables\AbstractItemTelegramCallbackQuery;
+use App\Service\Items\ItemService;
+use App\Service\Items\ItemTradeService;
+use App\Service\Telegram\AbstractTelegramCallbackQuery;
+use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class AcceptItemTradeChatCommand extends AbstractItemTelegramCallbackQuery
+class AcceptItemTradeChatCommand extends AbstractTelegramCallbackQuery
 {
 
     public const CALLBACK_KEYWORD = 'trade:accept';
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly ItemService $itemService,
+        private readonly ItemTradeService $itemTradeService,
+    ) {
+        parent::__construct($manager, $translator, $logger, $telegramService);
+    }
 
     public function getCallbackKeyword(): string
     {
