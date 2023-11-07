@@ -44,20 +44,20 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
 
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
-            $this->getStartText($jackpot),
+            $this->getStartText($jackpot->getAmount()),
             threadId: $message->getTelegramThreadId(),
             replyMarkup: $this->getKeyboard(),
         );
     }
 
-    private function getStartText(SlotMachineJackpot $jackpot): string
+    private function getStartText(int $jackpot): string
     {
         $text = <<<TEXT
         🎰 SLOT MACHINE 🎰
         
         jackpot: %s Ehre
         TEXT;
-        return sprintf($text, NumberFormat::format($jackpot->getAmount()));
+        return sprintf($text, NumberFormat::format($jackpot));
     }
 
     /**
@@ -91,7 +91,8 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         }
         $jackpot = $this->honorService->getSlotMachineJackpot($chat);
         $this->honorService->removeHonor($chat, $user, self::PRICE);
-        $jackpot->setAmount($jackpot->getAmount() + self::PRICE);
+        $previousJackpot = $jackpot->getAmount();
+        $jackpot->setAmount($previousJackpot + self::PRICE);
         $result = $this->run();
         if ($result === ['💰', '💰', '💰']) {
             $amount = $jackpot->getAmount();
@@ -111,12 +112,12 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             $jackpot->setAmount(0);
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery);
+            $this->updateJackpot($update, $previousJackpot, $jackpot->getAmount());
             return;
         }
         if ($result === ['✡️', '✡️', '✡️']) {
             $amount = 1_000_000;
             $this->honorService->removeHonor($chat, $user, $amount);
-            $jackpot->setAmount($jackpot->getAmount() + $amount);
             $text = <<<TEXT
             🎰 ✡️ ✡️ ✡️ 🎰
             
@@ -129,12 +130,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             );
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery);
-            $this->telegramService->editMessage(
-                $update->getCallbackQuery()->getMessage()->getChat()->getId(),
-                $update->getCallbackQuery()->getMessage()->getMessageId(),
-                $this->getStartText($jackpot),
-                replyMarkup: $this->getKeyboard(),
-            );
+            $this->updateJackpot($update, $previousJackpot, $jackpot->getAmount());
             return;
         }
         // if all 3 are the same
@@ -154,19 +150,28 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             ), threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId());
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery);
+            $this->updateJackpot($update, $previousJackpot, $jackpot->getAmount());
             return;
         }
         $this->manager->flush();
-        $this->telegramService->editMessage(
-            $update->getCallbackQuery()->getMessage()->getChat()->getId(),
-            $update->getCallbackQuery()->getMessage()->getMessageId(),
-            $this->getStartText($jackpot),
-            replyMarkup: $this->getKeyboard(),
-        );
+        $this->updateJackpot($update, $previousJackpot, $jackpot->getAmount());
         $this->telegramService->answerCallbackQuery(
             $callbackQuery,
             implode(' ', $result),
             true,
+        );
+    }
+
+    public function updateJackpot(Update $update, int $oldJackpot, int $newJackpot): void
+    {
+        if (NumberFormat::format($oldJackpot) === NumberFormat::format($newJackpot)) {
+            return;
+        }
+        $this->telegramService->editMessage(
+            $update->getCallbackQuery()->getMessage()->getChat()->getId(),
+            $update->getCallbackQuery()->getMessage()->getMessageId(),
+            $this->getStartText($newJackpot),
+            replyMarkup: $this->getKeyboard(),
         );
     }
 
