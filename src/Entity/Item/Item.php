@@ -56,7 +56,7 @@ class Item
     #[Groups(['collectable:read'])]
     private bool $permanent;
 
-    #[Column(type: 'json')]
+    #[Column(type: 'json', enumType: ItemAttribute::class)]
     #[Groups(['collectable:read'])]
     private array $attributes = [];
 
