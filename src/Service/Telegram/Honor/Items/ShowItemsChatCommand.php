@@ -58,7 +58,7 @@ class ShowItemsChatCommand extends AbstractTelegramChatCommand
         foreach ($instances as $instance) {
             $data = sprintf('%s:%s', ShowItemInfoChatCommand::CALLBACK_KEYWORD, $instance->getId());
             $row[] = [
-                'text' => $instance->getItem()->getName(),
+                'text' => sprintf('%s %s', $instance->getItem()->getRarity()->emoji(), $instance->getItem()->getName()),
                 'callback_data' => $data,
             ];
             if (count($row) === 3) {
