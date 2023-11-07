@@ -31,15 +31,18 @@ class OpenAiCompletionService extends BaseOpenAiService
         return $completion;
     }
 
-    public function chatCompletion(string $prompt, array $messages): GeneratedCompletion
+    public function chatCompletion(string $prompt, array $messages, ?int $maxTokens = 50): GeneratedCompletion
     {
         $completion = $this->createCompletion($prompt);
         $messages[] = ['role' => 'user', 'content' => $prompt];
-        $data = $this->post('/v1/chat/completions', [
+        $payload = [
             'model' => 'gpt-3.5-turbo',
             'messages' => array_values($messages),
-            'max_tokens' => 50,
-        ]);
+        ];
+        if ($maxTokens !== null) {
+            $payload['max_tokens'] = $maxTokens;
+        }
+        $data = $this->post('/v1/chat/completions', $payload);
         $completion->setCompletion($data['choices'][0]['message']['content']);
         $this->entityManager->flush();
         return $completion;

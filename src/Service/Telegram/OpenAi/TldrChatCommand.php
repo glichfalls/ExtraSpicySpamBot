@@ -27,16 +27,25 @@ class TldrChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^tldr\s(?<prompt>.+)$/is', $message->getMessage(), $matches) === 1;
+        return preg_match('/^tldr\s?(?<prompt>.*)/is', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $prompt = $matches['prompt'];
+            $replyMessage = $update->getMessage()->getReplyToMessage();
+            if ($replyMessage !== null) {
+                $prompt = $replyMessage->getText();
+            } else {
+                $prompt = $matches['prompt'];
+            }
+            if (!$prompt) {
+                $this->telegramService->replyTo($message, 'no prompt given');
+                return;
+            }
             $answer = $this->completionService->chatCompletion($prompt, [
                 ['role' => 'system', 'content' => 'summarize the following text']
-            ]);
+            ], maxTokens: null);
             $this->telegramService->replyTo($message, $answer->getCompletion());
         } catch (\Throwable $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());
