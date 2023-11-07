@@ -47,7 +47,7 @@ class ShowItemInfoChatCommand extends AbstractTelegramCallbackQuery
             $text = <<<TEXT
             %s
             %s
-            rarity: %s
+            %s
             owner %s
             %s
             TEXT;
@@ -56,7 +56,7 @@ class ShowItemInfoChatCommand extends AbstractTelegramCallbackQuery
                 $text,
                 $instance->getItem()->getName(),
                 $instance->getItem()->getDescription(),
-                $instance->getItem()->getRarity()->emoji(),
+                $instance->getItem()->getRarity()->name(),
                 $instance->getOwner()?->getName() ?? 'nobody',
                 count($effects) > 0 ? implode(PHP_EOL, $effects) : 'no effects',
             );

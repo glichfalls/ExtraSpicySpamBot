@@ -58,7 +58,7 @@ class Item
 
     #[Column(type: 'json')]
     #[Groups(['collectable:read'])]
-    private array $attributes;
+    private array $attributes = [];
 
     #[Column(type: 'bigint', nullable: true)]
     #[Groups(['collectable:read'])]

@@ -25,11 +25,16 @@ enum ItemRarity: string
     public function emoji(): string
     {
         return match ($this) {
-            self::Common => '🟦',
-            self::Uncommon => '🟩',
-            self::Rare => '🟨',
-            self::Legendary => '🟥',
+            self::Common => '⚪',
+            self::Uncommon => '🔵',
+            self::Rare => '🟣',
+            self::Legendary => '🟠',
         };
+    }
+
+    public function name(): string
+    {
+        return sprintf('%s (%s)', $this->emoji(), $this->value());
     }
 
     /**
