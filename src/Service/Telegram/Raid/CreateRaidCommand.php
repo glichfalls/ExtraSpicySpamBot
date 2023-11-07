@@ -4,6 +4,7 @@ namespace App\Service\Telegram\Raid;
 
 use App\Entity\Honor\Raid\RaidFactory;
 use App\Entity\Message\Message;
+use App\Utils\NumberFormat;
 use App\Utils\Random;
 use TelegramBot\Api\Types\Update;
 
@@ -89,10 +90,10 @@ class CreateRaidCommand extends AbstractRaidChatCommand
         $this->telegramService->sendText(
             $chat->getChatId(),
             sprintf(
-                '%s started a raid against %s! %s honor will be raided.',
+                '%s started a raid against %s! %s Ehre will be raided.',
                 $message->getUser()->getName(),
                 $target->getName(),
-                $raidAmount,
+                NumberFormat::format($raidAmount),
             ),
             threadId: $message->getTelegramThreadId(),
             replyMarkup: $this->getRaidKeyboard($raid),
@@ -102,7 +103,7 @@ class CreateRaidCommand extends AbstractRaidChatCommand
     private function getRaidAmount(int $targetHonorAmount): int
     {
         if (($targetHonorAmount / 2) > 100) {
-            return $targetHonorAmount / 2;
+            return (int) floor($targetHonorAmount / 2);
         }
         return 100;
     }
