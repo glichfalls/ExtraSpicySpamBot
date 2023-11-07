@@ -34,7 +34,7 @@ enum ItemRarity: string
 
     public function name(): string
     {
-        return sprintf('%s (%s)', $this->emoji(), $this->name);
+        return sprintf('%s %s', $this->emoji(), $this->name);
     }
 
     /**

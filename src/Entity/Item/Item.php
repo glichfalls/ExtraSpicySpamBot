@@ -213,9 +213,4 @@ class Item
         $this->instances->add($instance);
     }
 
-    public function isInstancable(): bool
-    {
-        return true;
-    }
-
 }
