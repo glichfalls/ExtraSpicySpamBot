@@ -38,7 +38,7 @@ class Raid
     #[JoinTable(name: 'raid_defenders')]
     private Collection $defenders;
 
-    #[Column(type: 'integer', options: ['default' => 0])]
+    #[Column(type: 'bigint', options: ['default' => 0])]
     private int $amount = 0;
 
     #[Column(type: 'boolean')]
