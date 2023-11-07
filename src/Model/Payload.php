@@ -10,7 +10,7 @@ trait Payload
 
     #[Column(type: 'json')]
     #[Groups(['payload:read'])]
-    private array $payload = [];
+    protected array $payload = [];
 
     public function getPayload(): array
     {

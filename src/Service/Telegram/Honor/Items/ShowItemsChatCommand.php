@@ -33,31 +33,32 @@ class ShowItemsChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $collectables = $this->itemService->getAvailableInstances($message->getChat());
-        if (count($collectables) === 0) {
+        $instances = $this->itemService->getAvailableInstances($message->getChat());
+        //return;
+        if (count($instances) === 0) {
             $this->telegramService->replyTo($message, 'No items available.');
         } else {
             $this->telegramService->sendText(
                 $message->getChat()->getChatId(),
                 'Available items:',
                 threadId: $message->getTelegramThreadId(),
-                replyMarkup: $this->getKeyboard($collectables)
+                replyMarkup: $this->getKeyboard($instances)
             );
         }
     }
 
     /**
-     * @param ItemInstance[] $collectables
+     * @param ItemInstance[] $instances
      * @return InlineKeyboardMarkup
      */
-    private function getKeyboard(array $collectables): InlineKeyboardMarkup
+    private function getKeyboard(array $instances): InlineKeyboardMarkup
     {
         $keyboard = [];
         $row = [];
-        foreach ($collectables as $collectable) {
-            $data = sprintf('%s:%s', ShowItemInfoChatCommand::CALLBACK_KEYWORD, $collectable->getId());
+        foreach ($instances as $instance) {
+            $data = sprintf('%s:%s', ShowItemInfoChatCommand::CALLBACK_KEYWORD, $instance->getId());
             $row[] = [
-                'text' => $collectable->getItem()->getName(),
+                'text' => $instance->getItem()->getName(),
                 'callback_data' => $data,
             ];
             if (count($row) === 3) {

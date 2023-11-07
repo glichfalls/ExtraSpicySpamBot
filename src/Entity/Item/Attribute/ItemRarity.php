@@ -5,12 +5,12 @@ namespace App\Entity\Item\Attribute;
 use App\Entity\Item\Effect\EffectCollection;
 use App\Utils\Random;
 
-enum ItemRarity
+enum ItemRarity: string
 {
-    case Common;
-    case Uncommon;
-    case Rare;
-    case Legendary;
+    case Common = 'common';
+    case Uncommon = 'uncommon';
+    case Rare = 'rare';
+    case Legendary = 'legendary';
 
     public function value(): int
     {
