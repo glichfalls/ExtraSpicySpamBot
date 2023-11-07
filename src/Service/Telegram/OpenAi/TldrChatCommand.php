@@ -44,7 +44,7 @@ class TldrChatCommand extends AbstractTelegramChatCommand
                 return;
             }
             $answer = $this->completionService->chatCompletion($prompt, [
-                ['role' => 'system', 'content' => 'summarize the following text']
+                ['role' => 'system', 'content' => 'summarize the following text in 2 sentences and reply in the input language']
             ], maxTokens: null);
             $this->telegramService->replyTo($message, $answer->getCompletion());
         } catch (\Throwable $exception) {
