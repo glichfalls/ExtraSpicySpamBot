@@ -31,11 +31,13 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private const MEDIUM = 'm';
     private const LARGE = 'l';
     private const XL = 'xl';
+    private const XXL = 'xxl';
     private const SIZES = [
         self::SMALL,
         self::MEDIUM,
         self::LARGE,
         self::XL,
+        self::XXL,
     ];
 
     public function __construct(
@@ -104,11 +106,11 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                 return;
             }
             if ($result instanceof ItemInstance) {
-                $this->telegramService->answerCallbackQuery($callbackQuery, 'You win a nft', true);
+                $this->telegramService->answerCallbackQuery($callbackQuery, 'You win a item', true);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf(
-                        '%s won a <strong>%s</strong> nft from a <strong>%s</strong> lootbox',
+                        '%s won a <strong>%s</strong> from a <strong>%s</strong> lootbox',
                         $user->getName() ?? $user->getFirstName(),
                         $result->getItem()->getName(),
                         ucfirst($size),
@@ -155,6 +157,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::MEDIUM => floor(15 / $hardFailChance->apply(1)),
             self::LARGE => floor(10 / $hardFailChance->apply(1)),
             self::XL => floor(5 / $hardFailChance->apply(1)),
+            self::XXL => floor(4 / $hardFailChance->apply(1)),
             default => 100,
         })) {
             return 0;
@@ -165,6 +168,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::MEDIUM => 58,
             self::LARGE => 57,
             self::XL => 56,
+            self::XXL => 55,
             default => 100,
         })) {
             return (int) floor($this->getPrice($size) / Random::getNumber(8));
@@ -172,17 +176,16 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         // medium ehre loot
         if (Random::getPercentChance(match ($size) {
             self::SMALL, self::MEDIUM => 90,
-            self::LARGE, self::XL => 85,
+            self::LARGE, self::XL, self::XXL => 85,
             default => 0,
         })) {
             // win between 100% and 200% of price
             return Random::getNumber($this->getPrice($size) * 2, $this->getPrice($size));
         }
         // high ehre loot
-        if (Random::getPercentChance(90)) {
-            $seed = (int) floor((Random::getNumber(1000)));
-            // max = 2-200x price
-            $max = $this->getPrice($size) * Random::getNumber($seed);
+        if (Random::getPercentChance(50)) {
+            // max = 2-50x price
+            $max = $this->getPrice($size) * Random::getNumber(Random::getNumber(50, 2));
             // win between 200% of price and max
             return Random::getNumber($max, $this->getPrice($size) * 2);
         }
@@ -195,6 +198,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::MEDIUM => 3,
             self::LARGE => 10,
             self::XL => 15,
+            self::XXL => 20,
             default => 0,
         }))) {
             return $this->winItem($chat, $user);
@@ -215,7 +219,10 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function winItem(Chat $chat, User $user): ItemInstance
     {
         $instances = $this->itemService->getAvailableInstances($chat, ItemRarity::random());
-        $win = $instances[array_rand($instances)];
+        if ($instances->count() === 0) {
+            throw new \RuntimeException('No items available.');
+        }
+        $win = $instances[array_rand($instances->getValues())];
         $win->setOwner($user);
         $this->manager->flush();
         return $win;
@@ -248,6 +255,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::MEDIUM => 100_000,
             self::LARGE => 1_000_000,
             self::XL => 100_000_000,
+            self::XXL => 1_000_000_000,
             default => null,
         };
     }

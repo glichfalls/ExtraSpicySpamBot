@@ -39,7 +39,12 @@ class ItemService
         return $this->itemRepository->findAll();
     }
 
-    public function getAvailableInstances(Chat $chat, ?ItemRarity $rarity = null): array
+    /**
+     * @param Chat $chat
+     * @param ItemRarity|null $rarity
+     * @return Collection<ItemInstance>
+     */
+    public function getAvailableInstances(Chat $chat, ?ItemRarity $rarity = null): Collection
     {
         $query = [
             'chat' => $chat,
@@ -48,7 +53,7 @@ class ItemService
         if ($rarity !== null) {
             $query['rarity'] = $rarity;
         }
-        return $this->instanceRepository->findBy($query);
+        return new ArrayCollection($this->instanceRepository->findBy($query));
     }
 
     /**

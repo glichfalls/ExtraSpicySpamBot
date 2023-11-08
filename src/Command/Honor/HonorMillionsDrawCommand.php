@@ -46,6 +46,7 @@ class HonorMillionsDrawCommand extends Command
                     $draw->getChat()->getChatId(),
                     sprintf($message, $winningNumber),
                     $draw->getTelegramThreadId(),
+                    parseMode: 'HTML',
                 );
                 $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());
                 $nextDraw->setPreviousDraw($draw);

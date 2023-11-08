@@ -6,6 +6,8 @@ use App\Entity\Item\ItemInstance;
 use App\Entity\Message\Message;
 use App\Service\Items\ItemService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
+use App\Service\Telegram\Button\TelegramButton;
+use App\Service\Telegram\Button\TelegramKeyboard;
 use App\Service\Telegram\TelegramService;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,24 +51,10 @@ final class ShowCollectionChatCommand extends AbstractTelegramChatCommand
      */
     public function getKeyboards(Collection $instances): InlineKeyboardMarkup
     {
-        $keyboard = [];
-        $row = [];
-        foreach ($instances as $instance) {
-            $data = sprintf('%s:%s', ShowItemInfoChatCommand::CALLBACK_KEYWORD, $instance->getId());
-            $row[] = [
-                'text' => $instance->getItem()->getName(),
-                'callback_data' => $data,
-            ];
-            if (count($row) === 3) {
-                $keyboard[] = $row;
-                $row = [];
-            }
-        }
-        if (count($row) > 0) {
-            $keyboard[] = $row;
-        }
-        $this->logger->debug('Keyboard', ['keyboard' => $keyboard]);
-        return new InlineKeyboardMarkup($keyboard);
+        return $this->telegramService->createKeyboard(new TelegramKeyboard($instances->map(fn (ItemInstance $instance) => new TelegramButton(
+            sprintf('%s %s', $instance->getItem()->getRarity()->emoji(), $instance->getItem()->getName()),
+            sprintf('%s:%s', ShowItemInfoChatCommand::CALLBACK_KEYWORD, $instance->getId()),
+        ))->toArray()));
     }
 
 }
