@@ -90,7 +90,8 @@ class ShowItemInfoChatCommand extends AbstractTelegramCallbackQuery
         $buttons->add(new TelegramButton('Trade', sprintf('%s:%s', OpenItemTradeChatCommand::CALLBACK_KEYWORD, $instance->getId())));
         foreach ($instance->getItem()->getAttributes() as $attribute) {
             if ($attribute == ItemAttribute::Executable) {
-                $buttons->add(new TelegramButton($instance->getPayloadValue('executable_name') ?? 'execute', sprintf(
+                $label = $instance->getPayloadValue('executable_name') ?? 'execute';
+                $buttons->add(new TelegramButton($label, sprintf(
                     '%s:%s',
                     ItemExecutionChatCommand::CALLBACK_KEYWORD,
                     $instance->getId(),

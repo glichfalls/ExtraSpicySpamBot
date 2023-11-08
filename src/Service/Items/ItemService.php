@@ -72,7 +72,7 @@ class ItemService
             throw new \RuntimeException('You are not the owner of this item.');
         }
         if (!$instance->getItem()->hasAttribute(ItemAttribute::Executable)) {
-            throw new \RuntimeException('This item cannot be challenged.');
+            throw new \RuntimeException('This item cannot be executed.');
         }
         if ($instance->isExpired()) {
             throw new \RuntimeException('This item is expired.');

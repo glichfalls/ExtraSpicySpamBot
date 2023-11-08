@@ -18,10 +18,7 @@ class TelegramKeyboard extends ArrayCollection
         $rows = [];
         $row = [];
         foreach ($this->getValues() as $button) {
-            $row[] = [
-                'text' => $button->getName(),
-                'callback_data' => $button->getCallbackData(),
-            ];
+            $row[] = $button->toArray();
             if (count($row) === $numberOfCols) {
                 $rows[] = $row;
                 $row = [];

@@ -81,7 +81,7 @@ readonly class ItemTradeService
         $this->manager->flush();
     }
 
-    public function transferItem(ItemInstance $instance, User $user): void
+    public function transferItem(ItemInstance $instance, ?User $user = null): void
     {
         if (!$instance->hasPayloadValue('owner_history')) {
             $instance->setPayloadValue('owner_history', []);
@@ -90,7 +90,10 @@ readonly class ItemTradeService
             $instance->getPayloadValue('owner_history'),
             [
                 [
-                    'user' => $instance->getOwner()->getId(),
+                    'user' => [
+                        'id' => $instance->getOwner()->getId(),
+                        'name' => $instance->getOwner()->getName() ?? $instance->getOwner()->getFirstName(),
+                    ],
                     'date' => $instance->getUpdatedAt()->format('Y-m-d H:i:s'),
                 ],
             ],
