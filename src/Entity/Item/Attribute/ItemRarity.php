@@ -9,7 +9,7 @@ enum ItemRarity: string
 {
     case Common = 'common';
     case Rare = 'rare';
-    case Epic = 'uncommon';
+    case Epic = 'epic';
     case Legendary = 'legendary';
 
     public function value(): ?int
