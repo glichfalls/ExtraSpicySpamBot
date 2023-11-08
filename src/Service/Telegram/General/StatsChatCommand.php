@@ -39,7 +39,7 @@ class StatsChatCommand extends AbstractTelegramChatCommand
             }
             $messages = $this->messageRepository->createQueryBuilder('m')
                 ->select([
-                    'count(m.*) as count',
+                    'count(*) as count',
                     'u.name',
                     'u.first_name',
                 ])
