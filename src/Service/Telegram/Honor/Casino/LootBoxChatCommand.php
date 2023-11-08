@@ -100,9 +100,10 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             } catch (\RuntimeException) {
                 $this->telegramService->sendText(
                     $chat->getChatId(),
-                    '@%s skull emoji: ',
+                    'F',
                     threadId: $callbackQuery->getMessage()->getMessageThreadId(),
                 );
+                $this->addHonor($chat, $user, $price * 30);
                 return;
             }
             if ($result instanceof ItemInstance) {
