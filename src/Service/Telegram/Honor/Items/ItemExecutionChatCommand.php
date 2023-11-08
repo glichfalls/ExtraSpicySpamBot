@@ -53,7 +53,9 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
         try {
             if ($this->countCallbackDataParts($update) === 1) {
                 $instance = $this->itemService->getInstance($this->getCallbackDataId($update));
-                $this->itemService->validateItemExecution($instance, $user);
+                if ($instance->getOwner()->getId() !== $user->getId()) {
+                    throw new \RuntimeException('You are not the owner of this item.');
+                }
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf('%s executed %s.', $user->getName(), $instance->getItem()->getName()),
@@ -64,9 +66,6 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
             } else {
                 $arguments = $this->getCallbackDataParts($update, [2, 3]);
                 $instance = $this->itemService->getInstance($arguments[1]);
-                if ($instance->getOwner()->getId() !== $user->getId()) {
-                    throw new \RuntimeException('You are not the owner of this item.');
-                }
                 $this->itemService->validateItemExecution($instance, $user);
                 switch (ItemKeyword::tryFrom($arguments[0])) {
                     case ItemKeyword::SEND_ITEM:
@@ -197,7 +196,15 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
                     $instance->getId()
                 )
             ),
-        ]));
+            new TelegramButton(
+                'cancel',
+                sprintf(
+                    '%s:%s',
+                    ShowItemInfoChatCommand::CALLBACK_KEYWORD,
+                    $instance->getId()
+                )
+            )
+        ]), 2);
     }
 
 }
