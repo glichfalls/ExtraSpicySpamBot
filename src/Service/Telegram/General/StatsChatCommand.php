@@ -39,15 +39,15 @@ class StatsChatCommand extends AbstractTelegramChatCommand
             }
             $messages = $this->messageRepository->createQueryBuilder('m')
                 ->select([
-                    'count(*) as count',
+                    'count(m.id) as count',
                     'u.name',
                     'u.first_name',
                 ])
                 ->join('m.user', 'u')
                 ->where('m.chat = :chat')
-                ->andWhere('m.message LIKE %:query%')
+                ->andWhere('m.message LIKE :query')
                 ->setParameter('chat', $message->getChat())
-                ->setParameter('query', $query)
+                ->setParameter('query', sprintf('%%%s%%', $query))
                 ->groupBy('u.name, u.first_name')
                 ->getQuery()
                 ->getResult();
