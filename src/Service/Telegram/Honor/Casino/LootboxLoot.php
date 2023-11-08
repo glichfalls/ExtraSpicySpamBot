@@ -25,7 +25,7 @@ enum LootboxLoot: string
         return $multiplier;
     }
 
-    public function base(): int
+    public function base(): float
     {
         return match ($this) {
             self::SMALL => 1,
@@ -89,21 +89,21 @@ enum LootboxLoot: string
 
     public function junkRate(?EffectCollection $effects): int
     {
-        return floor(50 / $this->getMultiplier($effects));
+        return (int) floor(50 / $this->getMultiplier($effects));
     }
 
     public function badLootRate(?EffectCollection $effects): int
     {
-        return floor(70 / $this->getMultiplier($effects));
+        return (int) floor(70 / $this->getMultiplier($effects));
     }
 
     public function honorLootRate(?EffectCollection $effects): int
     {
-        return ceil(30 * $this->getMultiplier($effects));
+        return (int) ceil(30 * $this->getMultiplier($effects));
     }
 
     public function itemLootRate(?EffectCollection $effects): int
     {
-        return ceil(5 * $this->getMultiplier($effects));
+        return (int) ceil(5 * $this->getMultiplier($effects));
     }
 }
