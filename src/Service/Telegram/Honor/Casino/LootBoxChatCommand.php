@@ -177,7 +177,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         }
         // bad loot
         if (Random::getPercentChance($lootbox->badLootRate($effects))) {
-            return (int) floor($lootbox->price() / Random::getNumber(100, 10));
+            return (int) floor($lootbox->price() / Random::getNumber(30, 10));
         }
         // high ehre loot
         if (Random::getPercentChance($lootbox->honorLootRate($effects))) {

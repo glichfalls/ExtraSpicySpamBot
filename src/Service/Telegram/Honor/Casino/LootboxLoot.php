@@ -89,12 +89,12 @@ enum LootboxLoot: string
 
     public function junkRate(?EffectCollection $effects): int
     {
-        return (int) floor(50 / $this->getMultiplier($effects));
+        return (int) floor(15 / $this->getMultiplier($effects));
     }
 
     public function badLootRate(?EffectCollection $effects): int
     {
-        return (int) floor(70 / $this->getMultiplier($effects));
+        return (int) floor(60 / $this->getMultiplier($effects));
     }
 
     public function honorLootRate(?EffectCollection $effects): int
