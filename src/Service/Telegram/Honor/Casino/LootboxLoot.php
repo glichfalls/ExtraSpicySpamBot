@@ -29,21 +29,21 @@ enum LootboxLoot: string
     {
         return match ($this) {
             self::SMALL => 1,
-            self::MEDIUM => 1.05,
-            self::LARGE => 1.1,
-            self::XL => 1.25,
-            self::XXL => 1.5,
+            self::MEDIUM => 1.2,
+            self::LARGE => 1.3,
+            self::XL => 1.5,
+            self::XXL => 1.8,
         };
     }
 
     public function maxBuff(): float
     {
         return match ($this) {
-            self::SMALL => 1.1,
-            self::MEDIUM => 1.2,
-            self::LARGE => 1.25,
-            self::XL => 1.5,
-            self::XXL => 1.9,
+            self::SMALL => 1.2,
+            self::MEDIUM => 1.3,
+            self::LARGE => 1.5,
+            self::XL => 1.8,
+            self::XXL => 2.5,
         };
     }
 
