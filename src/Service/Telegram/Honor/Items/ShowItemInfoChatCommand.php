@@ -86,6 +86,9 @@ class ShowItemInfoChatCommand extends AbstractTelegramCallbackQuery
 
     private function getKeyboard(ItemInstance $instance): ?InlineKeyboardMarkup
     {
+        if ($instance->getOwner() === null) {
+            return null;
+        }
         $buttons = new TelegramKeyboard();
         $buttons->add(new TelegramButton('Trade', sprintf('%s:%s', OpenItemTradeChatCommand::CALLBACK_KEYWORD, $instance->getId())));
         foreach ($instance->getItem()->getAttributes() as $attribute) {

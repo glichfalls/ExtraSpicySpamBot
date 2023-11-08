@@ -67,9 +67,18 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
 
     public function handle(Update $update, Message $message, array $matches): void
     {
+        $text = ['Choose your lootbox size:'];
+        foreach (LootboxLoot::cases() as $loot) {
+            $text[] = sprintf(
+                '%s: %s Ehre, %sx loot',
+                $loot->value,
+                NumberFormat::format($loot->price()),
+                $loot->base(),
+            );
+        }
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
-            'Choose your lootbox size',
+            implode(PHP_EOL, $text),
             threadId: $message->getTelegramThreadId(),
             replyMarkup: $this->getKeyboard()
         );
@@ -97,7 +106,9 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                     $result = $this->getRandomJunk();
                     $this->telegramService->answerCallbackQuery(
                         $callbackQuery,
-                        sprintf('You won %s', $result), true);
+                        sprintf('You won %s', $result),
+                        true
+                    );
                     $this->manager->flush();
                     return;
                 }
@@ -220,7 +231,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         $keyboard = new TelegramKeyboard([]);
         foreach (LootboxLoot::cases() as $loot) {
             $keyboard->add(new TelegramButton(
-                sprintf('%s (%s Ehre, %sx loot)', $loot->value, NumberFormat::format($loot->price()), $loot->base()),
+                $loot->value,
                 sprintf('%s;%s', self::CALLBACK_KEYWORD, $loot->value),
             ));
         }
