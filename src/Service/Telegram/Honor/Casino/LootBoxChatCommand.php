@@ -5,6 +5,8 @@ namespace App\Service\Telegram\Honor\Casino;
 use App\Entity\Chat\Chat;
 use App\Entity\Item\Attribute\ItemRarity;
 use App\Entity\Item\Effect\EffectType;
+use App\Entity\Item\Item;
+use App\Entity\Item\ItemFactory;
 use App\Entity\Item\ItemInstance;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
@@ -107,7 +109,11 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                 return;
             }
             if ($result instanceof ItemInstance) {
-                $this->telegramService->answerCallbackQuery($callbackQuery, 'You win a item', true);
+                $message = sprintf('You won %s', $result->getItem()->getFullName());
+                if ($result->getExpiresAt() !== null) {
+                    $message .= sprintf(' (expires in %s)', $result->getExpiresAt()->diff(new \DateTime())->format('%a days'));
+                }
+                $this->telegramService->answerCallbackQuery($callbackQuery, $message, true);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf(
@@ -175,12 +181,12 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             return (int) floor($this->getPrice($size) / Random::getNumber(8));
         }
         // medium ehre loot
-        if (Random::getPercentChance(50)) {
+        if (Random::getPercentChance(20)) {
             // win between 100% and 200% of price
             return Random::getNumber($this->getPrice($size) * 2, $this->getPrice($size));
         }
         // high ehre loot
-        if (Random::getPercentChance(40)) {
+        if (Random::getPercentChance(50)) {
             // max = 2-50x price
             $max = $this->getPrice($size) * Random::getNumber(Random::getNumber(50, 2));
             // win between 200% of price and max
@@ -198,7 +204,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             self::XXL => 20,
             default => 0,
         }))) {
-            return $this->winItem($chat, $user);
+            return $this->winItem($chat, $user, $size);
         }
         return $this->getPrice($size) + 1;
     }
@@ -213,14 +219,34 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         return $junk[array_rand($junk)];
     }
 
-    private function winItem(Chat $chat, User $user): ItemInstance
+    private function winItem(Chat $chat, User $user, string $size): ItemInstance
     {
-        $instances = $this->itemService->getAvailableInstances($chat, ItemRarity::random());
+        $rarity = ItemRarity::random(
+            $this->itemEffectService->getEffectsByUserAndType($user, $chat, [
+                EffectType::LUCK,
+            ]),
+            maxRarity: match ($size) {
+                self::SMALL, self::MEDIUM => ItemRarity::Rare,
+                self::LARGE => ItemRarity::Epic,
+                default => ItemRarity::Legendary,
+            },
+            minRarity: match ($size) {
+                self::XL => ItemRarity::Rare,
+                self::XXL => ItemRarity::Epic,
+                default => ItemRarity::Common,
+            },
+        );
+        $instances = $this->itemService->getAvailableInstances($chat, $rarity);
         if ($instances->count() === 0) {
-            throw new \RuntimeException('No items available.');
+            $item = $this->itemService->getRandomItemByRarity($rarity);
+            $expire = new \DateTime('+2 weeks');
+            $win = ItemFactory::instance($item, $chat, $user, true, $expire);
+            $this->manager->persist($win);
+        } else {
+            $win = $instances[array_rand($instances->getValues())];
         }
-        $win = $instances[array_rand($instances->getValues())];
         $win->setOwner($user);
+        $win->setPayloadValue('lootbox', true);
         $this->manager->flush();
         return $win;
     }

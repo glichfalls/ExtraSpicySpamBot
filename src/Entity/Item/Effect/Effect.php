@@ -150,4 +150,16 @@ class Effect
         };
     }
 
+    public function applyNegative(int|float $value): int|float
+    {
+        return match ($this->operator) {
+            '+' => $value - $this->magnitude,
+            '-' => $value + $this->magnitude,
+            '*' => $value / $this->magnitude,
+            '/' => $value * $this->magnitude,
+            '=' => $this->magnitude,
+            default => throw new \RuntimeException(sprintf('Unknown operator "%s"', $this->operator)),
+        };
+    }
+
 }

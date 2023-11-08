@@ -153,7 +153,6 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
     private function receiveItem(ItemInstance $instance, User $user, int $percentageChance): bool
     {
         $instance->setPayloadValue('last_execution', (new \DateTime())->format('Y-m-d H:i:s'));
-
         $this->logger->info(sprintf('Gift luck: %s%%', $percentageChance));
         if (Random::getPercentChance($percentageChance)) {
             $this->itemTradeService->transferItem($instance, $user);

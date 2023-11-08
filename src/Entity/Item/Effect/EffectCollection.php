@@ -26,4 +26,12 @@ class EffectCollection extends ArrayCollection
         return $number;
     }
 
+    public function applyNegative(int|float $number): int|float
+    {
+        foreach ($this->getValues() as $effect) {
+            $number = $effect->applyNegative($number);
+        }
+        return $number;
+    }
+
 }

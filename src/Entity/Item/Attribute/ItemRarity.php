@@ -8,16 +8,16 @@ use App\Utils\Random;
 enum ItemRarity: string
 {
     case Common = 'common';
-    case Uncommon = 'uncommon';
     case Rare = 'rare';
+    case Epic = 'uncommon';
     case Legendary = 'legendary';
 
-    public function value(): int
+    public function value(): ?int
     {
         return match ($this) {
-            self::Common => 70,
-            self::Uncommon => 20,
-            self::Rare => 9,
+            self::Common => null,
+            self::Rare => 20,
+            self::Epic => 9,
             self::Legendary => 1,
         };
     }
@@ -26,8 +26,8 @@ enum ItemRarity: string
     {
         return match ($this) {
             self::Common => '⚪',
-            self::Uncommon => '🔵',
-            self::Rare => '🟣',
+            self::Rare => '🔵',
+            self::Epic => '🟣',
             self::Legendary => '🟠',
         };
     }
@@ -44,25 +44,75 @@ enum ItemRarity: string
     {
         return [
             self::Common->name => self::Common->value(),
-            self::Uncommon->name => self::Uncommon->value(),
+            self::Epic->name => self::Epic->value(),
             self::Rare->name => self::Rare->value(),
             self::Legendary->name => self::Legendary->value(),
         ];
     }
 
-    public static function random(?EffectCollection $effects = null): self
-    {
-        $random = Random::getNumber($effects?->apply(100) ?? 100);
-        if ($random <= self::Common->value()) {
-            return self::Common;
+    public static function random(
+        ?EffectCollection $effects = null,
+        ?ItemRarity $maxRarity = null,
+        ?ItemRarity $minRarity = null,
+    ): self {
+        $minBase = 1;
+        $maxBase = 100;
+        if ($maxRarity !== null) {
+            $maxBase = $maxRarity->value();
         }
-        if ($random <= self::Common->value() + self::Uncommon->value()) {
-            return self::Uncommon;
+        if ($minRarity !== null) {
+            $minBase = $minRarity->value();
         }
-        if ($random <= self::Common->value() + self::Uncommon->value() + self::Rare->value()) {
+        $number = Random::getNumber($effects?->applyNegative($maxBase) ?? $maxBase, $minBase);
+        if ($number <= self::Legendary->value()) {
+            return self::Legendary;
+        }
+        if ($number <= self::Epic->value()) {
+            return self::Epic;
+        }
+        if ($number <= self::Rare->value()) {
             return self::Rare;
         }
-        return self::Legendary;
+        return self::Common;
+    }
+
+    public function higher(): ?self
+    {
+        return self::nextHigher($this);
+    }
+
+    public function lower(): ?self
+    {
+        return self::nextLower($this);
+    }
+
+    public static function nextLower(self $rarity): ?self
+    {
+        return match ($rarity) {
+            self::Common => null,
+            self::Epic => self::Common,
+            self::Rare => self::Epic,
+            self::Legendary => self::Rare,
+        };
+    }
+
+    public static function nextHigher(self $rarity): ?self
+    {
+        return match ($rarity) {
+            self::Common => self::Epic,
+            self::Epic => self::Rare,
+            self::Rare => self::Legendary,
+            self::Legendary => null,
+        };
+    }
+
+    public function selfAndLower(): array
+    {
+        $rarities = [$this];
+        while ($lower = self::nextLower($this)) {
+            $rarities[] = $lower;
+        }
+        return $rarities;
     }
 
 }

@@ -7,6 +7,7 @@ use App\Entity\Item\Attribute\ItemAttribute;
 use App\Entity\Item\Attribute\ItemRarity;
 use App\Entity\Item\Challenge\ItemChallenge;
 use App\Entity\Item\Challenge\ItemChallengeFactory;
+use App\Entity\Item\Item;
 use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
 use App\Repository\EffectRepository;
@@ -39,6 +40,31 @@ class ItemService
         return $this->itemRepository->findAll();
     }
 
+    public function getItemsByRarity(ItemRarity $rarity): array
+    {
+        return $this->itemRepository->findBy(['rarity' => $rarity]);
+    }
+
+    public function getItemsByMaxRarity(ItemRarity $maxRarity): array
+    {
+        return $this->itemRepository->createQueryBuilder('i')
+            ->where('i.rarity IN :rarities')
+            ->andWhere('i.permanent = :permanent')
+            ->setParameter('permanent', true)
+            ->setParameter('rarities', $maxRarity->selfAndLower())
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getRandomItemByRarity(ItemRarity $rarity): Item
+    {
+        $items = $this->getItemsByMaxRarity($rarity);
+        if (empty($items)) {
+            throw new \RuntimeException(sprintf('No items found for rarity %s', $rarity->name()));
+        }
+        return $items[array_rand($items)];
+    }
+
     /**
      * @param Chat $chat
      * @param ItemRarity|null $rarity
@@ -54,6 +80,20 @@ class ItemService
             $query['rarity'] = $rarity;
         }
         return new ArrayCollection($this->instanceRepository->findBy($query));
+    }
+
+    public function getAvailableInstancesByMaxRarity(Chat $chat, ItemRarity $maxRarity): Collection
+    {
+        $data = $this->instanceRepository->createQueryBuilder('i')
+            ->join('i.item', 'item')
+            ->where('i.chat = :chat')
+            ->andWhere('i.owner IS NULL')
+            ->andWhere('item.rarity IN :rarities')
+            ->setParameter('chat', $chat)
+            ->setParameter('rarities', $maxRarity->selfAndLower())
+            ->getQuery()
+            ->getResult();
+        return new ArrayCollection($data);
     }
 
     /**

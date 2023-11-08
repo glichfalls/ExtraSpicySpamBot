@@ -87,6 +87,11 @@ class Item
         return $this->name;
     }
 
+    public function getFullName(): string
+    {
+        return sprintf('%s %s', $this->getRarity()->emoji(), $this->getName());
+    }
+
     public function setName(string $name): void
     {
         $this->name = $name;
