@@ -70,11 +70,10 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         $text = ['Choose your lootbox size:'];
         foreach (LootboxLoot::cases() as $loot) {
             $text[] = sprintf(
-                '%s %s-%s %s Ehre [%sx loot]',
+                '%s %s-%s %sx loot',
                 $loot->value,
                 $loot->minRarity()->emoji(),
                 $loot->maxRarity()->emoji(),
-                NumberFormat::format($loot->price()),
                 $loot->base(),
             );
         }
@@ -233,7 +232,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         $keyboard = new TelegramKeyboard([]);
         foreach (LootboxLoot::cases() as $loot) {
             $keyboard->add(new TelegramButton(
-                $loot->value,
+                sprintf('%s (%s Ehre)', $loot->value, NumberFormat::format($loot->price())),
                 sprintf('%s;%s', self::CALLBACK_KEYWORD, $loot->value),
             ));
         }
