@@ -49,6 +49,7 @@ class StatsChatCommand extends AbstractTelegramChatCommand
                 ->setParameter('chat', $message->getChat())
                 ->setParameter('query', sprintf('%%%s%%', $query))
                 ->groupBy('u.name, u.firstName')
+                ->orderBy('count', 'DESC')
                 ->getQuery()
                 ->getResult();
             $result = array_map(fn(array $message) => sprintf('%s %s: %dx', $message['firstName'], $message['name'], $message['count']), $messages);
