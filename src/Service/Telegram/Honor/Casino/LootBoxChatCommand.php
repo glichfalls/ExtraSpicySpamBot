@@ -70,8 +70,10 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         $text = ['Choose your lootbox size:'];
         foreach (LootboxLoot::cases() as $loot) {
             $text[] = sprintf(
-                '%s: %s Ehre, %sx loot',
+                '%s %s-%s %s Ehre [%sx loot]',
                 $loot->value,
+                $loot->minRarity()->emoji(),
+                $loot->maxRarity()->emoji(),
                 NumberFormat::format($loot->price()),
                 $loot->base(),
             );
