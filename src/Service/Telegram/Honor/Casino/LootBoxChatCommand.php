@@ -5,7 +5,6 @@ namespace App\Service\Telegram\Honor\Casino;
 use App\Entity\Chat\Chat;
 use App\Entity\Item\Attribute\ItemRarity;
 use App\Entity\Item\Effect\EffectType;
-use App\Entity\Item\Item;
 use App\Entity\Item\ItemFactory;
 use App\Entity\Item\ItemInstance;
 use App\Entity\Message\Message;
@@ -13,6 +12,8 @@ use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Service\Items\ItemEffectService;
 use App\Service\Items\ItemService;
+use App\Service\Telegram\Button\TelegramButton;
+use App\Service\Telegram\Button\TelegramKeyboard;
 use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
@@ -79,20 +80,19 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         $callbackQuery = $update->getCallbackQuery();
         $data = explode(';', $callbackQuery->getData());
         if (count($data) === 2) {
-            $size = $data[1];
-            $price = $this->getPrice($size);
-            if ($price === null) {
+            $loot = LootboxLoot::tryFrom($data[1]);
+            if ($loot === null) {
                 $this->telegramService->answerCallbackQuery($callbackQuery, 'Invalid size', true);
                 return;
             }
             $currentHonor = $this->getCurrentHonorAmount($chat, $user);
-            if ($currentHonor < $price) {
+            if ($currentHonor < $loot->price()) {
                 $this->telegramService->answerCallbackQuery($callbackQuery, 'Not enough honor', true);
                 return;
             }
-            $this->removeHonor($chat, $user, $price);
+            $this->removeHonor($chat, $user, $loot->price());
             try {
-                $result = $this->getLootboxWin($chat, $user, $size);
+                $result = $this->getLootboxWin($chat, $user, $loot);
                 if ($result === 0) {
                     $result = $this->getRandomJunk();
                     $this->telegramService->answerCallbackQuery($callbackQuery, sprintf('You won %s', $result), true);
@@ -105,7 +105,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                     'F',
                     threadId: $callbackQuery->getMessage()->getMessageThreadId(),
                 );
-                $this->addHonor($chat, $user, $price * 30);
+                $this->addHonor($chat, $user, $loot->price());
                 return;
             }
             if ($result instanceof ItemInstance) {
@@ -120,7 +120,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                         '%s won a <strong>%s</strong> from a <strong>%s</strong> lootbox',
                         $user->getName() ?? $user->getFirstName(),
                         $result->getItem()->getName(),
-                        ucfirst($size),
+                        $loot->value,
                     ),
                     threadId: $callbackQuery->getMessage()->getMessageThreadId(),
                     parseMode: 'HTML',
@@ -129,7 +129,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             }
             $this->addHonor($chat, $user, $result);
             $this->manager->flush();
-            if ($result > $price * 4) {
+            if ($result > $loot->price()) {
                 $this->telegramService->answerCallbackQuery($callbackQuery);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
@@ -137,7 +137,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                         '%s won %s Ehre from a <strong>%s</strong> lootbox',
                         $user->getName() ?? $user->getFirstName(),
                         NumberFormat::format($result),
-                        ucfirst($size),
+                        $loot->value,
                     ),
                     threadId: $callbackQuery->getMessage()->getMessageThreadId(),
                     parseMode: 'HTML',
@@ -152,61 +152,31 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         }
     }
 
-    private function getLootboxWin(Chat $chat, User $user, string $size): int|ItemInstance
+    private function getLootboxWin(Chat $chat, User $user, LootboxLoot $lootbox): int|ItemInstance
     {
-        $hardFailChance = $this->itemEffectService->getEffectsByUserAndType($user, $chat, [
+        $effects = $this->itemEffectService->getEffectsByUserAndType($user, $chat, [
             EffectType::LOOTBOX_LUCK,
             EffectType::LUCK,
         ]);
         // nothing
-        if (Random::getPercentChance(match($size) {
-            self::SMALL => floor(20 / $hardFailChance->apply(1)),
-            self::MEDIUM => floor(15 / $hardFailChance->apply(1)),
-            self::LARGE => floor(10 / $hardFailChance->apply(1)),
-            self::XL => floor(5 / $hardFailChance->apply(1)),
-            self::XXL => floor(4 / $hardFailChance->apply(1)),
-            default => 100,
-        })) {
+        if (Random::getPercentChance($lootbox->junkRate($effects))) {
             return 0;
         }
-        // -ehre loot
-        if (Random::getPercentChance(match ($size) {
-            self::SMALL => 59,
-            self::MEDIUM => 58,
-            self::LARGE => 57,
-            self::XL => 56,
-            self::XXL => 55,
-            default => 100,
-        })) {
-            return (int) floor($this->getPrice($size) / Random::getNumber(8));
-        }
-        // medium ehre loot
-        if (Random::getPercentChance(20)) {
-            // win between 100% and 200% of price
-            return Random::getNumber($this->getPrice($size) * 2, $this->getPrice($size));
+        // bad loot
+        if (Random::getPercentChance($lootbox->badLootRate($effects))) {
+            return (int) floor($lootbox->price() / Random::getNumber(100, 10));
         }
         // high ehre loot
-        if (Random::getPercentChance(50)) {
+        if (Random::getPercentChance($lootbox->honorLootRate($effects))) {
             // max = 2-50x price
-            $max = $this->getPrice($size) * Random::getNumber(Random::getNumber(50, 2));
+            $max = $lootbox->price() * Random::getNumber(Random::getNumber(50, 2));
             // win between 200% of price and max
-            return Random::getNumber($max, $this->getPrice($size) * 2);
+            return Random::getNumber($max, $lootbox->price() * 2);
         }
-        // collectable loot
-        $effects = $this->itemEffectService->getEffectsByUserAndType($user, $chat, [
-            EffectType::LUCK,
-        ]);
-        if (Random::getPercentChance($effects->apply(match ($size) {
-            self::SMALL => 1,
-            self::MEDIUM => 3,
-            self::LARGE => 10,
-            self::XL => 15,
-            self::XXL => 20,
-            default => 0,
-        }))) {
-            return $this->winItem($chat, $user, $size);
+        if (Random::getPercentChance($lootbox->itemLootRate($effects))) {
+            return $this->winItem($chat, $user, $lootbox);
         }
-        return $this->getPrice($size) + 1;
+        return $lootbox->price() + 1;
     }
 
     private function getRandomJunk(): string
@@ -219,22 +189,14 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         return $junk[array_rand($junk)];
     }
 
-    private function winItem(Chat $chat, User $user, string $size): ItemInstance
+    private function winItem(Chat $chat, User $user, LootboxLoot $loot): ItemInstance
     {
         $rarity = ItemRarity::random(
             $this->itemEffectService->getEffectsByUserAndType($user, $chat, [
                 EffectType::LUCK,
             ]),
-            maxRarity: match ($size) {
-                self::SMALL, self::MEDIUM => ItemRarity::Rare,
-                self::LARGE => ItemRarity::Epic,
-                default => ItemRarity::Legendary,
-            },
-            minRarity: match ($size) {
-                self::XL => ItemRarity::Rare,
-                self::XXL => ItemRarity::Epic,
-                default => ItemRarity::Common,
-            },
+            maxRarity: $loot->maxRarity(),
+            minRarity: $loot->minRarity(),
         );
         $instances = $this->itemService->getAvailableInstances($chat, $rarity);
         if ($instances->count() === 0) {
@@ -253,34 +215,14 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
 
     private function getKeyboard(): InlineKeyboardMarkup
     {
-        $keyboard = [];
-        foreach (self::SIZES as $size) {
-            $price = $this->getPrice($size);
-            if ($price < 1000) {
-                $priceFormatted = sprintf('%.1fk', $this->getPrice($size) / 1000);
-            } else {
-                $format = $price >= 1_000_000 ? '%dm' : '%dk';
-                $displayPrice = $price >= 1_000_000 ? $price / 1_000_000 : $price / 1000;
-                $priceFormatted = sprintf($format, $displayPrice);
-            }
-            $keyboard[] = [
-                'text' => sprintf('%s Ehre', $priceFormatted),
-                'callback_data' => sprintf('%s;%s', self::CALLBACK_KEYWORD, $size),
-            ];
+        $keyboard = new TelegramKeyboard([]);
+        foreach (LootboxLoot::cases() as $loot) {
+            $keyboard->add(new TelegramButton(
+                sprintf('%s (%s Ehre)', $loot->value, NumberFormat::format($loot->price())),
+                sprintf('%s;%s', self::CALLBACK_KEYWORD, $loot->value),
+            ));
         }
-        return new InlineKeyboardMarkup([$keyboard]);
-    }
-
-    private function getPrice(string $size): ?int
-    {
-        return match ($size) {
-            self::SMALL => 10_000,
-            self::MEDIUM => 100_000,
-            self::LARGE => 1_000_000,
-            self::XL => 100_000_000,
-            self::XXL => 10_000_000_000,
-            default => null,
-        };
+        return $this->telegramService->createKeyboard($keyboard);
     }
 
 }
