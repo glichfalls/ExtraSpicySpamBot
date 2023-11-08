@@ -41,17 +41,17 @@ class StatsChatCommand extends AbstractTelegramChatCommand
                 ->select([
                     'count(m.id) as count',
                     'u.name',
-                    'u.first_name',
+                    'u.firstName',
                 ])
                 ->join('m.user', 'u')
                 ->where('m.chat = :chat')
                 ->andWhere('m.message LIKE :query')
                 ->setParameter('chat', $message->getChat())
                 ->setParameter('query', sprintf('%%%s%%', $query))
-                ->groupBy('u.name, u.first_name')
+                ->groupBy('u.name, u.firstName')
                 ->getQuery()
                 ->getResult();
-            $result = array_map(fn(array $message) => sprintf('%s %s: %dx', $message['first_name'], $message['name'], $message['count']), $messages);
+            $result = array_map(fn(array $message) => sprintf('%s %s: %dx', $message['firstName'], $message['name'], $message['count']), $messages);
             $result[] = sprintf('Total: %d', array_sum(array_column($messages, 'count')));
             $result = implode(PHP_EOL, $result);
             $this->telegramService->replyto($message, $result);
