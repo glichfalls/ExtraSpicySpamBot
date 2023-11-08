@@ -87,16 +87,27 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
                         if ($recipient === null) {
                             throw new \InvalidArgumentException('User not found.');
                         }
-                        if ($this->receiveItem($instance, $recipient)) {
+                        $giftLuck = $this->getGiftLuck($instance);
+                        if ($this->receiveItem($instance, $recipient, $giftLuck)) {
                             $this->telegramService->sendText(
                                 $chat->getChatId(),
-                                sprintf('challenge successful. %s received %s.', $recipient->getName(), $instance->getItem()->getName()),
+                                sprintf(
+                                    'challenge successful (%s%%) @%s received %s.',
+                                    $giftLuck,
+                                    $recipient->getName(),
+                                    $instance->getItem()->getName(),
+                                ),
                                 threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
                             );
                         } else {
                             $this->telegramService->sendText(
                                 $chat->getChatId(),
-                                sprintf('challenge failed. %s did not receive %s.', $recipient->getName(), $instance->getItem()->getName()),
+                                sprintf(
+                                    'challenge failed (%s%%) @%s did not receive %s.',
+                                    $giftLuck,
+                                    $recipient->getName(),
+                                    $instance->getItem()->getName()
+                                ),
                                 threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
                             );
                         }
@@ -139,10 +150,12 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
         }
     }
 
-    private function receiveItem(ItemInstance $instance, User $user): bool
+    private function receiveItem(ItemInstance $instance, User $user, int $percentageChance): bool
     {
         $instance->setPayloadValue('last_execution', (new \DateTime())->format('Y-m-d H:i:s'));
-        if (Random::getPercentChance($this->getGiftLuck($instance))) {
+
+        $this->logger->info(sprintf('Gift luck: %s%%', $percentageChance));
+        if (Random::getPercentChance($percentageChance)) {
             $this->itemTradeService->transferItem($instance, $user);
             return true;
         }
