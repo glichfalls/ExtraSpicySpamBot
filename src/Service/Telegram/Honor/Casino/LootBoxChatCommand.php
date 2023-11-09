@@ -34,7 +34,6 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
 
     public const CALLBACK_KEYWORD = 'lootbox';
     private const STOCK_LIST = [
-        'PLTR',
         'MSFT',
         'AAPL',
         'TSLA',
@@ -45,16 +44,11 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         'AMD',
         'BRK.B',
         'MMM',
-        'KO',
-        'PEP',
-        'ADBE',
-        'V',
         'ORCL',
-        'MA',
     ];
     private const EXTENDED_LIST = [
         'BRK.A',
-        'LLY',
+        'PLTR',
     ];
 
     public function __construct(
@@ -241,7 +235,11 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     {
         $options = self::STOCK_LIST;
         if (Random::getPercentChance(25)) {
-            $options = array_merge($options, self::EXTENDED_LIST);
+            $options = self::EXTENDED_LIST;
+            for ($i = 0; $i < 5; $i++) {
+                // add the base list multiple times to decrease the chance of the extended list
+                $options = array_merge($options, self::STOCK_LIST);
+            }
         }
         return Random::arrayElement($options);
     }
