@@ -12,12 +12,12 @@ enum ItemRarity: string
     case Epic = 'epic';
     case Legendary = 'legendary';
 
-    public function value(): ?int
+    public function value(): int
     {
         return match ($this) {
-            self::Common => null,
-            self::Rare => 20,
-            self::Epic => 9,
+            self::Common => 100,
+            self::Rare => 40,
+            self::Epic => 10,
             self::Legendary => 1,
         };
     }
@@ -55,15 +55,30 @@ enum ItemRarity: string
         ?ItemRarity $maxRarity = null,
         ?ItemRarity $minRarity = null,
     ): self {
-        $minBase = 1;
-        $maxBase = 100;
+        $min = 1;
+        $max = 100;
         if ($maxRarity !== null) {
-            $maxBase = $maxRarity->value();
+            $higher = $maxRarity->higher();
+            if ($higher !== null) {
+                $min = $higher->value() + 1;
+            } else {
+                $min = self::Legendary->value();
+            }
         }
         if ($minRarity !== null) {
-            $minBase = $minRarity->value();
+            $max = $minRarity->value();
         }
-        $number = Random::getNumber($effects?->applyNegative($maxBase) ?? $maxBase, $minBase);
+        $number = Random::number($max, $min);
+        if ($effects !== null) {
+            $numberWithAppliedEffects = $effects->applyNegative($number);
+            if ($numberWithAppliedEffects > $max) {
+                $number = $max;
+            } elseif ($numberWithAppliedEffects < $min) {
+                $number = $min;
+            } else {
+                $number = $numberWithAppliedEffects;
+            }
+        }
         if ($number <= self::Legendary->value()) {
             return self::Legendary;
         }
@@ -90,18 +105,18 @@ enum ItemRarity: string
     {
         return match ($rarity) {
             self::Common => null,
-            self::Epic => self::Common,
-            self::Rare => self::Epic,
-            self::Legendary => self::Rare,
+            self::Rare => self::Common,
+            self::Epic => self::Rare,
+            self::Legendary => self::Epic,
         };
     }
 
     public static function nextHigher(self $rarity): ?self
     {
         return match ($rarity) {
-            self::Common => self::Epic,
-            self::Epic => self::Rare,
-            self::Rare => self::Legendary,
+            self::Common => self::Rare,
+            self::Rare => self::Epic,
+            self::Epic => self::Legendary,
             self::Legendary => null,
         };
     }
@@ -109,8 +124,10 @@ enum ItemRarity: string
     public function selfAndLower(): array
     {
         $rarities = [$this];
-        while ($lower = self::nextLower($this)) {
+        $lower = $this->lower();
+        while ($lower !== null) {
             $rarities[] = $lower;
+            $lower = $lower->lower();
         }
         return $rarities;
     }

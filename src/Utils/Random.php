@@ -10,7 +10,7 @@ class Random
         if ($probability <= 0) {
             return false;
         }
-        return self::getNumber(100) <= $probability;
+        return self::number(100) <= $probability;
     }
 
     public static function getBiasedRandomNumber(int $max, int $min = 1): bool
@@ -21,7 +21,7 @@ class Random
         return max($min, min($max, $biasedRandom));
     }
 
-    public static function getNumber(int $max, int $min = 1): int
+    public static function number(int $max, int $min = 1): int
     {
         return mt_rand($min, $max);
     }

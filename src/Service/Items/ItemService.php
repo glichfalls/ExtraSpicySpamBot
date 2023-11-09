@@ -13,6 +13,7 @@ use App\Entity\User\User;
 use App\Repository\EffectRepository;
 use App\Repository\ItemInstanceRepository;
 use App\Repository\ItemRepository;
+use App\Utils\Random;
 use App\Utils\RateLimitUtils;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -45,24 +46,30 @@ class ItemService
         return $this->itemRepository->findBy(['rarity' => $rarity]);
     }
 
-    public function getItemsByMaxRarity(ItemRarity $maxRarity): array
+    public function getItemsByMaxRarity(ItemRarity $maxRarity, bool $permanent): array
     {
-        return $this->itemRepository->createQueryBuilder('i')
-            ->where('i.rarity IN :rarities')
+        $query = $this->itemRepository->createQueryBuilder('i')
             ->andWhere('i.permanent = :permanent')
-            ->setParameter('permanent', true)
-            ->setParameter('rarities', $maxRarity->selfAndLower())
-            ->getQuery()
-            ->getResult();
+            ->setParameter('permanent', $permanent);
+        $expr = $query->expr()->orX();
+        foreach ($maxRarity->selfAndLower() as $index => $rarity) {
+            $expr->add($query->expr()->eq('i.rarity', ":rarity$index"));
+            $query->setParameter("rarity$index", $rarity);
+        }
+        return $query->andWhere($expr)->getQuery()->getResult();
     }
 
-    public function getRandomItemByRarity(ItemRarity $rarity): Item
+    public function getRandomLoanedItemByMaxRarity(ItemRarity $rarity): Item
     {
-        $items = $this->getItemsByMaxRarity($rarity);
+        $items = $this->getItemsByMaxRarity($rarity, false);
         if (empty($items)) {
             throw new \RuntimeException(sprintf('No items found for rarity %s', $rarity->name()));
         }
-        return $items[array_rand($items)];
+        $exact = (new ArrayCollection($items))->filter(fn (Item $item) => $item->getRarity() === $rarity);
+        if ($exact->isEmpty()) {
+            return Random::arrayElement($items);
+        }
+        return Random::arrayElement($exact->toArray());
     }
 
     /**
@@ -72,14 +79,7 @@ class ItemService
      */
     public function getAvailableInstances(Chat $chat, ?ItemRarity $rarity = null): Collection
     {
-        $query = [
-            'chat' => $chat,
-            'owner' => null,
-        ];
-        if ($rarity !== null) {
-            $query['rarity'] = $rarity;
-        }
-        return new ArrayCollection($this->instanceRepository->findBy($query));
+        return new ArrayCollection($this->instanceRepository->getInstancesWithoutOwnerByChat($chat, $rarity));
     }
 
     public function getAvailableInstancesByMaxRarity(Chat $chat, ItemRarity $maxRarity): Collection

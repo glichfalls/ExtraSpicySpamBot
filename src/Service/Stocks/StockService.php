@@ -40,7 +40,14 @@ class StockService
         string $finnhubApiKey,
     ) {
         $config = Configuration::getDefaultConfiguration()->setApiKey('token', $finnhubApiKey);
-        $this->client = new DefaultApi(new Client(), $config);
+        if ($_ENV['APP_ENV'] === 'dev') {
+            $client = new Client([
+                'verify' => false,
+            ]);
+        } else {
+            $client = new Client();
+        }
+        $this->client = new DefaultApi($client, $config);
     }
 
     public function getPortfolioByUserAndChat(Chat $chat, User $user): Portfolio

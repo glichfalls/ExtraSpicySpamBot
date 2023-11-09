@@ -65,7 +65,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
      */
     private function run(): array
     {
-        if (Random::getNumber(1000) === 1) {
+        if (Random::number(1000) === 1) {
             return ['✡️', '✡️', '✡️'];
         }
         $options = ['🍒', '🍋', '🍊', '🍇', '🍉', '🍓', '🍍', '🍌', '💰', '🍎'];

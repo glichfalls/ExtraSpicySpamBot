@@ -32,7 +32,7 @@ class HonorMillionsDrawCommand extends Command
             if ($draw->getWinningNumber() !== null) {
                 continue;
             }
-            $winningNumber = Random::getNumber(100);
+            $winningNumber = Random::number(100);
             $draw->setWinningNumber($winningNumber);
             $winners = $draw->getWinners();
             if ($winners->count() === 0) {

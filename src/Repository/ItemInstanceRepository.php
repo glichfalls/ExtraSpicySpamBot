@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Item\Attribute\ItemRarity;
 use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -29,6 +30,23 @@ class ItemInstanceRepository extends ServiceEntityRepository
             ->setParameter('chat', $chat)
             ->setParameter('user', $user)
             ->getQuery()
+            ->getResult();
+    }
+
+    public function getInstancesWithoutOwnerByChat(Chat $chat, ?ItemRarity $rarity = null): array
+    {
+        $query = $this->createQueryBuilder('i')
+            ->andWhere('i.chat = :chat')
+            ->andWhere('i.owner IS NULL')
+            ->setParameter('chat', $chat);
+
+        if ($rarity) {
+            $query->join('i.item', 'item')
+                ->andWhere('item.rarity = :rarity')
+                ->setParameter('rarity', $rarity);
+        }
+
+        return $query->getQuery()
             ->getResult();
     }
 

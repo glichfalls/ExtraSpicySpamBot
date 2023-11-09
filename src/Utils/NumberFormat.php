@@ -18,7 +18,7 @@ class NumberFormat
     public static function format(float|int $number): string
     {
         if ($number >= 1_000) {
-            return self::abbreviateNumber($number);
+            return self::humanize($number);
         }
         return number_format($number, thousands_separator: '\'');
     }
@@ -32,22 +32,21 @@ class NumberFormat
         return $formatter->formatCurrency($amount, $currency);
     }
 
-    public static function abbreviateNumber(float|int $number): string
+    public static function humanize(float|int $number): string
     {
         foreach (self::ABBREVIATION as $exponent => $abbrev) {
             if (abs($number) >= pow(10, $exponent)) {
                 $display = $number / pow(10, $exponent);
-                $decimals = (int) ($exponent >= 3 && $display < 100);
-                $display = floor($display * pow(10, $decimals)) / pow(10, $decimals);
-                return number_format($display, $decimals) . $abbrev;
+                $formatted = is_int($display) ? number_format($display) : number_format($display, 1);
+                return str_replace('.0', '', $formatted) . $abbrev;
             }
         }
         return (string) $number;
     }
 
-    public static function unabbreviateNumber(string $number): ?int
+    public static function dehumanize(string $number): ?int
     {
-        if (!self::isAbbreviatedNumber($number)) {
+        if (!self::isHumanizedNumber($number)) {
             return null;
         }
         $number = strtoupper(trim($number));
@@ -60,7 +59,7 @@ class NumberFormat
         return (int) $number;
     }
 
-    public static function isAbbreviatedNumber(string $number): bool
+    public static function isHumanizedNumber(string $number): bool
     {
         $suffixGroup = implode('|', array_values(self::ABBREVIATION));
         return preg_match('/^\d+(\.\d+)?(' . $suffixGroup . ')$/i', $number) === 1;
@@ -76,12 +75,12 @@ class NumberFormat
         $number = trim($number);
         if ($abbr !== null) {
             $numberWithAbbr = sprintf('%s%s', $number, $abbr);
-            if (self::isAbbreviatedNumber($numberWithAbbr)) {
-                return self::unabbreviateNumber($numberWithAbbr);
+            if (self::isHumanizedNumber($numberWithAbbr)) {
+                return self::dehumanize($numberWithAbbr);
             }
         }
-        if (self::isAbbreviatedNumber($number)) {
-            return self::unabbreviateNumber($number);
+        if (self::isHumanizedNumber($number)) {
+            return self::dehumanize($number);
         }
         return (int) $number;
     }

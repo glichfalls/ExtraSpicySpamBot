@@ -18,10 +18,16 @@ class EffectCollection extends ArrayCollection
     /**
      * returns the input number with all applied effects
      */
-    public function apply(int|float $number): int|float
+    public function apply(int|float $number, int|float|null $min = null, int|float|null $max = null): int|float
     {
         foreach ($this->getValues() as $effect) {
             $number = $effect->apply($number);
+        }
+        if ($min !== null && $number < $min) {
+            return $min;
+        }
+        if ($max !== null && $number > $max) {
+            return $max;
         }
         return $number;
     }
