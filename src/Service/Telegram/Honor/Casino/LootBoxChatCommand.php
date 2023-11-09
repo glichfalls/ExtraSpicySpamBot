@@ -30,19 +30,6 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
 
     public const CALLBACK_KEYWORD = 'lootbox';
 
-    private const SMALL = 's';
-    private const MEDIUM = 'm';
-    private const LARGE = 'l';
-    private const XL = 'xl';
-    private const XXL = 'xxl';
-    private const SIZES = [
-        self::SMALL,
-        self::MEDIUM,
-        self::LARGE,
-        self::XL,
-        self::XXL,
-    ];
-
     public function __construct(
         EntityManagerInterface $manager,
         TranslatorInterface $translator,
@@ -143,7 +130,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             }
             $this->addHonor($chat, $user, $result);
             $this->manager->flush();
-            if ($result > $loot->price()) {
+            if ($result > ($loot->price() * 5)) {
                 $this->telegramService->answerCallbackQuery($callbackQuery);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
@@ -182,7 +169,6 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         }
         // high ehre loot
         if (Random::getPercentChance($lootbox->honorLootRate($effects))) {
-            // max = 2-50x price
             $max = $lootbox->price() * Random::getNumber(Random::getNumber(50, 2));
             // win between 200% of price and max
             return Random::getNumber($max, $lootbox->price() * 2);
@@ -190,7 +176,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         if (Random::getPercentChance($lootbox->itemLootRate($effects))) {
             return $this->winItem($chat, $user, $lootbox);
         }
-        return $lootbox->price() + 1;
+        return $lootbox->price() - 1;
     }
 
     private function getRandomJunk(): string

@@ -25,6 +25,18 @@ enum LootboxLoot: string
         return $multiplier;
     }
 
+    public function getDivisor(?EffectCollection $effects = null): float
+    {
+        $multiplier = $effects?->apply(1);
+        if ($multiplier > $this->maxBuff()) {
+            $multiplier = $this->maxBuff();
+        }
+        if ($multiplier < $this->maxDebuff()) {
+            $multiplier = $this->maxDebuff();
+        }
+        return $multiplier;
+    }
+
     public function base(): float
     {
         return match ($this) {
@@ -89,17 +101,17 @@ enum LootboxLoot: string
 
     public function junkRate(?EffectCollection $effects): int
     {
-        return (int) floor(15 / $this->getMultiplier($effects));
+        return (int) floor(20 / $this->getDivisor($effects));
     }
 
     public function badLootRate(?EffectCollection $effects): int
     {
-        return (int) floor(60 / $this->getMultiplier($effects));
+        return (int) floor(60 / $this->getDivisor($effects));
     }
 
     public function honorLootRate(?EffectCollection $effects): int
     {
-        return (int) ceil(30 * $this->getMultiplier($effects));
+        return (int) ceil(20 * $this->getMultiplier($effects));
     }
 
     public function itemLootRate(?EffectCollection $effects): int
