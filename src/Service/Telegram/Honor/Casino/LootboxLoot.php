@@ -60,7 +60,8 @@ enum LootboxLoot: string
     {
         return match ($this) {
             default => ItemRarity::Legendary,
-            self::SMALL => ItemRarity::Epic,
+            self::SMALL => ItemRarity::Rare,
+            self::MEDIUM => ItemRarity::Epic,
         };
     }
 
