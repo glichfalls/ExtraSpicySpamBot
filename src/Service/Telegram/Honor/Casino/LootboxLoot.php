@@ -51,17 +51,16 @@ enum LootboxLoot: string
     {
         return match ($this) {
             default => ItemRarity::Common,
-            self::MEDIUM => ItemRarity::Rare,
-            self::LARGE => ItemRarity::Epic,
+            self::LARGE => ItemRarity::Rare,
         };
     }
 
     public function maxRarity(): ItemRarity
     {
         return match ($this) {
-            default => ItemRarity::Legendary,
             self::SMALL => ItemRarity::Rare,
             self::MEDIUM => ItemRarity::Epic,
+            self::LARGE => ItemRarity::Legendary,
         };
     }
 
@@ -97,7 +96,7 @@ enum LootboxLoot: string
 
     public function itemRate(?EffectCollection $effects): int
     {
-        $result = 5 * $this->apply($effects);
+        $result = $this->apply($effects);
         return (int) round($result);
     }
 
