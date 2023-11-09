@@ -32,8 +32,8 @@ enum LootboxLoot: string
     public function maxBuff(): float
     {
         return match ($this) {
-            self::SMALL => 1.2,
-            self::MEDIUM => 1.3,
+            self::SMALL => 1.25,
+            self::MEDIUM => 1.5,
             self::LARGE => 2,
         };
     }
@@ -43,7 +43,7 @@ enum LootboxLoot: string
         return match ($this) {
             self::SMALL => 0.1,
             self::MEDIUM => 0.2,
-            self::LARGE => 0.5,
+            self::LARGE => 0.4,
         };
     }
 
