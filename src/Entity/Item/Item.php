@@ -68,7 +68,7 @@ class Item
     #[Groups(['collectable:read'])]
     private ?string $imagePublicPath = null;
 
-    #[ManyToMany(targetEntity: Effect::class, mappedBy: 'collectables', cascade: ['persist', 'remove'])]
+    #[ManyToMany(targetEntity: Effect::class, mappedBy: 'items', cascade: ['persist', 'remove'])]
     #[Groups(['collectable:read'])]
     private Collection $effects;
 
@@ -191,7 +191,7 @@ class Item
     {
         if (!$this->effects->contains($effect)) {
             $this->effects->add($effect);
-            $effect->addCollectable($this);
+            $effect->addItem($this);
         }
     }
 
@@ -199,7 +199,7 @@ class Item
     {
         if ($this->effects->contains($effect)) {
             $this->effects->removeElement($effect);
-            $effect->removeCollectable($this);
+            $effect->removeItem($this);
         }
     }
 

@@ -5,7 +5,7 @@ namespace App\Entity\Item\Attribute;
 use App\Entity\Item\Effect\EffectCollection;
 use App\Utils\Random;
 
-enum ItemRarity: string
+enum ItemRarity: string implements \JsonSerializable
 {
     case Common = 'common';
     case Rare = 'rare';
@@ -130,6 +130,33 @@ enum ItemRarity: string
             $lower = $lower->lower();
         }
         return $rarities;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $data = [
+            'name' => $this->name,
+            'label' => $this->name(),
+            'value' => $this->value(),
+            'emoji' => $this->emoji(),
+        ];
+        if ($this->higher() !== null) {
+            $data['higher'] = [
+                'name' => $this->higher()->name,
+                'emoji' => $this->higher()->emoji(),
+            ];
+        } else {
+            $data['higher'] = null;
+        }
+        if ($this->lower() !== null) {
+            $data['lower'] = [
+                'name' => $this->lower()->name,
+                'emoji' => $this->lower()->emoji(),
+            ];
+        } else {
+            $data['lower'] = null;
+        }
+        return $data;
     }
 
 }

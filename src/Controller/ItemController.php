@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Item\Attribute\ItemRarity;
 use App\Entity\Item\Effect\Effect;
 use App\Entity\Item\Effect\EffectType;
 use App\Entity\Item\Item;
@@ -23,7 +24,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
-class CollectableController extends AbstractController
+class ItemController extends AbstractController
 {
 
     public function __construct(
@@ -44,14 +45,14 @@ class CollectableController extends AbstractController
     }
 
     #[Route('/nft', methods: ['POST'])]
-    public function createCollectable(Request $request): Response
+    public function createItem(Request $request): Response
     {
         try {
             $data = json_decode($request->getContent(), true);
             $collectable = ItemFactory::create(
                 $data['name'],
                 $data['description'],
-                $data['rarity'],
+                ItemRarity::tryFrom($data['rarity']),
                 $data['permanent'],
             );
             $this->manager->persist($collectable);

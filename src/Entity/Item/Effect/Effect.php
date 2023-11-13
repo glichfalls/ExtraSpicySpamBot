@@ -51,12 +51,12 @@ class Effect
     private string $description;
 
     #[ManyToMany(targetEntity: Item::class, inversedBy: 'effects')]
-    private Collection $collectables;
+    private Collection $items;
 
     public function __construct()
     {
         $this->generateId();
-        $this->collectables = new ArrayCollection();
+        $this->items = new ArrayCollection();
     }
 
     public function getType(): string
@@ -119,22 +119,25 @@ class Effect
         $this->description = $description;
     }
 
-    public function getCollectables(): Collection
+    /**
+     * @return Collection<Item>
+     */
+    public function getItems(): Collection
     {
-        return $this->collectables;
+        return $this->items;
     }
 
-    public function addCollectable(Item $collectable): void
+    public function addItem(Item $item): void
     {
-        if (!$this->collectables->contains($collectable)) {
-            $this->collectables->add($collectable);
+        if (!$this->items->contains($item)) {
+            $this->items->add($item);
         }
     }
 
-    public function removeCollectable(Item $collectable): void
+    public function removeItem(Item $item): void
     {
-        if ($this->collectables->contains($collectable)) {
-            $this->collectables->removeElement($collectable);
+        if ($this->items->contains($item)) {
+            $this->items->removeElement($item);
         }
     }
 

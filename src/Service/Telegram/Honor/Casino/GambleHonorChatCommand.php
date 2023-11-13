@@ -98,7 +98,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             if ($chance > 70) {
                 return 70;
             }
-            return (int) round($chance);
+            return (int) ceil($chance);
         } catch (\Exception $exception) {
             $this->logger->info('failed to apply gamble luck effects', [
                 'exception' => $exception,

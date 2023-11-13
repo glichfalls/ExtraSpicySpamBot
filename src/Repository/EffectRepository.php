@@ -25,7 +25,7 @@ class EffectRepository extends ServiceEntityRepository
     public function getByUser(User $user, Chat $chat): Collection
     {
         return $this->createQueryBuilder('e')
-            ->join('e.collectables', 'c')
+            ->join('e.items', 'c')
             ->join('c.instances', 'i')
             ->join('i.owner', 'u')
             ->andWhere('u.id = :id')
@@ -45,7 +45,7 @@ class EffectRepository extends ServiceEntityRepository
     public function getByUserAndTypes(User $user, Chat $chat, array $types): array
     {
         return $this->createQueryBuilder('e')
-            ->join('e.collectables', 'c')
+            ->join('e.items', 'c')
             ->join('c.instances', 'i')
             ->join('i.owner', 'u')
             ->andWhere('u.id = :id')

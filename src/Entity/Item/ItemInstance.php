@@ -38,6 +38,7 @@ class ItemInstance
 
     #[ManyToOne(targetEntity: Item::class, inversedBy: 'instances')]
     #[JoinColumn(nullable: false)]
+    #[Groups(['item:read'])]
     private Item $item;
 
     #[ManyToOne(targetEntity: Chat::class)]
