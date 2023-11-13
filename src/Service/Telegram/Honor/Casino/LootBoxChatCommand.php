@@ -4,14 +4,18 @@ namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Item\Attribute\ItemRarity;
+use App\Entity\Item\Effect\EffectCollection;
 use App\Entity\Item\Effect\EffectType;
 use App\Entity\Item\ItemFactory;
 use App\Entity\Item\ItemInstance;
 use App\Entity\Message\Message;
+use App\Entity\Stocks\Transaction\StockTransaction;
+use App\Entity\Stocks\Transaction\StockTransactionFactory;
 use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Service\Items\ItemEffectService;
 use App\Service\Items\ItemService;
+use App\Service\Stocks\StockService;
 use App\Service\Telegram\Button\TelegramButton;
 use App\Service\Telegram\Button\TelegramKeyboard;
 use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
@@ -29,6 +33,23 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
 {
 
     public const CALLBACK_KEYWORD = 'lootbox';
+    private const STOCK_LIST = [
+        'MSFT',
+        'AAPL',
+        'TSLA',
+        'AMZN',
+        'GOOG',
+        'META',
+        'NVDA',
+        'AMD',
+        'BRK.B',
+        'MMM',
+        'ORCL',
+    ];
+    private const EXTENDED_LIST = [
+        'BRK.A',
+        'PLTR',
+    ];
 
     public function __construct(
         EntityManagerInterface $manager,
@@ -38,6 +59,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         HonorRepository $honorRepository,
         private readonly ItemService $itemService,
         private readonly ItemEffectService $itemEffectService,
+        private readonly StockService $stockService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService, $honorRepository);
     }
@@ -56,19 +78,26 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     {
         $text = ['Choose your lootbox size:'];
         foreach (LootboxLoot::cases() as $loot) {
+            $template = <<<TEMPLATE
+            *{$loot->value}* | *%s* Ehre
+            {$loot->base()}x loot chance (min {$loot->maxDebuff()} / max {$loot->maxBuff()})
+            {$loot->junkRate(null)}%% junk
+            {$loot->itemRate(null)}%% item (min {$loot->minRarity()->emoji()} / max {$loot->maxRarity()->emoji()})
+            {$loot->stockRate(null)}%% (*%s* - *%s* stocks)
+            TEMPLATE;
             $text[] = sprintf(
-                '%s %s-%s %sx loot',
-                $loot->value,
-                $loot->minRarity()->emoji(),
-                $loot->maxRarity()->emoji(),
-                $loot->base(),
+                $template,
+                NumberFormat::format($loot->price()),
+                NumberFormat::format($loot->minStockAmount()),
+                NumberFormat::format($loot->maxStockAmount()),
             );
         }
         $this->telegramService->sendText(
             $message->getChat()->getChatId(),
-            implode(PHP_EOL, $text),
+            implode(sprintf('%s----%s', PHP_EOL, PHP_EOL), $text),
             threadId: $message->getTelegramThreadId(),
-            replyMarkup: $this->getKeyboard()
+            replyMarkup: $this->getKeyboard(),
+            parseMode: 'Markdown'
         );
     }
 
@@ -88,95 +117,73 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                 return;
             }
             $this->removeHonor($chat, $user, $loot->price());
-            try {
-                $result = $this->getLootboxWin($chat, $user, $loot);
-                if ($result === 0) {
-                    $result = $this->getRandomJunk();
-                    $this->telegramService->answerCallbackQuery(
-                        $callbackQuery,
-                        sprintf('You won %s', $result),
-                        true
-                    );
-                    $this->manager->flush();
-                    return;
-                }
-            } catch (\RuntimeException) {
-                $this->telegramService->sendText(
-                    $chat->getChatId(),
-                    'F',
-                    threadId: $callbackQuery->getMessage()->getMessageThreadId(),
-                );
-                $this->addHonor($chat, $user, $loot->price());
-                return;
-            }
-            if ($result instanceof ItemInstance) {
-                $message = sprintf('You won %s', $result->getItem()->getFullName());
-                if ($result->getExpiresAt() !== null) {
-                    $message .= sprintf(' (expires in %s)', $result->getExpiresAt()->diff(new \DateTime())->format('%a days'));
-                }
-                $this->telegramService->answerCallbackQuery($callbackQuery, $message, true);
-                $this->telegramService->sendText(
-                    $chat->getChatId(),
-                    sprintf(
-                        '%s won a <strong>%s</strong> from a <strong>%s</strong> lootbox',
-                        $user->getName() ?? $user->getFirstName(),
-                        $result->getItem()->getName(),
-                        $loot->value,
-                    ),
-                    threadId: $callbackQuery->getMessage()->getMessageThreadId(),
-                    parseMode: 'HTML',
-                );
-                return;
-            }
-            $this->addHonor($chat, $user, $result);
-            $this->manager->flush();
-            if ($result > ($loot->price() * 5)) {
+            $effects = $this->itemEffectService->getEffectsByUserAndType($user, $chat, [
+                EffectType::LOOTBOX_LUCK,
+                EffectType::LUCK,
+            ]);
+            $result = $this->getLootboxWin($chat, $user, $loot, $effects);
+            if ($result === 0) {
                 $this->telegramService->answerCallbackQuery($callbackQuery);
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     sprintf(
-                        '%s won %s Ehre from a <strong>%s</strong> lootbox',
+                        '@%s won %s from a *%s* lootbox (%s%%)',
                         $user->getName() ?? $user->getFirstName(),
-                        NumberFormat::format($result),
+                        $this->getRandomJunk(),
                         $loot->value,
+                        $loot->junkRate($effects),
                     ),
                     threadId: $callbackQuery->getMessage()->getMessageThreadId(),
-                    parseMode: 'HTML',
+                    parseMode: 'markdown',
                 );
-            } else {
-                $this->telegramService->answerCallbackQuery(
-                    $callbackQuery,
-                    sprintf('You win %s Ehre', NumberFormat::format($result)),
-                    true
+            } elseif ($result instanceof ItemInstance) {
+                $message = sprintf(
+                    '@%s won *%s*',
+                    $user->getName() ?? $user->getFirstName(),
+                    $result->getItem()->getFullName()
+                );
+                if ($result->getExpiresAt() !== null) {
+                    $message .= sprintf(' (expires in %s)', $result->getExpiresAt()->diff(new \DateTime())->format('%a days'));
+                }
+                $message .= sprintf(' from a *%s* lootbox (%s%%)', $loot->value, $loot->itemRate($effects));
+                $this->telegramService->answerCallbackQuery($callbackQuery);
+                $this->telegramService->sendText(
+                    $chat->getChatId(),
+                    $message,
+                    threadId: $callbackQuery->getMessage()->getMessageThreadId(),
+                    parseMode: 'markdown',
+                );
+            } elseif ($result instanceof StockTransaction) {
+                $this->telegramService->answerCallbackQuery($callbackQuery);
+                $this->telegramService->sendText(
+                    $chat->getChatId(),
+                    sprintf(
+                        '@%s won *%s* %s stocks (*%s* Ehre) from a *%s* lootbox (%s%%)',
+                        $user->getName() ?? $user->getFirstName(),
+                        NumberFormat::format($result->getAmount()),
+                        $result->getPrice()->getStock()->getSymbol(),
+                        NumberFormat::format($result->getHonorTotal()),
+                        $loot->value,
+                        $loot->stockRate($effects),
+                    ),
+                    threadId: $callbackQuery->getMessage()->getMessageThreadId(),
+                    parseMode: 'markdown',
                 );
             }
+            $this->manager->flush();
         }
     }
 
-    private function getLootboxWin(Chat $chat, User $user, LootboxLoot $lootbox): int|ItemInstance
+    private function getLootboxWin(Chat $chat, User $user, LootboxLoot $lootbox, ?EffectCollection $effects): int|ItemInstance|StockTransaction
     {
-        $effects = $this->itemEffectService->getEffectsByUserAndType($user, $chat, [
-            EffectType::LOOTBOX_LUCK,
-            EffectType::LUCK,
-        ]);
-        // nothing
         if (Random::getPercentChance($lootbox->junkRate($effects))) {
             return 0;
         }
-        // bad loot
-        if (Random::getPercentChance($lootbox->badLootRate($effects))) {
-            return (int) floor($lootbox->price() / Random::getNumber(30, 10));
-        }
-        // high ehre loot
-        if (Random::getPercentChance($lootbox->honorLootRate($effects))) {
-            $max = $lootbox->price() * Random::getNumber(Random::getNumber(50, 2));
-            // win between 200% of price and max
-            return Random::getNumber($max, $lootbox->price() * 2);
-        }
-        if (Random::getPercentChance($lootbox->itemLootRate($effects))) {
+        if (Random::getPercentChance($lootbox->itemRate($effects))) {
             return $this->winItem($chat, $user, $lootbox);
+        } else {
+            return $this->winStocks($chat, $user, $lootbox);
         }
-        return $lootbox->price() - 1;
     }
 
     private function getRandomJunk(): string
@@ -200,12 +207,12 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         );
         $instances = $this->itemService->getAvailableInstances($chat, $rarity);
         if ($instances->count() === 0) {
-            $item = $this->itemService->getRandomItemByRarity($rarity);
+            $item = $this->itemService->getRandomLoanedItemByMaxRarity($rarity);
             $expire = new \DateTime('+2 weeks');
             $win = ItemFactory::instance($item, $chat, $user, true, $expire);
             $this->manager->persist($win);
         } else {
-            $win = $instances[array_rand($instances->getValues())];
+            $win = Random::arrayElement($instances->toArray());
         }
         $win->setOwner($user);
         $win->setPayloadValue('lootbox', true);
@@ -213,12 +220,36 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         return $win;
     }
 
+    private function winStocks(Chat $chat, User $user, LootboxLoot $loot): StockTransaction
+    {
+        $symbol = $this->getRandomStockSymbol();
+        $price = $this->stockService->getPriceBySymbol($symbol);
+        $transaction = StockTransactionFactory::create($price, $loot->stockAmount());
+        $portfolio = $this->stockService->getPortfolioByUserAndChat($chat, $user);
+        $portfolio->addTransaction($transaction);
+        $this->manager->flush();
+        return $transaction;
+    }
+
+    private function getRandomStockSymbol(): string
+    {
+        $options = self::STOCK_LIST;
+        if (Random::getPercentChance(25)) {
+            $options = self::EXTENDED_LIST;
+            for ($i = 0; $i < 5; $i++) {
+                // add the base list multiple times to decrease the chance of the extended list
+                $options = array_merge($options, self::STOCK_LIST);
+            }
+        }
+        return Random::arrayElement($options);
+    }
+
     private function getKeyboard(): InlineKeyboardMarkup
     {
         $keyboard = new TelegramKeyboard([]);
         foreach (LootboxLoot::cases() as $loot) {
             $keyboard->add(new TelegramButton(
-                sprintf('%s (%s Ehre)', $loot->value, NumberFormat::format($loot->price())),
+                sprintf('%s', $loot->value),
                 sprintf('%s;%s', self::CALLBACK_KEYWORD, $loot->value),
             ));
         }

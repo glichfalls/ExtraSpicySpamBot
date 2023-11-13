@@ -45,21 +45,27 @@ class ShowItemInfoChatCommand extends AbstractTelegramCallbackQuery
         try {
             $instance = $this->itemService->getInstance($this->getCallbackDataId($update));
             $text = <<<TEXT
-            %s
-            %s
-            %s
-            owner %s
+            {$instance->getItem()->getName()}
+            {$instance->getItem()->getDescription()}
+            {$instance->getItem()->getRarity()->name()}
             %s
             TEXT;
             $effects = $instance->getItem()->getEffects()->map(fn (Effect $effect) => $effect->getDescription())->getValues();
-            $message = sprintf(
-                $text,
-                $instance->getItem()->getName(),
-                $instance->getItem()->getDescription(),
-                $instance->getItem()->getRarity()->name(),
-                $instance->getOwner()?->getName() ?? 'nobody',
-                count($effects) > 0 ? implode(PHP_EOL, $effects) : 'no effects',
-            );
+            $message = sprintf($text, count($effects) > 0 ? implode(PHP_EOL, $effects) : 'no effects');
+            if ($instance->getOwner() !== null) {
+                $message .= sprintf(
+                    '%sOwner: %s',
+                    PHP_EOL,
+                    $instance->getOwner()->getName() ?? $instance->getOwner()->getFirstName()
+                );
+            }
+            if ($instance->getExpiresAt()) {
+                $message .= sprintf(
+                    '%sExpires in %s',
+                    PHP_EOL,
+                    $instance->getExpiresAt()->diff(new \DateTime())->format('%a days')
+                );
+            }
             if ($instance->getItem()->getImagePublicPath() !== null) {
                 $fullPath = sprintf('https://%s/%s', 'extra-spicy-backend.netlabs.dev', $instance->getItem()->getImagePublicPath());
                 $this->telegramService->sendImage(
