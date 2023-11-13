@@ -4,7 +4,7 @@ namespace App\Service\Telegram\Honor;
 
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
-use App\Repository\HonorRepository;
+use App\Service\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
@@ -21,7 +21,7 @@ class GiftHonorChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private HonorRepository $honorRepository,
+        private readonly HonorService $honorService,
     )
     {
         parent::__construct($manager, $translator, $logger, $telegramService);
@@ -29,13 +29,17 @@ class GiftHonorChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!gift (?<amount>\d+)\s*@(?<name>.+)$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!gift (?<amount>\d+|max)(?<abbr>[kmbtq])\s*@(?<name>.+)$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $amount = (int) $matches['amount'];
-
+        $senderHonorAmount = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
+        if ($matches['amount'] === 'max') {
+            $amount = $senderHonorAmount;
+        } else {
+            $amount = NumberFormat::getIntValue($matches['amount'], $matches['abbr'] ?? null);
+        }
         foreach ($this->telegramService->getUsersFromMentions($update) as $recipient) {
 
             if ($recipient === null) {
@@ -44,8 +48,6 @@ class GiftHonorChatCommand extends AbstractTelegramChatCommand
                 );
                 continue;
             }
-
-            $senderHonorAmount = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
 
             if ($senderHonorAmount < $amount) {
                 $this->telegramService->replyTo(
