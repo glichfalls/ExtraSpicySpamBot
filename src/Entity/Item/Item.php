@@ -73,6 +73,7 @@ class Item
     private Collection $effects;
 
     #[OneToMany(mappedBy: 'item', targetEntity: ItemInstance::class)]
+    #[Groups(['collectable:read'])]
     private Collection $instances;
 
     public function __construct()
