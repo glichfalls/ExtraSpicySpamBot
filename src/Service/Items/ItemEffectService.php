@@ -7,15 +7,13 @@ use App\Entity\Item\Effect\EffectCollection;
 use App\Entity\Item\Effect\EffectType;
 use App\Entity\User\User;
 use App\Repository\EffectRepository;
-use Doctrine\ORM\EntityManagerInterface;
 
-class ItemEffectService
+readonly class ItemEffectService
 {
 
-    public function __construct(
-        private EntityManagerInterface $manager,
-        private readonly EffectRepository $effectRepository,
-    ) {
+    public function __construct(private EffectRepository $effectRepository)
+    {
+
     }
 
     /**
@@ -29,11 +27,7 @@ class ItemEffectService
         if (!is_array($types)) {
             $types = [$types];
         }
-        return new EffectCollection($this->effectRepository->getByUserAndTypes(
-            $user,
-            $chat,
-            array_map(fn (EffectType $type) => $type->value, $types),
-        ));
+        return new EffectCollection($this->effectRepository->getByUserAndTypes($user, $chat, $types));
     }
 
 }
