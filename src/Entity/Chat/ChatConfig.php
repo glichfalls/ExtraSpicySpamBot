@@ -24,6 +24,9 @@ class ChatConfig
     #[Groups(['chat:public:read'])]
     private int $passiveHonorAmount = 100;
 
+    #[Column(type: "boolean")]
+    private bool $debugEnabled = false;
+
     public function __construct()
     {
         $this->generateId();
@@ -57,6 +60,16 @@ class ChatConfig
     public function setPassiveHonorAmount(int $passiveHonorAmount): void
     {
         $this->passiveHonorAmount = $passiveHonorAmount;
+    }
+
+    public function isDebugEnabled(): bool
+    {
+        return $this->debugEnabled;
+    }
+
+    public function setDebugEnabled(bool $debugEnabled): void
+    {
+        $this->debugEnabled = $debugEnabled;
     }
 
 }

@@ -82,10 +82,10 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $this->manager->flush();
                 $this->telegramService->replyTo(
                     $message,
-                    sprintf('you have lost %s Ehre', NumberFormat::format($amount)),
+                    sprintf('you have lost %s Ehre (%s)', NumberFormat::format($amount), $buffMessage),
                 );
             }
-            if ($_SERVER['APP_DEBUG']) {
+            if ($message->getChat()->getConfig()->isDebugEnabled()) {
                 $effectList = [];
                 foreach ($effects->getValues() as $effect) {
                     $effectList[] = <<<TEXT
