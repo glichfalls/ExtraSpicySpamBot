@@ -75,7 +75,7 @@ class User implements UserInterface
 
     #[OneToMany(mappedBy: "owner", targetEntity: ItemInstance::class)]
     #[Ignore]
-    private Collection $collectables;
+    private Collection $items;
 
     #[Column(type: 'json')]
     #[Ignore]
@@ -90,7 +90,7 @@ class User implements UserInterface
         $this->receivedHonor = new ArrayCollection();
         $this->messages = new ArrayCollection();
         $this->chats = new ArrayCollection();
-        $this->collectables = new ArrayCollection();
+        $this->items = new ArrayCollection();
     }
 
     public function getTelegramUserId(): int
@@ -170,9 +170,9 @@ class User implements UserInterface
     /**
      * @return Collection<ItemInstance>
      */
-    public function getCollectables(): Collection
+    public function getItems(): Collection
     {
-        return $this->collectables;
+        return $this->items;
     }
 
     public function setMessages(Collection $collection): void

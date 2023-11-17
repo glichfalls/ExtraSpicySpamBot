@@ -8,11 +8,11 @@ class EffectCollection extends ArrayCollection
 {
 
     /**
-     * @return array<Effect>
+     * @return array<EffectApplicable>
      */
     public function getValues(): array
     {
-        return array_filter(parent::getValues(), fn ($value) => $value instanceof Effect);
+        return array_filter(parent::getValues(), fn ($value) => $value instanceof EffectApplicable);
     }
 
     /**

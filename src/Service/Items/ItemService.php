@@ -5,8 +5,9 @@ namespace App\Service\Items;
 use App\Entity\Chat\Chat;
 use App\Entity\Item\Attribute\ItemAttribute;
 use App\Entity\Item\Attribute\ItemRarity;
-use App\Entity\Item\Challenge\ItemChallenge;
-use App\Entity\Item\Challenge\ItemChallengeFactory;
+use App\Entity\Item\Effect\EffectCollection;
+use App\Entity\Item\Effect\EffectType;
+use App\Entity\Item\Effect\ItemEffect;
 use App\Entity\Item\Item;
 use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
@@ -18,10 +19,11 @@ use App\Utils\RateLimitUtils;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 
 class ItemService
 {
+
+    private $apply;
 
     public function __construct(
         private EntityManagerInterface $manager,

@@ -5,15 +5,17 @@ namespace App\Service\Items;
 use App\Entity\Chat\Chat;
 use App\Entity\Item\Effect\EffectCollection;
 use App\Entity\Item\Effect\EffectType;
+use App\Entity\Item\Effect\ItemEffect;
 use App\Entity\User\User;
 use App\Repository\EffectRepository;
 
 readonly class ItemEffectService
 {
 
-    public function __construct(private EffectRepository $effectRepository)
-    {
-
+    public function __construct(
+        private EntityManagerInterface $manager,
+        private EffectRepository $effectRepository,
+    ) {
     }
 
     /**
@@ -27,7 +29,19 @@ readonly class ItemEffectService
         if (!is_array($types)) {
             $types = [$types];
         }
-        return new EffectCollection($this->effectRepository->getByUserAndTypes($user, $chat, $types));
+        $effects = $this->manager->getRepository(ItemEffect::class)->createQueryBuilder('ie')
+            ->join('ie.item', 'i')
+            ->join('ie.effect', 'e')
+            ->join('i.instances', 'ii')
+            ->where('ii.chat = :chat')
+            ->andWhere('ii.owner = :user')
+            ->andWhere('e.type IN (:types)')
+            ->setParameter('chat', $chat)
+            ->setParameter('user', $user)
+            ->setParameter('types', $types)
+            ->getQuery()
+            ->getResult();
+        return new EffectCollection($effects);
     }
 
 }

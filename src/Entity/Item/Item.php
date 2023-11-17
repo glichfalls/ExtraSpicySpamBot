@@ -7,9 +7,12 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Entity\Item\Attribute\ItemAttribute;
 use App\Entity\Item\Attribute\ItemRarity;
 use App\Entity\Item\Effect\Effect;
+use App\Entity\Item\Effect\ItemEffect;
 use App\Model\Id;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -24,6 +27,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [
         new Get(),
         new GetCollection(),
+        new Post(),
+        new Put(),
     ],
     normalizationContext: ['groups' => [
         'public:read',
@@ -68,7 +73,7 @@ class Item
     #[Groups(['collectable:read'])]
     private ?string $imagePublicPath = null;
 
-    #[ManyToMany(targetEntity: Effect::class, mappedBy: 'items', cascade: ['persist', 'remove'])]
+    #[OneToMany(targetEntity: ItemEffect::class, mappedBy: 'item', cascade: ['persist', 'remove'])]
     #[Groups(['collectable:read'])]
     private Collection $effects;
 

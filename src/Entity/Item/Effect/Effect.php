@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToMany;
+use Doctrine\ORM\Mapping\OneToMany;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity(repositoryClass: EffectRepository::class)]
@@ -22,13 +23,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
         ],
     ],
 )]
-class Effect
+class Effect implements EffectApplicable
 {
     use Id;
 
-    #[Column(type: 'string')]
+    #[Column(type: 'string', enumType: EffectType::class)]
     #[Groups(['effect:read', 'collectable:read'])]
-    private string $type;
+    private EffectType $type;
 
     #[Column(type: 'float')]
     #[Groups(['effect:read', 'collectable:read'])]
@@ -50,7 +51,7 @@ class Effect
     #[Groups(['effect:read', 'collectable:read'])]
     private string $description;
 
-    #[ManyToMany(targetEntity: Item::class, inversedBy: 'effects')]
+    #[OneToMany(targetEntity: ItemEffect::class, mappedBy: 'effect')]
     private Collection $items;
 
     public function __construct()
@@ -59,12 +60,12 @@ class Effect
         $this->items = new ArrayCollection();
     }
 
-    public function getType(): string
+    public function getType(): EffectType
     {
         return $this->type;
     }
 
-    public function setType(string $type): void
+    public function setType(EffectType $type): void
     {
         $this->type = $type;
     }

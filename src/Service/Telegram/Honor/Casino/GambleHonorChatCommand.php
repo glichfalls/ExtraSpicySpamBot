@@ -3,6 +3,7 @@
 namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Item\Effect\EffectCollection;
 use App\Entity\Item\Effect\EffectType;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
@@ -57,7 +58,11 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'not enough Ehre');
         } else {
             $this->logger->info(sprintf('GAMBLE %s start', $message->getUser()->getName()));
-            $chance = $this->getChance($message->getUser(), $message->getChat());
+            $effects = $this->itemEffectService->getEffectsByUserAndType($message->getUser(), $message->getChat(), [
+                EffectType::GAMBLE_LUCK,
+                EffectType::LUCK,
+            ]);
+            $chance = $this->getChance($effects);
             $buffMessage = sprintf('win chance: %s%%', $chance);
             if ($this->gamble($chance)) {
                 $this->logger->info(sprintf('GAMBLE %s won %s honor', $message->getUser()->getName(), $amount));
@@ -77,19 +82,25 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $this->manager->flush();
                 $this->telegramService->replyTo(
                     $message,
-                    sprintf('you have lost %s Ehre (%s)', NumberFormat::format($amount), $buffMessage),
+                    sprintf('you have lost %s Ehre', NumberFormat::format($amount)),
                 );
+            }
+            if ($_SERVER['APP_DEBUG']) {
+                $effectList = [];
+                foreach ($effects->getValues() as $effect) {
+                    $effectList[] = <<<TEXT
+                    {$effect->getType()->value} {$effect->getOperator()} {$effect->getMagnitude()}
+                    TEXT;
+                }
+                $effectList[] = sprintf('<strong>Total:</strong> %s', $chance);
+                $this->telegramService->replyTo($message, implode(PHP_EOL, $effectList), parseMode: 'HTML');
             }
         }
     }
 
-    private function getChance(User $user, Chat $chat): int
+    private function getChance(EffectCollection $effects): int
     {
         try {
-            $effects = $this->itemEffectService->getEffectsByUserAndType($user, $chat, [
-                EffectType::GAMBLE_LUCK,
-                EffectType::LUCK,
-            ]);
             $chance = $effects->apply(50);
             $this->logger->info(sprintf('gamble luck effects: %s', $effects->count()));
             if ($chance < 30) {
