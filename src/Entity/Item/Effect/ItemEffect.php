@@ -53,6 +53,11 @@ class ItemEffect implements EffectApplicable
         return $this->effect->getName();
     }
 
+    public function getDescription(): string
+    {
+        return $this->effect->getDescription();
+    }
+
     public function getOperator(): string
     {
         return $this->effect->getOperator();

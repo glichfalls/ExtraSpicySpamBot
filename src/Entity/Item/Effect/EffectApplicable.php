@@ -8,6 +8,8 @@ interface EffectApplicable
 
     public function getName(): string;
 
+    public function getDescription(): string;
+
     public function getOperator(): string;
 
     public function getMagnitude(): float;

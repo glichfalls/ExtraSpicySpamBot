@@ -4,7 +4,7 @@ namespace App\Service\Telegram\Honor\Items;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Item\Attribute\ItemAttribute;
-use App\Entity\Item\Effect\Effect;
+use App\Entity\Item\Effect\EffectApplicable;
 use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
 use App\Service\Items\ItemEffectService;
@@ -50,7 +50,7 @@ class ShowItemInfoChatCommand extends AbstractTelegramCallbackQuery
             {$instance->getItem()->getRarity()->name()}
             %s
             TEXT;
-            $effects = $instance->getItem()->getEffects()->map(fn (Effect $effect) => $effect->getDescription())->getValues();
+            $effects = $instance->getItem()->getEffects()->map(fn (EffectApplicable $effect) => $effect->getDescription())->getValues();
             $message = sprintf($text, count($effects) > 0 ? implode(PHP_EOL, $effects) : 'no effects');
             if ($instance->getOwner() !== null) {
                 $message .= sprintf(
