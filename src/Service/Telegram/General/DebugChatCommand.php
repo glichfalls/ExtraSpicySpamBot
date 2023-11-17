@@ -18,6 +18,7 @@ class DebugChatCommand extends AbstractTelegramChatCommand
     {
         $config = $message->getChat()->getConfig();
         $config->setDebugEnabled(!$config->isDebugEnabled());
+        $this->manager->flush();
         $this->telegramService->replyTo(
             $message,
             sprintf('Debug mode is now %s', $config->isDebugEnabled() ? 'on' : 'off'),
