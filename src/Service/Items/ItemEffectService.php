@@ -33,7 +33,7 @@ readonly class ItemEffectService
             $types = [$types];
         }
         $result = $this->manager->getRepository(ItemEffect::class)->createQueryBuilder('ie')
-            ->select('e', 'count(ie) as amount')
+            ->select('e.id as id', 'count(ie) as amount')
             ->join('ie.item', 'i')
             ->join('ie.effect', 'e')
             ->join('i.instances', 'ii')
@@ -48,7 +48,7 @@ readonly class ItemEffectService
             ->getResult();
         $collection = new EffectCollection();
         foreach ($result as $row) {
-            $effect = $row['effect'];
+            $effect = $this->effectRepository->find($row['id']);
             $collection->add(new UserEffect($effect, $user, $row['amount']));
         }
         return $collection;
