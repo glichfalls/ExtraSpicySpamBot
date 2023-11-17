@@ -4,6 +4,7 @@ namespace App\Entity\Item\Effect;
 
 use App\Entity\Item\Item;
 use App\Model\Id;
+use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 
@@ -17,6 +18,9 @@ class ItemEffect implements EffectApplicable
 
     #[ManyToOne(targetEntity: Item::class, inversedBy: 'effects')]
     private Item $item;
+
+    #[Column(type: 'integer')]
+    private int $amount = 1;
 
     public function __construct()
     {
@@ -41,6 +45,16 @@ class ItemEffect implements EffectApplicable
     public function setItem(Item $item): void
     {
         $this->item = $item;
+    }
+
+    public function getAmount(): int
+    {
+        return $this->amount;
+    }
+
+    public function setAmount(int $amount): void
+    {
+        $this->amount = $amount;
     }
 
     public function getType(): EffectType
@@ -70,7 +84,10 @@ class ItemEffect implements EffectApplicable
 
     public function apply(int|float $value): int|float
     {
-        return $this->effect->apply($value);
+        for ($i = 0; $i < $this->getAmount(); $i++) {
+            $value = $this->effect->apply($value);
+        }
+        return $value;
     }
 
     public function applyNegative(int|float $value): int|float

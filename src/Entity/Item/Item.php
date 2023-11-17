@@ -186,26 +186,24 @@ class Item
     }
 
     /**
-     * @return Collection<Effect>
+     * @return Collection<ItemEffect>
      */
     public function getEffects(): Collection
     {
         return $this->effects;
     }
 
-    public function addEffect(Effect $effect): void
+    public function addEffect(ItemEffect $effect): void
     {
         if (!$this->effects->contains($effect)) {
             $this->effects->add($effect);
-            $effect->addItem($this);
         }
     }
 
-    public function removeEffect(Effect $effect): void
+    public function removeEffect(ItemEffect $effect): void
     {
         if ($this->effects->contains($effect)) {
             $this->effects->removeElement($effect);
-            $effect->removeItem($this);
         }
     }
 
