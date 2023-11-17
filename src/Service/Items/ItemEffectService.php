@@ -6,6 +6,7 @@ use App\Entity\Chat\Chat;
 use App\Entity\Item\Effect\EffectCollection;
 use App\Entity\Item\Effect\EffectType;
 use App\Entity\Item\Effect\ItemEffect;
+use App\Entity\Item\Effect\UserEffect;
 use App\Entity\User\User;
 use App\Repository\EffectRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,19 +31,27 @@ readonly class ItemEffectService
         if (!is_array($types)) {
             $types = [$types];
         }
-        $effects = $this->manager->getRepository(ItemEffect::class)->createQueryBuilder('ie')
+        $result = $this->manager->getRepository(ItemEffect::class)->createQueryBuilder('ie')
+            ->select('e.id as id', 'count(ie) as amount')
             ->join('ie.item', 'i')
             ->join('ie.effect', 'e')
             ->join('i.instances', 'ii')
             ->where('ii.chat = :chat')
             ->andWhere('ii.owner = :user')
             ->andWhere('e.type IN (:types)')
+            ->groupBy('e')
             ->setParameter('chat', $chat)
             ->setParameter('user', $user)
             ->setParameter('types', $types)
             ->getQuery()
-            ->getResult();
-        return new EffectCollection($effects);
+            ->getArrayResult();
+        $effects = $this->effectRepository->findBy(['id' => array_column($result, 'id')]);
+        $collection = new EffectCollection();
+        foreach ($result as $row) {
+            $effect = $effects->get($row['id']);
+            $collection->add(new UserEffect($effect, $user, $row['amount']));
+        }
+        return $collection;
     }
 
 }
