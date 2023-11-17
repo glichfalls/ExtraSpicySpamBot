@@ -8,6 +8,7 @@ use App\Entity\Item\Effect\EffectType;
 use App\Entity\Item\Effect\ItemEffect;
 use App\Entity\User\User;
 use App\Repository\EffectRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 readonly class ItemEffectService
 {
