@@ -9,6 +9,7 @@ use App\Entity\Item\Effect\ItemEffect;
 use App\Entity\Item\Effect\UserEffect;
 use App\Entity\User\User;
 use App\Repository\EffectRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 
 readonly class ItemEffectService
@@ -32,7 +33,7 @@ readonly class ItemEffectService
             $types = [$types];
         }
         $result = $this->manager->getRepository(ItemEffect::class)->createQueryBuilder('ie')
-            ->select('e.id as id', 'count(ie) as amount')
+            ->select('e', 'count(ie) as amount')
             ->join('ie.item', 'i')
             ->join('ie.effect', 'e')
             ->join('i.instances', 'ii')
@@ -44,11 +45,10 @@ readonly class ItemEffectService
             ->setParameter('user', $user)
             ->setParameter('types', $types)
             ->getQuery()
-            ->getArrayResult();
-        $effects = $this->effectRepository->findBy(['id' => array_column($result, 'id')]);
+            ->getResult();
         $collection = new EffectCollection();
         foreach ($result as $row) {
-            $effect = $effects->get($row['id']);
+            $effect = $row['effect'];
             $collection->add(new UserEffect($effect, $user, $row['amount']));
         }
         return $collection;
