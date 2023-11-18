@@ -126,7 +126,7 @@ class ItemService
         if ($lastExecution !== null) {
             $lastExecution = new \DateTime($lastExecution);
             $now = new \DateTime(timezone: new \DateTimeZone($instance->getChat()->getConfig()->getTimezone()));
-            if ($lastExecution->format('Y-m-d') !== $now->format('Y-m-d')) {
+            if ($lastExecution->format('Y-m-d') === $now->format('Y-m-d')) {
                 throw new \RuntimeException('This item can only be used once per day.');
             }
         }
