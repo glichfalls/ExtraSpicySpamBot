@@ -38,7 +38,9 @@ class ItemInstanceRepository extends ServiceEntityRepository
         $query = $this->createQueryBuilder('i')
             ->andWhere('i.chat = :chat')
             ->andWhere('i.owner IS NULL')
-            ->setParameter('chat', $chat);
+            ->andWhere('i.expiresAt IS NULL OR i.expiresAt > :now')
+            ->setParameter('chat', $chat)
+            ->setParameter('now', new \DateTime());
 
         if ($rarity) {
             $query->join('i.item', 'item')

@@ -24,6 +24,9 @@ class ChatConfig
     #[Groups(['chat:public:read'])]
     private int $passiveHonorAmount = 100;
 
+    #[Column(type: "string")]
+    private string $timezone = 'UTC';
+
     #[Column(type: "boolean")]
     private bool $debugEnabled = false;
 
@@ -60,6 +63,16 @@ class ChatConfig
     public function setPassiveHonorAmount(int $passiveHonorAmount): void
     {
         $this->passiveHonorAmount = $passiveHonorAmount;
+    }
+
+    public function getTimezone(): string
+    {
+        return $this->timezone;
+    }
+
+    public function setTimezone(string $timezone): void
+    {
+        $this->timezone = $timezone;
     }
 
     public function isDebugEnabled(): bool

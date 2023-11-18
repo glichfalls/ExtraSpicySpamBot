@@ -125,7 +125,8 @@ class ItemService
         $lastExecution = $instance->getPayloadValue('last_execution');
         if ($lastExecution !== null) {
             $lastExecution = new \DateTime($lastExecution);
-            if (RateLimitUtils::getDaysFrom($lastExecution) < 1) {
+            $now = new \DateTime(timezone: new \DateTimeZone($instance->getChat()->getConfig()->getTimezone()));
+            if ($lastExecution->format('Y-m-d') !== $now->format('Y-m-d')) {
                 throw new \RuntimeException('This item can only be used once per day.');
             }
         }

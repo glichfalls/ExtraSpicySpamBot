@@ -208,14 +208,6 @@ class ItemExecutionChatCommand extends AbstractTelegramCallbackQuery
                     $instance->getId()
                 )
             ),
-            new TelegramButton(
-                'cancel',
-                sprintf(
-                    '%s:%s',
-                    ShowItemInfoChatCommand::CALLBACK_KEYWORD,
-                    $instance->getId()
-                )
-            )
         ]), 2);
     }
 
