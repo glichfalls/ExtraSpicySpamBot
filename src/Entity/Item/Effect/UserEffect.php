@@ -32,7 +32,10 @@ readonly class UserEffect implements EffectApplicable
 
     public function getMagnitude(): float
     {
-        return $this->effect->getMagnitude();
+        return match ($this->effect->getOperator()) {
+            '+', '-' => $this->effect->getMagnitude() * $this->amount,
+            '*', '/' => pow($this->effect->getMagnitude(), $this->amount),
+        };
     }
 
     public function apply(int|float $value): int|float
