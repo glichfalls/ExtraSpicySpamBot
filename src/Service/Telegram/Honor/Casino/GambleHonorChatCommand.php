@@ -87,12 +87,18 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             }
             if ($message->getChat()->getConfig()->isDebugEnabled()) {
                 $effectList = [];
+                $value = 50;
                 foreach ($effects->getValues() as $effect) {
+                    $magnitude = round($effect->getMagnitude(), 2);
+                    $previousValue = round($value, 2);
+                    $value = $effect->apply($value);
+                    $displayValue = round($value, 2);
                     $effectList[] = <<<TEXT
-                    {$effect->getType()->value} {$effect->getOperator()} {$effect->getMagnitude()}
+                    <strong>{$effect->getType()->value}</strong>
+                    {$previousValue} {$effect->getOperator()} {$magnitude} = {$displayValue}
                     TEXT;
                 }
-                $effectList[] = sprintf('<strong>Total:</strong> %s', $chance);
+                $effectList[] = sprintf('<strong>Total:</strong> %s (%s%%)', round($value, 2), $chance);
                 $this->telegramService->replyTo($message, implode(PHP_EOL, $effectList), parseMode: 'HTML');
             }
         }
