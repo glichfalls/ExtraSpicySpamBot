@@ -80,6 +80,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $jackpot->setAmount($jackpot->getAmount() + (int) floor(abs($amount) * 0.1));
                 $this->honorService->removeHonor($message->getChat(), $message->getUser(), $amount);
                 $this->manager->flush();
+                $n = NumberFormat::format($amount);
                 $this->telegramService->replyTo(
                     $message,
                     sprintf('you have lost %s Ehre (%s)', NumberFormat::format($amount), $buffMessage),

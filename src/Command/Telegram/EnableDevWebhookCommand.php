@@ -30,9 +30,10 @@ class EnableDevWebhookCommand extends Command
         try {
             $apiUrl = sprintf('%s/_telegram/%s/', $input->getArgument('host'), $this->telegramToken);
             $response = $this->httpClient->request('POST', sprintf(
-                'https://api.telegram.org/bot%s/setWebhook?url=%s',
+                'https://api.telegram.org/bot%s/setWebhook?url=%s&drop_pending_updates=%s',
                 $this->telegramToken,
                 $apiUrl,
+                'True',
             ));
             if ($response->getStatusCode() === 200) {
                 $output->writeln(sprintf('Webhook set to %s', $apiUrl));

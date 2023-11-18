@@ -61,8 +61,11 @@ class NumberFormat
 
     public static function isHumanizedNumber(string $number): bool
     {
-        $suffixGroup = implode('|', array_values(self::ABBREVIATION));
-        return preg_match('/^\d+(\.\d+)?(' . $suffixGroup . ')$/i', $number) === 1;
+        $all = array_values(self::ABBREVIATION);
+        array_pop($all);
+        $group = implode('|', $all);
+        $regex = sprintf('/^\d+(\.\d+)?(%s)$/i', $group);
+        return preg_match($regex, $number) === 1;
     }
 
     /**
