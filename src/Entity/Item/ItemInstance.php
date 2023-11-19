@@ -23,6 +23,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
         'item:read',
         'chat:public:read',
     ]],
+    denormalizationContext: ['groups' => [
+        'item:instance:write',
+    ]],
 )]
 #[ApiFilter(SearchFilter::class, properties: [
     'item' => 'exact',
@@ -38,29 +41,31 @@ class ItemInstance
 
     #[ManyToOne(targetEntity: Item::class, inversedBy: 'instances')]
     #[JoinColumn(nullable: false)]
-    #[Groups(['item:read'])]
+    #[Groups(['item:read', 'item:instance:write'])]
     private Item $item;
 
     #[ManyToOne(targetEntity: Chat::class)]
     #[JoinColumn(nullable: false)]
-    #[Groups(['item:read'])]
+    #[Groups(['item:read', 'item:instance:write'])]
     private Chat $chat;
 
     #[ManyToOne(targetEntity: User::class, inversedBy: 'items')]
-    #[Groups(['item:read'])]
+    #[Groups(['item:read', 'item:instance:write'])]
     private ?User $owner = null;
 
     #[Column(type: 'boolean')]
-    #[Groups(['item:read'])]
+    #[Groups(['item:read', 'item:instance:write'])]
     private bool $tradeable;
 
     #[Column(type: 'datetime', nullable: true)]
-    #[Groups(['item:read'])]
+    #[Groups(['item:read', 'item:instance:write'])]
     private ?\DateTimeInterface $expiresAt = null;
 
     public function __construct()
     {
         $this->generateId();
+        $this->setCreatedAt(new \DateTime());
+        $this->setUpdatedAt(new \DateTime());
     }
 
     public function getItem(): Item
