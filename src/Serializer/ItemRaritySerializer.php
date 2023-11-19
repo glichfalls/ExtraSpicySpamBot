@@ -14,7 +14,7 @@ class ItemRaritySerializer implements DenormalizerInterface, NormalizerInterface
             throw new \InvalidArgumentException('Only ItemRarity type is supported.');
         }
 
-        return ItemRarity::from($data['name']);
+        return ItemRarity::from(strtolower($data['name'] ?? ''));
     }
 
     public function supportsDenormalization($data, $type, $format = null): bool

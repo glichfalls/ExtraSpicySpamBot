@@ -34,11 +34,15 @@ use Symfony\Component\Serializer\Annotation\Groups;
         'public:read',
         'collectable:read'
     ]],
+    denormalizationContext: ['groups' => [
+        'item:write',
+        'item:effect:write',
+    ]],
 )]
 #[ApiFilter(SearchFilter::class, properties: [
     'chat' => 'exact',
     'chat.id' => 'exact',
-    'effect' => 'exact',
+    'effect.effect' => 'exact',
     'instances' => 'exact',
 ])]
 class Item
@@ -46,39 +50,39 @@ class Item
     use Id;
 
     #[Column(type: 'string')]
-    #[Groups(['collectable:read'])]
+    #[Groups(['collectable:read', 'item:write'])]
     private string $name;
 
     #[Column(type: 'text')]
-    #[Groups(['collectable:read'])]
+    #[Groups(['collectable:read', 'item:write'])]
     private string $description;
 
     #[Column(type: 'string', enumType: ItemRarity::class)]
-    #[Groups(['collectable:read'])]
+    #[Groups(['collectable:read', 'item:write'])]
     private ItemRarity $rarity;
 
     #[Column(type: 'boolean')]
-    #[Groups(['collectable:read'])]
+    #[Groups(['collectable:read', 'item:write'])]
     private bool $permanent;
 
     #[Column(type: 'json', enumType: ItemAttribute::class)]
-    #[Groups(['collectable:read'])]
+    #[Groups(['collectable:read', 'item:write'])]
     private array $attributes = [];
 
     #[Column(type: 'bigint', nullable: true)]
-    #[Groups(['collectable:read'])]
+    #[Groups(['collectable:read', 'item:write'])]
     private ?int $price = null;
 
     #[Column(type: 'text', nullable: true)]
-    #[Groups(['collectable:read'])]
+    #[Groups(['collectable:read', 'item:write'])]
     private ?string $imagePublicPath = null;
 
-    #[OneToMany(targetEntity: ItemEffect::class, mappedBy: 'item', cascade: ['persist', 'remove'])]
-    #[Groups(['collectable:read'])]
+    #[OneToMany(mappedBy: 'item', targetEntity: ItemEffect::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Groups(['collectable:read', 'item:write'])]
     private Collection $effects;
 
     #[OneToMany(mappedBy: 'item', targetEntity: ItemInstance::class)]
-    #[Groups(['collectable:read'])]
+    #[Groups(['collectable:read', 'item:write'])]
     private Collection $instances;
 
     public function __construct()

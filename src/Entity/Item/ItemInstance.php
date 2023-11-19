@@ -46,7 +46,7 @@ class ItemInstance
     #[Groups(['item:read'])]
     private Chat $chat;
 
-    #[ManyToOne(targetEntity: User::class, inversedBy: 'collectables')]
+    #[ManyToOne(targetEntity: User::class, inversedBy: 'items')]
     #[Groups(['item:read'])]
     private ?User $owner = null;
 
@@ -68,9 +68,9 @@ class ItemInstance
         return $this->item;
     }
 
-    public function setItem(Item $collectable): void
+    public function setItem(Item $item): void
     {
-        $this->item = $collectable;
+        $this->item = $item;
     }
 
     public function getChat(): Chat

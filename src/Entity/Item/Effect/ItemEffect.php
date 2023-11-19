@@ -2,20 +2,37 @@
 
 namespace App\Entity\Item\Effect;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Item\Item;
 use App\Model\Id;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity]
+#[ApiResource(
+    normalizationContext: ['groups' => [
+        'public:read',
+        'collectable:read',
+        'item:effect:read',
+    ]],
+    denormalizationContext: ['groups' => [
+        'item:effect:write',
+    ]],
+)]
 class ItemEffect implements EffectApplicable
 {
     use Id;
 
     #[ManyToOne(targetEntity: Effect::class, inversedBy: 'items')]
+    #[JoinColumn(nullable: false)]
+    #[Groups(['collectable:read', 'item:effect:write'])]
     private Effect $effect;
 
     #[ManyToOne(targetEntity: Item::class, inversedBy: 'effects')]
+    #[JoinColumn(nullable: false)]
+    #[Groups(['collectable:read', 'item:effect:write'])]
     private Item $item;
 
     public function __construct()
