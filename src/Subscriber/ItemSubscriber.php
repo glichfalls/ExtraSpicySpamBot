@@ -38,7 +38,7 @@ readonly class ItemSubscriber implements EventSubscriberInterface
             $entity->getChat()->getChatId(),
             $url,
             caption: <<<CAPTION
-                A new item has dropped
+                new drop
                 {$entity->getItem()->getRarity()->name()} {$entity->getItem()->getName()}
                 CAPTION,
             threadId: $entity->getChat()->getConfig()->getDefaultThreadId(),
