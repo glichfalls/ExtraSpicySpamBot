@@ -27,6 +27,9 @@ class ChatConfig
     #[Column(type: "string")]
     private string $timezone = 'UTC';
 
+    #[Column(type: "string", nullable: true)]
+    private ?string $defaultThreadId = null;
+
     #[Column(type: "boolean")]
     private bool $debugEnabled = false;
 
@@ -73,6 +76,16 @@ class ChatConfig
     public function setTimezone(string $timezone): void
     {
         $this->timezone = $timezone;
+    }
+
+    public function getDefaultThreadId(): ?string
+    {
+        return $this->defaultThreadId;
+    }
+
+    public function setDefaultThreadId(?string $defaultThreadId): void
+    {
+        $this->defaultThreadId = $defaultThreadId;
     }
 
     public function isDebugEnabled(): bool
