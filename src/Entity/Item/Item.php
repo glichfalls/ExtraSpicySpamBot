@@ -184,6 +184,21 @@ class Item
         return $this->imagePublicPath;
     }
 
+    public function getImagePublicUrl(string $host): ?string
+    {
+        $host = trim($host);
+        if (str_ends_with($host, '/')) {
+            $host = substr($host, 0, -1);
+        }
+        if (!str_starts_with($host, 'http')) {
+            $host = sprintf('https://%s', $host);
+        }
+        if (str_starts_with($this->imagePublicPath, '/')) {
+            $this->imagePublicPath = substr($this->imagePublicPath, 1);
+        }
+        return sprintf('%s/%s', $host, $this->imagePublicPath);
+    }
+
     public function setImagePublicPath(?string $imagePublicPath): void
     {
         $this->imagePublicPath = $imagePublicPath;

@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 readonly class ItemSubscriber implements EventSubscriberInterface
 {
 
-    public function __construct(private TelegramService $telegram)
+    public function __construct(private TelegramService $telegram, private string $appHost)
     {
     }
 
@@ -31,7 +31,7 @@ readonly class ItemSubscriber implements EventSubscriberInterface
         }
         $this->telegram->sendImage(
             $entity->getChat()->getChatId(),
-            $entity->getItem()->getImagePublicPath(),
+            $entity->getItem()->getImagePublicUrl($this->appHost),
             caption: <<<CAPTION
                 A new item has dropped
                 {$entity->getItem()->getRarity()->name()} {$entity->getItem()->getName()}

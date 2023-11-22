@@ -7,7 +7,6 @@ use App\Entity\Item\Attribute\ItemAttribute;
 use App\Entity\Item\Effect\EffectApplicable;
 use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
-use App\Service\Items\ItemEffectService;
 use App\Service\Items\ItemService;
 use App\Service\Telegram\AbstractTelegramCallbackQuery;
 use App\Service\Telegram\Button\TelegramButton;
@@ -30,7 +29,7 @@ class ShowItemInfoChatCommand extends AbstractTelegramCallbackQuery
         LoggerInterface $logger,
         TelegramService $telegramService,
         private readonly ItemService $itemService,
-        private readonly ItemEffectService $itemEffectService,
+        private readonly string $appHost
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -67,10 +66,9 @@ class ShowItemInfoChatCommand extends AbstractTelegramCallbackQuery
                 );
             }
             if ($instance->getItem()->getImagePublicPath() !== null) {
-                $fullPath = sprintf('https://%s/%s', 'extra-spicy-backend.netlabs.dev', $instance->getItem()->getImagePublicPath());
                 $this->telegramService->sendImage(
                     $chat->getChatId(),
-                    $fullPath,
+                    $instance->getItem()->getImagePublicUrl($this->appHost),
                     caption: $message,
                     threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
                     replyMarkup: $this->getKeyboard($instance),

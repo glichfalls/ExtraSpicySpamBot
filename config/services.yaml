@@ -13,6 +13,7 @@ services:
             string $finnhubApiKey: '%env(FINNHUB_API_KEY)%'
             string $frontendUrl: '%env(FRONTEND_URL)%'
             string $backendUrl: '%env(BACKEND_URL)%'
+            string $appHost: '%env(APP_HOST)%'
 
     App\:
         resource: '../src/'
