@@ -19,7 +19,7 @@ class DefaultThreadChatCommand extends AbstractTelegramChatCommand
         $message->getChat()->getConfig()->setDefaultThreadId($message->getTelegramThreadId());
         $this->manager->flush();
         $this->telegramService->sendText(
-            $message->getTelegramThreadId(),
+            $message->getChat()->getChatId(),
             sprintf('Default thread set to %s', $message->getTelegramThreadId()),
             threadId: $message->getTelegramThreadId(),
         );
