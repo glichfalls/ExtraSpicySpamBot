@@ -49,7 +49,7 @@ class DepositChatCommand extends AbstractTelegramChatCommand
         } else {
             $amount = NumberFormat::getIntValue($matches['amount'], $matches['abbr'] ?? null);
         }
-        if ($this->canDepositAmount($message, $amount)) {
+        if ($this->canDepositAmount($message, $account, $amount)) {
             $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$amount));
             $account->addTransaction(TransactionFactory::create($amount));
             $this->manager->flush();
@@ -60,11 +60,15 @@ class DepositChatCommand extends AbstractTelegramChatCommand
         }
     }
 
-    private function canDepositAmount(Message $message, int $amount): bool
+    private function canDepositAmount(Message $message, BankAccount $account, int $amount): bool
     {
         $honor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
         if ($honor < $amount) {
             $this->telegramService->replyTo($message, 'you do not have enough Ehre');
+            return false;
+        }
+        if ($account->getBalance() > PHP_INT_MAX - $amount) {
+            $this->telegramService->replyTo($message, 'your bank account is full');
             return false;
         }
         return true;

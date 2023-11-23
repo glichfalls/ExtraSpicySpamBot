@@ -70,11 +70,13 @@ class BankAccount
 
     public function getBalance(): int
     {
-        return array_reduce(
-            $this->transactions->toArray(),
-            fn (int $balance, Transaction $transaction) => $balance + $transaction->getAmount(),
-            0
-        );
+        return array_reduce($this->transactions->toArray(), function (int $balance, Transaction $transaction) {
+            $amount = $transaction->getAmount();
+            if ($amount > 0 && $balance > 0 && $balance > PHP_INT_MAX - $amount) {
+                return PHP_INT_MAX;
+            }
+            return $balance + $transaction->getAmount();
+        }, 0);
     }
 
 }
