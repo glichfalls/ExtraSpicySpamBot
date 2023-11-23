@@ -61,7 +61,7 @@ class StockService
         return $portfolio;
     }
 
-    public function getPortfolioBalance(Portfolio $portfolio): int
+    public function getPortfolioBalance(Portfolio $portfolio): int|float
     {
         $total = 0;
         foreach ($portfolio->getBalance() as $transactions) {
