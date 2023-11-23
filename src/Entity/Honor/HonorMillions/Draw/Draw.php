@@ -142,7 +142,9 @@ class Draw
     {
         return array_reduce(
             $this->getTickets()->toArray(),
-            fn(int $carry, Ticket $ticket) => $carry + $ticket->getTotalTicketCost(),
+            function(int $carry, Ticket $ticket) {
+
+            },
             $this->getPreviousJackpot() + $this->getGamblingLosses(),
         );
     }

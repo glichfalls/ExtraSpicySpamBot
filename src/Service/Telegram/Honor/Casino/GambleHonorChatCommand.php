@@ -75,9 +75,15 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             } else {
                 $this->logger->info(sprintf('GAMBLE %s lost %s honor', $message->getUser()->getName(), $amount));
                 $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
-                $draw?->setGamblingLosses($draw->getGamblingLosses() + (int) floor(abs($amount) * 0.9));
+                $jackpotDrawAmount = (int) floor(abs($amount) * 0.9);
+                if ($draw !== null && $draw->getGamblingLosses() < PHP_INT_MAX - $jackpotDrawAmount) {
+                    $draw->setGamblingLosses($draw->getGamblingLosses() + $jackpotDrawAmount);
+                }
                 $jackpot = $this->honorService->getSlotMachineJackpot($message->getChat());
-                $jackpot->setAmount($jackpot->getAmount() + (int) floor(abs($amount) * 0.1));
+                $slotMachineJackpotAmount = (int) floor(abs($amount) * 0.1);
+                if ($jackpot->getAmount() < PHP_INT_MAX - $slotMachineJackpotAmount) {
+                    $jackpot->setAmount($jackpot->getAmount() + $slotMachineJackpotAmount);
+                }
                 $this->honorService->removeHonor($message->getChat(), $message->getUser(), $amount);
                 $this->manager->flush();
                 $this->telegramService->replyTo(
