@@ -18,7 +18,7 @@ use App\Exception\NotEnoughStocksException;
 use App\Repository\HonorRepository;
 use App\Repository\Stocks\PortfolioRepository;
 use App\Repository\Stocks\StockTransactionRepository;
-use App\Service\HonorService;
+use App\Service\Honor\HonorService;
 use App\Service\Stocks\StockService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;

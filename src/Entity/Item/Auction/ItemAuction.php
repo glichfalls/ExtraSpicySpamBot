@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Entity\Item;
+namespace App\Entity\Item\Auction;
 
+use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
 use App\Model\Id;
 use App\Repository\ItemAuctionRepository;
@@ -9,6 +10,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Money\Money;
 
 #[Entity(repositoryClass: ItemAuctionRepository::class)]
 class ItemAuction
@@ -25,8 +27,8 @@ class ItemAuction
     #[ManyToOne(targetEntity: User::class)]
     private ?User $highestBidder = null;
 
-    #[Column(type: 'integer')]
-    private int $highestBid = 0;
+    #[Column(type: 'honor')]
+    private Money $highestBid;
 
     #[Column(type: 'boolean')]
     private bool $active = true;
@@ -66,12 +68,12 @@ class ItemAuction
         $this->highestBidder = $highestBidder;
     }
 
-    public function getHighestBid(): int
+    public function getHighestBid(): Money
     {
         return $this->highestBid;
     }
 
-    public function setHighestBid(int $highestBid): void
+    public function setHighestBid(Money $highestBid): void
     {
         $this->highestBid = $highestBid;
     }

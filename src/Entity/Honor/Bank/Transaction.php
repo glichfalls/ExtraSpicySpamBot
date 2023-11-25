@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Money\Money;
 
 #[Entity]
 class Transaction
@@ -17,8 +18,8 @@ class Transaction
     #[ManyToOne(targetEntity: BankAccount::class)]
     private BankAccount $bankAccount;
 
-    #[Column(type: 'bigint', nullable: false)]
-    private int $amount = 0;
+    #[Column(type: 'honor', nullable: false)]
+    private Money $amount;
 
     public function __construct()
     {
@@ -35,12 +36,12 @@ class Transaction
         $this->bankAccount = $bankAccount;
     }
 
-    public function getAmount(): int
+    public function getAmount(): Money
     {
         return $this->amount;
     }
 
-    public function setAmount(int $amount): void
+    public function setAmount(Money $amount): void
     {
         $this->amount = $amount;
     }

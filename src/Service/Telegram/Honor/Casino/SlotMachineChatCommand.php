@@ -3,10 +3,9 @@
 namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Honor\SlotMachine\SlotMachineJackpot;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
-use App\Service\HonorService;
+use App\Service\Honor\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;

@@ -3,9 +3,9 @@
 namespace App\Service\Telegram\Honor\Items\Trade;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Item\ItemAuction;
+use App\Entity\Item\Auction\ItemAuction;
 use App\Entity\User\User;
-use App\Service\HonorService;
+use App\Service\Honor\HonorService;
 use App\Service\Items\ItemService;
 use App\Service\Items\ItemTradeService;
 use App\Service\Telegram\AbstractTelegramCallbackQuery;

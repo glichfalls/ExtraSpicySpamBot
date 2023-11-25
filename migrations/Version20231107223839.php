@@ -19,7 +19,7 @@ final class Version20231107223839 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE item_instance ADD payload JSON NOT NULL DEFAULT \'[]\'');
+        $this->addSql('ALTER TABLE item_instance ADD payload JSON NOT NULL');
     }
 
     public function down(Schema $schema): void

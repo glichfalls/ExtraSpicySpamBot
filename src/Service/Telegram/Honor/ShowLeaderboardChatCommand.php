@@ -3,8 +3,7 @@
 namespace App\Service\Telegram\Honor;
 
 use App\Entity\Message\Message;
-use App\Service\HonorService;
-use App\Service\Stocks\StockService;
+use App\Service\Honor\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;

@@ -29,6 +29,7 @@ class TelegramCallbackQueryHandler
         if ($message === null) {
             return;
         }
+        $messageEntity = $this->telegramService->createMessageFromUpdate($update);
         $chat = $this->telegramService->getChatFromMessage($message);
         $user = $this->telegramService->getUserFromCallbackQuery($callbackQuery);
         if ($chat === null || $user === null) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\Honor;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\HonorFactory;
@@ -14,15 +14,16 @@ use App\Service\Stocks\StockService;
 use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnexpectedResultException;
+use Money\Money;
 use Psr\Log\LoggerInterface;
 
 class HonorService
 {
 
     public function __construct(
-        private LoggerInterface $logger,
-        private EntityManagerInterface $manager,
-        private HonorRepository $honorRepository,
+        private readonly LoggerInterface $logger,
+        private readonly EntityManagerInterface $manager,
+        private readonly HonorRepository $honorRepository,
         private BankAccountRepository $bankAccountRepository,
         private SlotMachineJackpotRepository $slotMachineJackpotRepository,
         private UserRepository $userRepository,
@@ -85,7 +86,7 @@ class HonorService
         }
     }
 
-    public function getCurrentHonorAmount(Chat $chat, User $user): int
+    public function getCurrentHonorAmount(Chat $chat, User $user): Money
     {
         try {
             return $this->honorRepository->getHonorCount($user, $chat);
@@ -94,14 +95,14 @@ class HonorService
         }
     }
 
-    public function addHonor(Chat $chat, User $recipient, int $amount, ?User $sender = null): void
+    public function addHonor(Chat $chat, User $recipient, Money $amount, ?User $sender = null): void
     {
-        $this->manager->persist(HonorFactory::create($chat, $sender, $recipient, abs($amount)));
+        $this->manager->persist(HonorFactory::create($chat, $sender, $recipient, $amount));
     }
 
-    public function removeHonor(Chat $chat, User $recipient, int $amount, ?User $sender = null): void
+    public function removeHonor(Chat $chat, User $recipient, Money $amount, ?User $sender = null): void
     {
-        $this->manager->persist(HonorFactory::create($chat, $sender, $recipient, -abs($amount)));
+        $this->manager->persist(HonorFactory::create($chat, $sender, $recipient, $amount->absolute()->negative()));
     }
 
     public function getSlotMachineJackpot(Chat $chat): SlotMachineJackpot

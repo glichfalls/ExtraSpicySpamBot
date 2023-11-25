@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Item\ItemAuction;
+use App\Entity\Item\Auction\ItemAuction;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

@@ -2,6 +2,7 @@
 
 namespace App\Service\Telegram;
 
+use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -16,6 +17,15 @@ abstract class AbstractTelegramChatCommand implements TelegramChatCommand
         protected TelegramService $telegramService
     ) {
 
+    }
+
+    protected function getHonorFromInputAmount(string $amount, ?string $abbr): int
+    {
+        if ($amount === 'max') {
+            $amount = $account->getBalance();
+        } else {
+            return NumberFormat::getIntValue($amount, $abbr ?? null);
+        }
     }
 
     public function getDescription(): string

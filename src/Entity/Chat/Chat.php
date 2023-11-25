@@ -44,7 +44,7 @@ class Chat
     #[Groups(['chat:public:read', 'collectable:read'])]
     private string $name;
 
-    #[OneToOne(targetEntity: ChatConfig::class, cascade: ["persist", "remove"])]
+    #[OneToOne(targetEntity: ChatConfig::class, cascade: ["persist", "remove"], orphanRemoval: true)]
     #[Groups(['chat:public:read'])]
     private ChatConfig $config;
 
@@ -60,6 +60,7 @@ class Chat
     {
         $this->generateId();
         $this->messages = new ArrayCollection();
+        $this->users = new ArrayCollection();
     }
 
     public function getChatId(): string

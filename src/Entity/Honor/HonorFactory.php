@@ -4,6 +4,7 @@ namespace App\Entity\Honor;
 
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
+use Money\Money;
 
 class HonorFactory
 {
@@ -12,9 +13,8 @@ class HonorFactory
         Chat $chat,
         ?User $sender,
         User $recipient,
-        int $amount
-    ): Honor
-    {
+        Money $amount
+    ): Honor {
         $honor = new Honor();
         $honor->setChat($chat);
         $honor->setSender($sender);
@@ -25,14 +25,14 @@ class HonorFactory
         return $honor;
     }
 
-    public static function createPositive(Chat $chat, User $recipient, int $amount): Honor
+    public static function createPositive(Chat $chat, User $recipient, Money $amount): Honor
     {
-        return self::create($chat, null, $recipient, $amount);
+        return self::create($chat, null, $recipient, $amount->absolute());
     }
 
-    public static function createNegative(Chat $chat, User $recipient, int $amount): Honor
+    public static function createNegative(Chat $chat, User $recipient, Money $amount): Honor
     {
-        return self::create($chat, null, $recipient, -$amount);
+        return self::create($chat, null, $recipient, $amount->absolute()->negative());
     }
 
 }

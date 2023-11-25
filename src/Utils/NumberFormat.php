@@ -2,11 +2,13 @@
 
 namespace App\Utils;
 
+use Money\Money;
+
 class NumberFormat
 {
 
     public const ABBREVIATION = [
-        18 => 'Qi',
+        18 => 'Qi', // quadrillion
         15 => 'Q',
         12 => 'T',
         9 => 'B',
@@ -14,6 +16,11 @@ class NumberFormat
         3 => 'K',
         0 => '',
     ];
+
+    public static function money(Money $money): string
+    {
+        return self::format($money->getAmount());
+    }
 
     public static function format(float|int $number): string
     {

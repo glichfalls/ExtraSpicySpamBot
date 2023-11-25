@@ -10,7 +10,7 @@ use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Repository\RaidRepository;
 use App\Repository\UserRepository;
-use App\Service\HonorService;
+use App\Service\Honor\HonorService;
 use App\Service\Items\ItemEffectService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;

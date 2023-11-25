@@ -5,6 +5,7 @@ namespace App\Command\Honor;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Honor\HonorMillions\Draw\DrawFactory;
 use App\Repository\DrawRepository;
+use App\Service\Honor\HonorService;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
 use App\Utils\Random;
@@ -22,6 +23,7 @@ class HonorMillionsDrawCommand extends Command
         private readonly EntityManagerInterface $manager,
         private readonly DrawRepository $drawRepository,
         private readonly TelegramService $telegramService,
+        private readonly HonorService $honorService,
     ) {
         parent::__construct();
     }
@@ -53,7 +55,7 @@ class HonorMillionsDrawCommand extends Command
                 $nextDraw->setPreviousJackpot($draw->getJackpot());
             } else {
                 $jackpot = $draw->getJackpot();
-                $amountPerWinner = (int) ceil(abs($jackpot) / $winners->count());
+                $amountPerWinner = $jackpot->divide($winners->count());
                 foreach ($winners as $winner) {
                     $message = <<<MESSAGE
                     Ehre Millions
@@ -68,11 +70,12 @@ class HonorMillionsDrawCommand extends Command
                             $message,
                             $winner->getUser()->getName() ?? $winner->getUser()->getFirstName(),
                             $winningNumber,
-                            NumberFormat::format($amountPerWinner),
+                            NumberFormat::money($amountPerWinner),
                         ),
                         $draw->getTelegramThreadId(),
                         parseMode: 'HTML',
                     );
+                    $this->honorService->addHonor($draw->getChat(), $winner->getUser(), $amountPerWinner);
                     $this->manager->persist(HonorFactory::create($draw->getChat(), null, $winner->getUser(), $amountPerWinner));
                 }
                 $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());

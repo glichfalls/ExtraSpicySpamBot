@@ -2,11 +2,13 @@
 
 namespace App\Service\Items;
 
-use App\Entity\Item\ItemAuction;
+use App\Entity\Honor\Honor;
+use App\Entity\Item\Auction\ItemAuction;
+use App\Entity\Item\Auction\ItemAuctionFactory;
 use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
 use App\Repository\ItemAuctionRepository;
-use App\Service\HonorService;
+use App\Service\Honor\HonorService;
 use Doctrine\ORM\EntityManagerInterface;
 
 readonly class ItemTradeService
@@ -32,14 +34,7 @@ readonly class ItemTradeService
         if ($instance->getOwner() === null) {
             throw new \RuntimeException('Item has no owner.');
         }
-        $auction = new ItemAuction();
-        $auction->setInstance($instance);
-        $auction->setSeller($instance->getOwner());
-        $auction->setHighestBidder(null);
-        $auction->setHighestBid(0);
-        $auction->setActive(true);
-        $auction->setCreatedAt(new \DateTime());
-        $auction->setUpdatedAt(new \DateTime());
+        $auction = ItemAuctionFactory::create($instance, null, null, Honor::currency(0));
         $this->manager->persist($auction);
         $this->manager->flush();
         return $auction;
