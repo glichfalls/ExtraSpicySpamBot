@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace App\Service\Bank;
+namespace App\Service\Honor;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\Bank\BankAccount;
@@ -8,7 +8,6 @@ use App\Entity\Honor\Bank\Transaction;
 use App\Entity\Honor\Bank\TransactionFactory;
 use App\Entity\User\User;
 use App\Repository\BankAccountRepository;
-use App\Service\Honor\HonorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Money\Money;
 
@@ -48,6 +47,7 @@ readonly class BankService
         $account = $this->getBankAccount($chat, $user);
         $this->canDepositAmount($account, $amount);
         $transaction = $this->createTransaction($account, $amount);
+$this->honorService->removeHonor($chat, $user, $amount);
         $this->manager->flush();
         return $transaction;
     }
@@ -57,6 +57,7 @@ readonly class BankService
         $account = $this->getBankAccount($chat, $user);
         $this->canWithdrawAmount($account, $amount);
         $transaction = $this->createTransaction($account, $amount->negative());
+        $this->honorService->addHonor($chat, $user, $amount);
         $this->manager->flush();
         return $transaction;
     }

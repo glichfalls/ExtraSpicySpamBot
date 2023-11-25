@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping\JoinTable;
 use Doctrine\ORM\Mapping\ManyToMany;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Money\Money;
 
 #[Entity(repositoryClass: RaidRepository::class)]
 class Raid
@@ -38,8 +39,8 @@ class Raid
     #[JoinTable(name: 'raid_defenders')]
     private Collection $defenders;
 
-    #[Column(type: 'bigint', options: ['default' => 0])]
-    private int $amount = 0;
+    #[Column(type: 'honor', options: ['default' => 0])]
+    private Money $amount;
 
     #[Column(type: 'boolean')]
     private bool $isActive = true;
@@ -110,12 +111,12 @@ class Raid
         $this->defenders = $defenders;
     }
 
-    public function getAmount(): int
+    public function getAmount(): Money
     {
         return $this->amount;
     }
 
-    public function setAmount(int $amount): void
+    public function setAmount(Money $amount): void
     {
         $this->amount = $amount;
     }

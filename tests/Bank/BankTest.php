@@ -2,7 +2,7 @@
 
 namespace App\Tests\Bank;
 
-use App\Service\Bank\BankService;
+use App\Service\Honor\BankService;
 use App\Tests\BaseKernelTest;
 
 class BankTest extends BaseKernelTest

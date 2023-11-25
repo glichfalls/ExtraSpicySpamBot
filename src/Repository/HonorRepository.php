@@ -15,23 +15,23 @@ class HonorRepository extends ServiceEntityRepository
 
     public function __construct(ManagerRegistry $registry)
     {
-        /** @phpstan-ignore-next-line */
         parent::__construct($registry, Honor::class);
     }
 
-    /**
-     * @throws UnexpectedResultException
-     */
     public function getHonorCount(User $user, Chat $chat): Money
     {
-        $queryBuilder = $this->createQueryBuilder('h');
-        $queryBuilder
-            ->select('SUM(h.amount)')
-            ->where('h.recipient = :user')
-            ->andWhere('h.chat = :chat')
-            ->setParameter('user', $user)
-            ->setParameter('chat', $chat);
-        return Honor::currency($queryBuilder->getQuery()->getSingleScalarResult());
+        try {
+            $queryBuilder = $this->createQueryBuilder('h');
+            $queryBuilder
+                ->select('SUM(h.amount)')
+                ->where('h.recipient = :user')
+                ->andWhere('h.chat = :chat')
+                ->setParameter('user', $user)
+                ->setParameter('chat', $chat);
+            return Honor::currency($queryBuilder->getQuery()->getSingleScalarResult());
+        } catch (UnexpectedResultException $exception) {
+            return Honor::currency(0);
+        }
     }
 
     public function getLeaderboard(Chat $chat): array

@@ -4,11 +4,12 @@ namespace App\Entity\Honor\Raid;
 
 use App\Entity\Chat\Chat;
 use App\Entity\User\User;
+use Money\Money;
 
 class RaidFactory
 {
 
-    public static function create(Chat $chat, User $leader, User $target, int $amount): Raid
+    public static function create(Chat $chat, User $leader, User $target, Money $amount): Raid
     {
         $raid = new Raid();
         $raid->setChat($chat);

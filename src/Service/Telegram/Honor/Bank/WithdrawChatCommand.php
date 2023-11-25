@@ -3,7 +3,7 @@
 namespace App\Service\Telegram\Honor\Bank;
 
 use App\Entity\Message\Message;
-use App\Service\Bank\BankService;
+use App\Service\Honor\BankService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;

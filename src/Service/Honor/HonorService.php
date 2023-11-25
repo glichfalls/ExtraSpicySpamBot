@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Honor;
 
@@ -97,7 +97,7 @@ class HonorService
 
     public function addHonor(Chat $chat, User $recipient, Money $amount, ?User $sender = null): void
     {
-        $this->manager->persist(HonorFactory::create($chat, $sender, $recipient, $amount));
+        $this->manager->persist(HonorFactory::create($chat, $sender, $recipient, $amount->absolute()));
     }
 
     public function removeHonor(Chat $chat, User $recipient, Money $amount, ?User $sender = null): void
