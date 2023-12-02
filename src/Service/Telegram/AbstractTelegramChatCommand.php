@@ -19,24 +19,6 @@ abstract class AbstractTelegramChatCommand implements TelegramChatCommand
 
     }
 
-    protected function getHonorFromInputAmount(string $amount, ?string $abbr): int
-    {
-        if ($amount === 'max') {
-            $amount = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
-        } else {
-            return NumberFormat::getIntValue($amount, $abbr ?? null);
-        }
-    }
-
-    protected function getBankBalanceFromInputAmount(string $amount, ?string $abbr): int
-    {
-        if ($amount === 'max') {
-            $amount = $account->getBalance();
-        } else {
-            return NumberFormat::getIntValue($amount, $abbr ?? null);
-        }
-    }
-
     public function getDescription(): string
     {
         $className = substr(strrchr(static::class, "\\"), 1);

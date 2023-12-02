@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Items\Trade;
 
@@ -36,12 +36,8 @@ class DeclineItemTradeChatCommand extends AbstractTelegramCallbackQuery
 
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
-        $instance = $this->itemService->getInstance($this->getCallbackDataId($update));
-        if ($instance === null) {
-            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Item not found.', true);
-            return;
-        }
         try {
+            $instance = $this->itemService->getInstance($this->getCallbackDataId($update));
             $this->itemTradeService->declineItemAuction($instance, $user);
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Auction declined.', true);

@@ -1,8 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Items\Trade;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Honor;
 use App\Entity\Item\Auction\ItemAuction;
 use App\Entity\User\User;
 use App\Service\Honor\HonorService;
@@ -42,19 +43,15 @@ final class CreateItemBidChatCommand extends AbstractTelegramCallbackQuery
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
         $data = $this->getCallbackDataParts($update, 2);
-        $bid = (int) array_pop($data);
+        $bid = Honor::currency(array_pop($data));
         $instanceId = array_pop($data);
         $instance = $this->itemService->getInstance($instanceId);
-        if ($instance === null) {
-            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Item not found.', true);
-            return;
-        }
         $auction = $this->itemTradeService->getActiveAuction($instance);
         if ($auction === null) {
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'No active auction found.', true);
             return;
         }
-        $bid = $auction->getHighestBid() + $bid;
+        $bid = $auction->getHighestBid()->add($bid);
         $honor = $this->honorService->getCurrentHonorAmount($chat, $user);
         if ($honor < $bid) {
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'You dont have enough Ehre');
@@ -65,7 +62,7 @@ final class CreateItemBidChatCommand extends AbstractTelegramCallbackQuery
         $this->manager->flush();
         $this->telegramService->sendText(
             $chat->getChatId(),
-            sprintf('%s bid %s Ehre for %s', $user->getName(), NumberFormat::format($auction->getHighestBid()), $instance->getItem()->getName()),
+            sprintf('%s bid %s Ehre for %s', $user->getName(), NumberFormat::money($auction->getHighestBid()), $instance->getItem()->getName()),
             threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             replyMarkup: $this->getKeyboard($auction),
         );

@@ -3,6 +3,7 @@
 namespace App\Service\Honor;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Honor\SlotMachine\SlotMachineJackpot;
 use App\Entity\User\User;
@@ -17,13 +18,13 @@ use Doctrine\ORM\UnexpectedResultException;
 use Money\Money;
 use Psr\Log\LoggerInterface;
 
-class HonorService
+final readonly class HonorService
 {
 
     public function __construct(
-        private readonly LoggerInterface $logger,
-        private readonly EntityManagerInterface $manager,
-        private readonly HonorRepository $honorRepository,
+        private LoggerInterface $logger,
+        private EntityManagerInterface $manager,
+        private HonorRepository $honorRepository,
         private BankAccountRepository $bankAccountRepository,
         private SlotMachineJackpotRepository $slotMachineJackpotRepository,
         private UserRepository $userRepository,
@@ -44,7 +45,7 @@ class HonorService
                 $leaderboard[$key]['user'] = $user;
                 $balance = $this->bankAccountRepository->getByChatAndUser($chat, $user)?->getBalance();
                 $leaderboard[$key]['balance'] = $balance;
-                $portfolio = $this->stockService->getPortfolioByUserAndChat($chat, $user);
+                $portfolio = $this->stockService->getPortfolioByChatAndUser($chat, $user);
                 try {
                     $portfolioValue = $this->stockService->getPortfolioBalance($portfolio);
                 } catch (\Exception $exception) {
@@ -111,7 +112,7 @@ class HonorService
         if ($jackpot === null) {
             $jackpot = new SlotMachineJackpot();
             $jackpot->setChat($chat);
-            $jackpot->setAmount(0);
+            $jackpot->setAmount(Honor::currency(0));
             $jackpot->setActive(true);
             $this->manager->persist($jackpot);
         }

@@ -59,14 +59,14 @@ class StockPrice
         $this->stock = $stock;
     }
 
-    public function getPrice(): Money
+    public function getPrice(): string
     {
-        return new Money($this->price, new Currency('USD'));
+        return $this->price;
     }
 
-    public function setPrice(Money $price): void
+    public function setPrice(string $price): void
     {
-        $this->price = $price->getAmount();
+        $this->price = $price;
     }
 
     public function getChangeAbsolute(): ?float
@@ -91,7 +91,7 @@ class StockPrice
 
     public function getHonorPrice(): Money
     {
-        return Honor::currency($this->getPrice()->getAmount());
+        return Honor::currency($this->getPrice());
     }
 
     #[Groups(['stock:read', 'portfolio:read'])]

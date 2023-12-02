@@ -46,8 +46,8 @@ class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatCommand
         $jackpot = $draw->getJackpot();
         $this->telegramService->replyTo($message, sprintf(
             'the jackpot is %s Ehre (+%s today). %s%% chance someone wins today',
-            NumberFormat::format($jackpot),
-            NumberFormat::format($draw->getGamblingLosses()),
+            NumberFormat::money($jackpot),
+            NumberFormat::money($draw->getGamblingLosses()),
             $this->getTotalUniqueNumbers($draw),
         ));
     }

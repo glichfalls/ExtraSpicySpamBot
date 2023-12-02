@@ -5,11 +5,29 @@ namespace App\Service\Telegram\Stocks;
 use App\Entity\Message\Message;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Exception\StockSymbolUpdateException;
+use App\Service\Stocks\StockPriceService;
+use App\Service\Stocks\StockService;
+use App\Service\Telegram\AbstractTelegramChatCommand;
+use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class ShowPortfolioChatCommand extends AbstractStockChatCommand
+final class ShowPortfolioChatCommand extends AbstractTelegramChatCommand
 {
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly StockService $stockService,
+        private readonly StockPriceService $stockPriceService,
+    ) {
+        parent::__construct($manager, $translator, $logger, $telegramService);
+    }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
@@ -19,7 +37,7 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $portfolio = $this->getPortfolioByMessage($message);
+            $portfolio = $this->stockService->getPortfolioByChatAndUser($message->getChat(), $message->getUser());
             $this->telegramService->replyTo($message, $this->getBalance($portfolio), parseMode: 'HTML');
         } catch (StockSymbolUpdateException $exception) {
             $this->telegramService->replyTo($message, sprintf(
@@ -37,7 +55,7 @@ class ShowPortfolioChatCommand extends AbstractStockChatCommand
             if ($transactions->getTotalAmount() === 0) {
                 continue;
             }
-            $currentPrice = $this->getStockPrice($transactions->getSymbol());
+            $currentPrice = $this->stockPriceService->getPriceBySymbol($transactions->getSymbol());
             $totalHonor += $transactions->getCurrentHonorTotal($currentPrice);
             $data[] = sprintf(
                 '%sx <strong>%s</strong>: %s Ehre',

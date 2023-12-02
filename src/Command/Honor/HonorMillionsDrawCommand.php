@@ -1,7 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Command\Honor;
 
+use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Honor\HonorMillions\Draw\DrawFactory;
 use App\Repository\DrawRepository;
@@ -81,7 +82,7 @@ class HonorMillionsDrawCommand extends Command
                 $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());
                 $nextDraw->setChat($draw->getChat());
                 $nextDraw->setPreviousDraw(null);
-                $nextDraw->setPreviousJackpot(1_000_000);
+                $nextDraw->setPreviousJackpot(Honor::currency(1_000_000));
             }
             $this->manager->persist($nextDraw);
             $this->manager->flush();

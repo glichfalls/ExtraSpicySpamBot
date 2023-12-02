@@ -1,8 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Millions;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Honor\HonorMillions\Draw\Draw;
 use App\Entity\Honor\HonorMillions\Ticket\Ticket;
@@ -11,10 +12,12 @@ use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\DrawRepository;
 use App\Repository\HonorRepository;
+use App\Service\Honor\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
+use Money\Money;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
@@ -27,8 +30,9 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private DrawRepository $drawRepository,
-        private HonorRepository $honorRepository,
+        private readonly DrawRepository $drawRepository,
+        private readonly HonorRepository $honorRepository,
+        private readonly HonorService $honorService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -76,9 +80,11 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
         }
 
         try {
-            $total = 0;
+            $total = Honor::currency(0);
+            $honor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
             foreach ($numbers as $number) {
-                $total += $this->buyTicket($message->getChat(), $message->getUser(), $ticket, $number);
+                $price = $this->buyTicket($message->getChat(), $message->getUser(), $ticket, $honor, $number);
+                $total = $total->add($price);
             }
             $this->manager->flush();
             sort($numbers);
@@ -86,7 +92,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
                 'you bought %d tickets (%s) for %s ehre',
                 count($numbers),
                 implode(', ', $numbers),
-                NumberFormat::format($total),
+                NumberFormat::money($total),
             ));
         } catch (\InvalidArgumentException $exception) {
             $this->manager->clear();
@@ -127,31 +133,30 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
         ));
     }
 
-    private function buyTicket(Chat $chat, User $user, Ticket $ticket, int $number): int
+    private function buyTicket(Chat $chat, User $user, Ticket $ticket, Money $currentHonor, int $number): Money
     {
         $ticketPrice = $this->getTicketPrice($ticket);
-        if ($ticketPrice > 0) {
-            $honor = $this->honorRepository->getHonorCount($user, $chat);
-            if ($ticketPrice > $honor) {
+        if ($ticketPrice->greaterThan(Honor::currency(0))) {
+            if ($ticketPrice->greaterThan($currentHonor)) {
                 throw new \InvalidArgumentException(sprintf(
                     'you need %s ehre to buy a ticket, but you only have %s ehre',
-                    NumberFormat::format($ticketPrice),
-                    NumberFormat::format($honor),
+                    NumberFormat::money($ticketPrice),
+                    NumberFormat::money($currentHonor),
                 ));
             }
-            $this->manager->persist(HonorFactory::create($chat, null, $user, -$ticketPrice));
+            $this->honorService->removeHonor($chat, $user, $ticketPrice);
         }
         $ticket->addNumber($number);
         return $ticketPrice;
     }
 
-    private function getTicketPrice(Ticket $ticket): int
+    private function getTicketPrice(Ticket $ticket): Money
     {
         $numberOfTickets = count($ticket->getNumbers());
         if ($numberOfTickets === 0) {
-            return 0;
+            return Honor::currency(0);
         }
-        return 10 ** ++$numberOfTickets;
+        return Honor::currency(10 ** ++$numberOfTickets);
     }
 
     public function getSyntax(): string

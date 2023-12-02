@@ -1,56 +1,43 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Stocks;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\HonorFactory;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Entity\Stocks\Portfolio\PortfolioFactory;
-use App\Entity\Stocks\Stock\Stock;
-use App\Entity\Stocks\Stock\StockFactory;
-use App\Entity\Stocks\Stock\StockPrice;
-use App\Entity\Stocks\Stock\StockPriceFactory;
+use App\Entity\Stocks\Transaction\StockTransaction;
+use App\Entity\Stocks\Transaction\StockTransactionFactory;
 use App\Entity\User\User;
-use App\Exception\StockSymbolUpdateException;
+use App\Exception\AmountZeroOrNegativeException;
+use App\Exception\NotEnoughHonorException;
+use App\Exception\NotEnoughStocksException;
+use App\Repository\HonorRepository;
 use App\Repository\Stocks\PortfolioRepository;
-use App\Repository\Stocks\StockRepository;
-use App\Utils\NumberFormat;
-use App\Utils\RateLimitUtils;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Repository\Stocks\StockTransactionRepository;
+use App\Service\Honor\HonorService;
 use Doctrine\ORM\EntityManagerInterface;
-use Finnhub\Api\DefaultApi;
-use Finnhub\ApiException;
-use Finnhub\Configuration;
-use Finnhub\Model\SymbolLookupInfo;
-use GuzzleHttp\Client;
 use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
-class StockService
+final readonly class StockService
 {
 
-    public const STOCK_UPDATE_INTERVAL_HOURS = 12;
-
-    private DefaultApi $client;
-
     public function __construct(
-        private LoggerInterface $logger,
+        private StockPriceService $stockPriceService,
         private EntityManagerInterface $manager,
-        private StockRepository $stockRepository,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        protected HonorService $honorService,
+        protected HonorRepository $honorRepository,
+        protected StockPriceService $stockService,
+        protected StockTransactionRepository $stockTransactionRepository,
         protected PortfolioRepository $portfolioRepository,
-        string $finnhubApiKey,
     ) {
-        $config = Configuration::getDefaultConfiguration()->setApiKey('token', $finnhubApiKey);
-        if ($_ENV['APP_ENV'] === 'dev') {
-            $client = new Client([
-                'verify' => false,
-            ]);
-        } else {
-            $client = new Client();
-        }
-        $this->client = new DefaultApi($client, $config);
+
     }
 
-    public function getPortfolioByUserAndChat(Chat $chat, User $user): Portfolio
+    public function getPortfolioByChatAndUser(Chat $chat, User $user): Portfolio
     {
         $portfolio = $this->portfolioRepository->getByChatAndUser($chat, $user);
         if ($portfolio === null) {
@@ -68,115 +55,62 @@ class StockService
             if ($transactions->getTotalAmount() === 0) {
                 continue;
             }
-            $currentPrice = $this->getPriceBySymbol($transactions->getSymbol());
+            $currentPrice = $this->stockPriceService->getPriceBySymbol($transactions->getSymbol());
             $total += $transactions->getCurrentHonorTotal($currentPrice);
         }
         return $total;
     }
 
-    public function getPriceBySymbol(string $symbol): ?StockPrice
+    private function createStockTransaction(Portfolio $portfolio, string $symbol, int $amount): StockTransaction
     {
-        $stock = $this->stockRepository->getBySymbol($symbol);
-        if ($stock === null) {
-            $stock = $this->fetchExactSymbol($symbol);
+        $price = $this->stockPriceService->getPriceBySymbol($symbol);
+        if ($price->getHonorPrice() <= 0) {
+            throw new AmountZeroOrNegativeException(sprintf('Stock price for %s is zero', $symbol));
         }
-        return $this->getPriceByStock($stock);
+        $transaction = StockTransactionFactory::create($price, $amount);
+        $portfolio->addTransaction($transaction);
+        return $transaction;
     }
 
-    public function getPriceByStock(Stock $stock): StockPrice
+    public function buyStock(Portfolio $portfolio, string $symbol, int $amount): StockTransaction
     {
-        $latestPrice = $stock->getLatestStockPrice();
-        if ($latestPrice === null) {
-            return $this->fetchCurrentPrice($stock);
+        if ($amount <= 0) {
+            throw new AmountZeroOrNegativeException('you cant buy 0 or less stocks');
         }
-        if ($this->shouldFetchNewPrice($latestPrice)) {
-            return $this->fetchCurrentPrice($stock);
+        $honor = $this->honorRepository->getHonorCount($portfolio->getUser(), $portfolio->getChat());
+        if ($honor <= 0) {
+            throw new AmountZeroOrNegativeException('you dont have enough honor');
         }
-        return $latestPrice;
+        $transaction = $this->createStockTransaction($portfolio, $symbol, $amount);
+        if ($transaction->getHonorTotal() > $honor) {
+            throw new NotEnoughHonorException($honor, $transaction->getHonorTotal());
+        }
+        $this->manager->persist(HonorFactory::createNegative(
+            $portfolio->getChat(),
+            $portfolio->getUser(),
+            $transaction->getHonorTotal(),
+        ));
+        $this->manager->flush();
+        return $transaction;
     }
 
-    private function shouldFetchNewPrice(StockPrice $stockPrice): bool
+    public function sellStock(Portfolio $portfolio, string $symbol, int $amount): StockTransaction
     {
-        $now = new \DateTime();
-        // Always update if the price is older than a day
-        if (RateLimitUtils::getDaysFrom($stockPrice->getCreatedAt()) > 0) {
-            return true;
+        if ($amount <= 0) {
+            throw new AmountZeroOrNegativeException('you cant sell 0 or less stocks');
         }
-        return RateLimitUtils::getHoursFrom($stockPrice->getCreatedAt()) >= self::STOCK_UPDATE_INTERVAL_HOURS;
-    }
-
-    /**
-     * @param string $symbol
-     * @return Collection<Stock>
-     */
-    public function fetchSymbol(string $symbol): Collection
-    {
-        try {
-            $lookup = @$this->client->symbolSearch($symbol);
-            if ($lookup->getCount() === 0 || $lookup->getResult() === null) {
-                $this->logger->notice(sprintf('No results found for symbol %s', $symbol));
-                throw new StockSymbolUpdateException($symbol, 'Symbol not found');
-            }
-            $matches = array_filter(
-                $lookup->getResult(),
-                fn (SymbolLookupInfo $info) => strstr(strtolower($info->getSymbol()), strtolower($symbol))
-            );
-            if (count($matches) === 0) {
-                $this->logger->notice(sprintf('No match found for symbol %s', $symbol));
-                throw new StockSymbolUpdateException($symbol, 'Failed to find symbol match');
-            }
-            $stocks = array_map(function (SymbolLookupInfo $info) {
-                $stock = StockFactory::createFromLookupInfo($info);
-                $existing = $this->stockRepository->getBySymbol($stock->getSymbol());
-                if ($existing !== null) {
-                    return $existing;
-                }
-                $this->manager->persist($stock);
-                return $stock;
-            }, $matches);
-            $this->manager->flush();
-            return new ArrayCollection($stocks);
-        } catch (ApiException $exception) {
-            $this->logger->error($exception->getMessage());
-            throw new StockSymbolUpdateException($symbol, $exception);
+        $transactions = $portfolio->getTransactionsBySymbol($symbol);
+        if ($transactions->getTotalAmount() < $amount) {
+            throw new NotEnoughStocksException($transactions->getTotalAmount(), $amount);
         }
-    }
-
-    private function fetchExactSymbol(string $symbol): Stock
-    {
-        try {
-            $lookup = @$this->client->symbolSearch($symbol);
-            if ($lookup->getCount() === 0 || $lookup->getResult() === null) {
-                $this->logger->notice(sprintf('No results found for symbol %s', $symbol));
-                throw new StockSymbolUpdateException($symbol, 'Symbol not found');
-            }
-            $exactMatch = array_filter($lookup->getResult(), fn (SymbolLookupInfo $info) => $info->getSymbol() === $symbol);
-            if (count($exactMatch) === 0) {
-                $this->logger->notice(sprintf('No exact match found for symbol %s', $symbol));
-                throw new StockSymbolUpdateException($symbol, 'Failed to find exact symbol match');
-            }
-            $stock = StockFactory::createFromLookupInfo(array_values($exactMatch)[0]);
-            $this->manager->persist($stock);
-            $this->manager->flush();
-            return $stock;
-        } catch (ApiException $exception) {
-            $this->logger->error($exception->getMessage());
-            throw new StockSymbolUpdateException($symbol, $exception);
-        }
-    }
-
-    private function fetchCurrentPrice(Stock $stock): StockPrice
-    {
-        try {
-            $quote = @$this->client->quote($stock->getSymbol());
-            $price = StockPriceFactory::createFromQuote($stock, $quote);
-            $stock->addStockPrice($price);
-            $this->manager->flush();
-            return $price;
-        } catch (ApiException $exception) {
-            $this->logger->error($exception->getMessage());
-            throw new StockSymbolUpdateException($stock->getSymbol(), previous: $exception);
-        }
+        $transaction = $this->createStockTransaction($portfolio, $symbol, -$amount);
+        $this->manager->persist(HonorFactory::createPositive(
+            $portfolio->getChat(),
+            $portfolio->getUser(),
+            $transaction->getHonorTotal() * -1,
+        ));
+        $this->manager->flush();
+        return $transaction;
     }
 
 }

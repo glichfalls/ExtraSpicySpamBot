@@ -1,8 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Service\Honor\HonorService;
@@ -12,6 +13,7 @@ use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
 use App\Utils\Random;
 use Doctrine\ORM\EntityManagerInterface;
+use Money\Money;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
@@ -49,14 +51,14 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         );
     }
 
-    private function getStartText(int $jackpot): string
+    private function getStartText(Money $jackpot): string
     {
         $text = <<<TEXT
         🎰 SLOT MACHINE 🎰
         
         jackpot: %s Ehre
         TEXT;
-        return sprintf($text, NumberFormat::format($jackpot));
+        return sprintf($text, NumberFormat::money($jackpot));
     }
 
     /**
@@ -89,9 +91,9 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             return;
         }
         $jackpot = $this->honorService->getSlotMachineJackpot($chat);
-        $this->honorService->removeHonor($chat, $user, self::PRICE);
+        $this->honorService->removeHonor($chat, $user, Honor::currency(self::PRICE));
         $previousJackpot = $jackpot->getAmount();
-        $jackpot->setAmount($previousJackpot + self::PRICE);
+        $jackpot->setAmount($previousJackpot->add(Honor::currency(self::PRICE)));
         $result = $this->run();
         if ($result === ['💰', '💰', '💰']) {
             $amount = $jackpot->getAmount();
@@ -102,10 +104,10 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
                 JACKPOT
                 @%s wins %s Ehre
                 TEXT;
-            $this->honorService->removeHonor($chat, $user, self::PRICE);
+            $this->honorService->removeHonor($chat, $user, Honor::currency(self::PRICE));
             $this->telegramService->sendText(
                 $chat->getChatId(),
-                sprintf($text, $user->getName(), NumberFormat::format($amount)),
+                sprintf($text, $user->getName(), NumberFormat::money($amount)),
                 threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             );
             $jackpot->setAmount(0);
@@ -115,7 +117,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             return;
         }
         if ($result === ['✡️', '✡️', '✡️']) {
-            $amount = 1_000_000;
+            $amount = Honor::currency(1_000_000);
             $this->honorService->removeHonor($chat, $user, $amount);
             $text = <<<TEXT
             🎰 ✡️ ✡️ ✡️ 🎰
@@ -124,7 +126,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
             TEXT;
             $this->telegramService->sendText(
                 $chat->getChatId(),
-                sprintf($text, $user->getName(), NumberFormat::format($amount)),
+                sprintf($text, $user->getName(), NumberFormat::money($amount)),
                 threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             );
             $this->manager->flush();
@@ -134,7 +136,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         }
         // if all 3 are the same
         if ($result[0] === $result[1] && $result[1] === $result[2]) {
-            $amount = 1;
+            $amount = Honor::currency(1);
             $text = <<<TEXT
             🎰 %s 🎰
             
@@ -145,7 +147,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
                 $text,
                 implode(' ', $result),
                 $user->getName(),
-                NumberFormat::format($amount),
+                NumberFormat::money($amount),
             ), threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId());
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery);
@@ -161,9 +163,9 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
         );
     }
 
-    public function updateJackpot(Update $update, int $oldJackpot, int $newJackpot): void
+    public function updateJackpot(Update $update, Money $oldJackpot, Money $newJackpot): void
     {
-        if (NumberFormat::format($oldJackpot) === NumberFormat::format($newJackpot)) {
+        if (NumberFormat::money($oldJackpot) === NumberFormat::money($newJackpot)) {
             return;
         }
         $this->telegramService->editMessage(

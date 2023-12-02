@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Casino;
 
@@ -8,11 +8,13 @@ use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\DrawRepository;
 use App\Repository\HonorRepository;
+use App\Service\Honor\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
+use Money\Money;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
@@ -27,7 +29,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private HonorRepository $honorRepository,
+        private HonorService $honorService,
         private DrawRepository $drawRepository,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
@@ -44,7 +46,7 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         $data = explode(';', $callbackQuery->getData());
         if (count($data) === 3) {
             $amount = (int) $data[1];
-            $currentHonor = $this->honorRepository->getHonorCount($user, $chat);
+            $currentHonor = $this->honorService->getCurrentHonorAmount($chat, $user);
             if ($currentHonor < $amount) {
                 $this->telegramService->answerCallbackQuery(
                     $callbackQuery,
@@ -119,26 +121,29 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         }
     }
 
-    private function roll(Chat $chat, User $user, string $bet, int $initialAmount): array
+    private function roll(Chat $chat, User $user, string $bet, Money $initialAmount): array
     {
         $number = random_int(0, 36);
         $colorValue = $this->getColorByNumber($number);
         $amount = match ($bet) {
-            'red' => $colorValue === 'red' && $number !== 0 ? $initialAmount : -$initialAmount,
-            'black' =>$colorValue === 'black' ? $initialAmount : -$initialAmount,
-            '1-12' => $number >= 1 && $number <= 12 ? ($initialAmount * 3) - $initialAmount : -$initialAmount,
-            '13-24' => $number >= 13 && $number <= 24 ?  ($initialAmount * 3) - $initialAmount : -$initialAmount,
-            '25-36' => $number >= 25 && $number <= 36 ?  ($initialAmount * 3) - $initialAmount : -$initialAmount,
-            '1-18' => $number >= 1 && $number <= 18 ? $initialAmount : -$initialAmount,
-            '19-36' => $number >= 19 && $number <= 36 ? $initialAmount : -$initialAmount,
-            default => $number === (int)$bet ? ($initialAmount * 36) - $initialAmount : -$initialAmount,
+            'red' => $colorValue === 'red' && $number !== 0 ? $initialAmount : $initialAmount->negative(),
+            'black' =>$colorValue === 'black' ? $initialAmount : $initialAmount->negative(),
+            '1-12' => $number >= 1 && $number <= 12 ? $initialAmount->multiply(3)->subtract($initialAmount) : $initialAmount->negative(),
+            '13-24' => $number >= 13 && $number <= 24 ?  $initialAmount->multiply(3)->subtract($initialAmount) : $initialAmount->negative(),
+            '25-36' => $number >= 25 && $number <= 36 ?  $initialAmount->multiply(3)->subtract($initialAmount) : $initialAmount->negative(),
+            '1-18' => $number >= 1 && $number <= 18 ? $initialAmount : $initialAmount->negative(),
+            '19-36' => $number >= 19 && $number <= 36 ? $initialAmount : $initialAmount->negative(),
+            default => $number === ((int) $bet) ? $initialAmount->multiply(36)->subtract($initialAmount) : $initialAmount->negative(),
         };
-        if ($amount < 0) {
+        if ($amount->isNegative()) {
             // add loss to the jackpot of the next honor millions draw
             $draw = $this->drawRepository->getActiveDrawByChat($chat);
-            $draw?->setGamblingLosses($draw->getGamblingLosses() + abs($amount));
+            $draw?->setGamblingLosses($draw->getGamblingLosses()->add($amount->absolute()));
+            $this->honorService->removeHonor($chat, $user, $amount->absolute());
+        } else {
+            $this->honorService->addHonor($chat, $user, $amount);
         }
-        $this->manager->persist(HonorFactory::create($chat, null, $user, $amount));
+
         $this->manager->flush();
         return [
             'number' => $number,

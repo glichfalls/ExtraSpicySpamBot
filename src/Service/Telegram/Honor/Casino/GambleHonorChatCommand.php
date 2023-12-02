@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Casino;
 
@@ -43,19 +43,15 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         if ($matches['amount'] === 'max') {
             $amount = $currentHonor;
         } else {
-            $amount = NumberFormat::getIntValue($matches['amount'], $matches['abbr'] ?? null);
+            $amount = NumberFormat::getHonorValue($matches['amount'], $matches['abbr'] ?? null);
         }
-        $this->logger->info(sprintf('GAMBLE %s honor', $amount));
         if ($amount < 0) {
-            $this->logger->info('GAMBLE failed, negative honor');
             $this->telegramService->replyTo($message, 'you cannot gamble negative Ehre');
             return;
         }
-        if ($currentHonor < $amount) {
-            $this->logger->info('GAMBLE failed, not enough honor');
+        if ($currentHonor->lessThan($amount)) {
             $this->telegramService->replyTo($message, 'not enough Ehre');
         } else {
-            $this->logger->info(sprintf('GAMBLE %s start', $message->getUser()->getName()));
             $effects = $this->itemEffectService->getEffectsByUserAndType($message->getUser(), $message->getChat(), [
                 EffectType::GAMBLE_LUCK,
                 EffectType::LUCK,
@@ -63,30 +59,24 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
             $chance = $this->getChance($effects);
             $buffMessage = sprintf('win chance: %s%%', $chance);
             if ($this->gamble($chance)) {
-                $this->logger->info(sprintf('GAMBLE %s won %s honor', $message->getUser()->getName(), $amount));
                 $this->honorService->addHonor($message->getChat(), $message->getUser(), $amount);
                 $this->manager->flush();
                 $this->telegramService->replyTo(
                     $message,
-                    sprintf('you have won %s Ehre (%s)', NumberFormat::format($amount), $buffMessage)
+                    sprintf('you have won %s Ehre (%s)', NumberFormat::money($amount), $buffMessage)
                 );
             } else {
-                $this->logger->info(sprintf('GAMBLE %s lost %s honor', $message->getUser()->getName(), $amount));
                 $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
-                $jackpotDrawAmount = (int) floor(abs($amount) * 0.9);
-                if ($draw !== null && $draw->getGamblingLosses() < PHP_INT_MAX - $jackpotDrawAmount) {
-                    $draw->setGamblingLosses($draw->getGamblingLosses() + $jackpotDrawAmount);
-                }
+                $jackpotDrawAmount = $amount->absolute()->multiply('0.9');
+                $draw?->setGamblingLosses($draw->getGamblingLosses()->add($jackpotDrawAmount));
                 $jackpot = $this->honorService->getSlotMachineJackpot($message->getChat());
-                $slotMachineJackpotAmount = (int) floor(abs($amount) * 0.1);
-                if ($jackpot->getAmount() < PHP_INT_MAX - $slotMachineJackpotAmount) {
-                    $jackpot->setAmount($jackpot->getAmount() + $slotMachineJackpotAmount);
-                }
+                $slotMachineJackpotAmount = $amount->absolute()->multiply('0.1');
+                $jackpot->setAmount($jackpot->getAmount()->add($slotMachineJackpotAmount));
                 $this->honorService->removeHonor($message->getChat(), $message->getUser(), $amount);
                 $this->manager->flush();
                 $this->telegramService->replyTo(
                     $message,
-                    sprintf('you have lost %s Ehre (%s)', NumberFormat::format($amount), $buffMessage),
+                    sprintf('you have lost %s Ehre (%s)', NumberFormat::money($amount), $buffMessage),
                 );
             }
             if ($message->getChat()->getConfig()->isDebugEnabled()) {

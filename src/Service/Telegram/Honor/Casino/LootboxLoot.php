@@ -1,10 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Casino;
 
+use App\Entity\Honor\Honor;
 use App\Entity\Item\Attribute\ItemRarity;
 use App\Entity\Item\Effect\EffectCollection;
 use App\Utils\Random;
+use Money\Money;
 
 enum LootboxLoot: string
 {
@@ -64,23 +66,23 @@ enum LootboxLoot: string
         };
     }
 
-    public function price(): int
+    public function price(): Money
     {
         return match ($this) {
-            self::SMALL => 1_000_000,
-            self::MEDIUM => 1_000_000_000,
-            self::LARGE => 1_000_000_000_000,
+            self::SMALL => Honor::currency(1_000_000),
+            self::MEDIUM => Honor::currency(1_000_000_000),
+            self::LARGE => Honor::currency(1_000_000_000_000),
         };
     }
 
-    public function minStockAmount(): int
+    public function minStockAmount(): string
     {
-        return ceil($this->price() / 1000);
+        return $this->price()->divide(1000)->getAmount();
     }
 
-    public function maxStockAmount(): int
+    public function maxStockAmount(): string
     {
-        return ceil($this->price() / 100);
+        return $this->price()->divide(100)->getAmount();
     }
 
     public function stockAmount(): int

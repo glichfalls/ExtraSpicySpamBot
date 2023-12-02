@@ -3,7 +3,7 @@
 namespace App\Service\Telegram\Honor;
 
 use App\Entity\Message\Message;
-use App\Repository\HonorRepository;
+use App\Service\Honor\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
@@ -16,11 +16,11 @@ class ShowHonorChatCommand extends AbstractTelegramChatCommand
 {
 
     public function __construct(
-        EntityManagerInterface  $manager,
-        TranslatorInterface     $translator,
-        LoggerInterface         $logger,
-        TelegramService         $telegramService,
-        private HonorRepository $honorRepository,
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly HonorService $honorService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -32,9 +32,9 @@ class ShowHonorChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $total = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
+        $total = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
         $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.show', [
-            'amount' => NumberFormat::format($total),
+            'amount' => NumberFormat::money($total),
         ]));
     }
 

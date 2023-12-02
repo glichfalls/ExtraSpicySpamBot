@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Utils;
 
@@ -20,7 +20,10 @@ class NumberFormat
 
     public static function money(Money $money): string
     {
-        return self::format($money->getAmount());
+        if ($money->greaterThanOrEqual(Honor::currency(100_000))) {
+            return self::humanizeMoney($money);
+        }
+        return number_format((float) $money->getAmount(), thousands_separator: '\'');
     }
 
     public static function format(float|int $number): string
@@ -52,7 +55,18 @@ class NumberFormat
         return (string) $number;
     }
 
-    public static function dehumanize(string $number): ?string
+    public static function humanizeMoney(Money $money): string
+    {
+        foreach (self::ABBREVIATION as $exponent => $abbrev) {
+            if ($money->absolute()->greaterThanOrEqual(Honor::currency(10 ** $exponent))) {
+                $display = $money->divide(10 ** $exponent)->getAmount();
+                return str_replace('.0', '', $display) . $abbrev;
+            }
+        }
+        return $money->getAmount();
+    }
+
+    public static function dehumanize(string $number): ?int
     {
         if (!self::isHumanizedNumber($number)) {
             return null;
@@ -61,7 +75,7 @@ class NumberFormat
         foreach (self::ABBREVIATION as $multiplier => $suffix) {
             if (str_ends_with($number, $suffix)) {
                 $value = substr($number, 0, -strlen($suffix));
-                return (int) $value . str_repeat('0', $multiplier);
+                return (int) ($value . str_repeat('0', $multiplier));
             }
         }
         return (int) $number;
@@ -96,19 +110,19 @@ class NumberFormat
         return (int) $number;
     }
 
-    public function toHonor(?string $amount, ?string $abbr = null): Money
+    public static function getHonorValue(string $numbers, ?string $abbr = null): Money
     {
-        $number = trim($amount);
+        $number = trim($numbers);
         if ($abbr !== null) {
-            $numberWithAbbr = sprintf('%s%s', $number, $amount);
+            $numberWithAbbr = sprintf('%s%s', $number, $abbr);
             if (self::isHumanizedNumber($numberWithAbbr)) {
                 return Honor::currency(self::dehumanize($numberWithAbbr));
             }
         }
-        if (self::isHumanizedNumber($amount)) {
-            return Honor::currency(self::dehumanize($amount));
+        if (self::isHumanizedNumber($number)) {
+            return Honor::currency(self::dehumanize($number));
         }
-        return Honor::currency($amount);
+        return Honor::currency($number);
     }
 
 }

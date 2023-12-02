@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Stocks;
 
@@ -9,13 +9,33 @@ use App\Entity\User\User;
 use App\Exception\AmountZeroOrNegativeException;
 use App\Exception\NotEnoughHonorException;
 use App\Exception\StockSymbolUpdateException;
+use App\Service\Honor\HonorService;
+use App\Service\Stocks\StockPriceService;
+use App\Service\Stocks\StockService;
+use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
+use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class BuyStockChatCommand extends AbstractStockChatCommand implements TelegramCallbackQueryListener
+class BuyStockChatCommand extends AbstractTelegramChatCommand implements TelegramCallbackQueryListener
 {
     public const BUY_KEYWORD = 'stock:buy';
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly StockService $stockService,
+        private readonly StockPriceService $stockPriceService,
+        private readonly HonorService $honorService,
+    ) {
+        parent::__construct($manager, $translator, $logger, $telegramService);
+    }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
@@ -36,8 +56,8 @@ class BuyStockChatCommand extends AbstractStockChatCommand implements TelegramCa
                 'You dont have enough Ehre to buy %sx %s (you have %s Ehre, you need %s Ehre)',
                 NumberFormat::format($amount),
                 $symbol,
-                NumberFormat::format($exception->getBalance()),
-                NumberFormat::format($exception->getRequired()),
+                NumberFormat::money($exception->getBalance()),
+                NumberFormat::money($exception->getRequired()),
             ));
         } catch (StockSymbolUpdateException $exception) {
             $this->logger->error($exception->getMessage());
@@ -86,21 +106,21 @@ class BuyStockChatCommand extends AbstractStockChatCommand implements TelegramCa
 
     private function buy(Chat $chat, User $user, string $symbol, string $amount): StockTransaction
     {
-        $portfolio = $this->getPortfolioByUserAndChat($chat, $user);
+        $portfolio = $this->stockService->getPortfolioByChatAndUser($chat, $user);
         if ($amount === 'max') {
-            $price = $this->stockService->getPriceBySymbol($symbol);
+            $price = $this->stockPriceService->getPriceBySymbol($symbol);
             if ($price->getHonorPrice() <= 0) {
                 throw new AmountZeroOrNegativeException(sprintf('Stock price for %s is zero', $symbol));
             }
-            $honor = $this->honorRepository->getHonorCount($user, $chat);
-            $amount = floor($honor / $price->getHonorPrice());
+            $honor = $this->honorService->getCurrentHonorAmount($chat, $user);
+            $amount = $honor->divide($price->getHonorPrice()->getAmount())->getAmount();
             if ($amount <= 0) {
                 throw new NotEnoughHonorException($honor, $price->getHonorPrice());
             }
         } else {
             $amount = (int) $amount;
         }
-        return $this->buyStock($portfolio, $symbol, $amount);
+        return $this->stockService->buyStock($portfolio, $symbol, $amount);
     }
 
     private function getTransactionBill(StockTransaction $transaction): string

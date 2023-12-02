@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Money\Money;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity(repositoryClass: StockTransactionRepository::class)]
@@ -41,7 +42,7 @@ class StockTransaction
 
     private ?float $total = null;
 
-    private ?int $honorTotal = null;
+    private ?Money $honorTotal = null;
 
     public function __construct()
     {
@@ -91,10 +92,10 @@ class StockTransaction
         readable: true
     )]
     #[Groups(['stock:read'])]
-    public function getHonorTotal(): int
+    public function getHonorTotal(): Money
     {
         if ($this->honorTotal === null) {
-            $this->honorTotal = $this->getPrice()->getHonorPrice() * $this->getAmount();
+            $this->honorTotal = $this->getPrice()->getHonorPrice()->multiply($this->getAmount());
         }
         return $this->honorTotal;
     }
