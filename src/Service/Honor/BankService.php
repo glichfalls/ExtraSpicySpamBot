@@ -18,7 +18,8 @@ readonly class BankService
         private EntityManagerInterface $manager,
         private BankAccountRepository $bankAccountRepository,
         private HonorService $honorService,
-    ) {
+    )
+    {
 
     }
 
@@ -45,9 +46,9 @@ readonly class BankService
     public function deposit(Chat $chat, User $user, Money $amount): Transaction
     {
         $account = $this->getBankAccount($chat, $user);
-        $this->canDepositAmount($account, $amount);
+        $this->validateDeposit($account, $amount);
         $transaction = $this->createTransaction($account, $amount);
-$this->honorService->removeHonor($chat, $user, $amount);
+        $this->honorService->removeHonor($chat, $user, $amount);
         $this->manager->flush();
         return $transaction;
     }
@@ -55,14 +56,14 @@ $this->honorService->removeHonor($chat, $user, $amount);
     public function withdraw(Chat $chat, User $user, Money $amount): Transaction
     {
         $account = $this->getBankAccount($chat, $user);
-        $this->canWithdrawAmount($account, $amount);
+        $this->validateWithdraw($account, $amount);
         $transaction = $this->createTransaction($account, $amount->negative());
         $this->honorService->addHonor($chat, $user, $amount);
         $this->manager->flush();
         return $transaction;
     }
 
-    private function canDepositAmount(BankAccount $account, Money $amount): void
+    private function validateDeposit(BankAccount $account, Money $amount): void
     {
         $honor = $this->honorService->getCurrentHonorAmount($account->getChat(), $account->getUser());
         if ($honor->lessThan($amount)) {
@@ -70,7 +71,7 @@ $this->honorService->removeHonor($chat, $user, $amount);
         }
     }
 
-    private function canWithdrawAmount(BankAccount $account, Money $amount): void
+    private function validateWithdraw(BankAccount $account, Money $amount): void
     {
         if ($account->getBalance()->lessThan($amount)) {
             throw new \RuntimeException('not enough ehre in bank account');

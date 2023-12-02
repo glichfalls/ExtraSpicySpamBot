@@ -2,6 +2,7 @@
 
 namespace App\Utils;
 
+use App\Entity\Honor\Honor;
 use Money\Money;
 
 class NumberFormat
@@ -51,7 +52,7 @@ class NumberFormat
         return (string) $number;
     }
 
-    public static function dehumanize(string $number): ?int
+    public static function dehumanize(string $number): ?string
     {
         if (!self::isHumanizedNumber($number)) {
             return null;
@@ -93,6 +94,21 @@ class NumberFormat
             return self::dehumanize($number);
         }
         return (int) $number;
+    }
+
+    public function toHonor(?string $amount, ?string $abbr = null): Money
+    {
+        $number = trim($amount);
+        if ($abbr !== null) {
+            $numberWithAbbr = sprintf('%s%s', $number, $amount);
+            if (self::isHumanizedNumber($numberWithAbbr)) {
+                return Honor::currency(self::dehumanize($numberWithAbbr));
+            }
+        }
+        if (self::isHumanizedNumber($amount)) {
+            return Honor::currency(self::dehumanize($amount));
+        }
+        return Honor::currency($amount);
     }
 
 }
