@@ -1,0 +1,58 @@
+<html lang="en">
+<head>
+    <title>Chart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <style>
+        body {
+            background-color: #02080F;
+            color: white;
+            margin: 10px;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<div style="width: 400px; height: 400px;">
+    <canvas width="400" height="400" id="chart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script type="application/javascript">
+  const labels = JSON.parse('{{ labels|json_encode|raw }}');
+  const data = JSON.parse('{{ data|json_encode|raw }}');
+  const ctx = document.getElementById('chart').getContext('2d');
+
+  Chart.defaults.backgroundColor = '#071426';
+  Chart.defaults.borderColor = '#071426';
+  Chart.defaults.color = '#fff';
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: '#91A3FB',
+        borderColor: '#91A3FB',
+        borderWidth: 1,
+        tension: 0.1,
+      }]
+    },
+    options: {
+      animation: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  });
+</script>
+</body>
+</html>

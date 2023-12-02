@@ -20,8 +20,8 @@ class StatsChatCommand extends AbstractTelegramChatCommand
         LoggerInterface $logger,
         TelegramService $telegramService,
         private readonly MessageRepository $messageRepository,
-    )
-    {
+        private readonly string $backendUrl,
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
@@ -37,26 +37,22 @@ class StatsChatCommand extends AbstractTelegramChatCommand
             if (!$query) {
                 $this->telegramService->replyTo($message, 'Please provide a query.');
             }
-            $messages = $this->messageRepository->createQueryBuilder('m')
-                ->select([
-                    'count(m.id) as count',
-                    'u.name',
-                    'u.firstName',
-                ])
-                ->join('m.user', 'u')
-                ->where('m.chat = :chat')
-                ->andWhere('m.message NOT LIKE :statsPrefix')
-                ->andWhere('m.message LIKE :query')
-                ->setParameter('chat', $message->getChat())
-                ->setParameter('statsPrefix', '!stats%')
-                ->setParameter('query', sprintf('%%%s%%', $query))
-                ->groupBy('u.name, u.firstName')
-                ->orderBy('count', 'DESC')
-                ->getQuery()
-                ->getResult();
-            $result = array_map(fn(array $message) => sprintf('%s %s: %dx', $message['firstName'], $message['name'], $message['count']), $messages);
+            $messages = $this->messageRepository->getTextOccurrencesByUsers($message->getChat(), $query);
+            $result = array_map(fn (array $message) => sprintf('%s %s: %dx', $message['firstName'], $message['name'], $message['count']), $messages);
             $result[] = sprintf('Total: %d', array_sum(array_column($messages, 'count')));
             $result = implode(PHP_EOL, $result);
+            try {
+                $url = sprintf(
+                    '%s/telegram/%s/stats?query=%s&ts=%s',
+                    $this->backendUrl,
+                    $message->getChat()->getId(),
+                    urlencode($query),
+                    time(),
+                );
+                $this->telegramService->imageReplyTo($message, $url);
+            } catch (\Throwable $exception) {
+                $this->logger->error($exception->getMessage());
+            }
             $this->telegramService->replyto($message, $result);
         } catch (\Exception $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());
