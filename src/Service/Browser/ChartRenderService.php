@@ -18,16 +18,12 @@ readonly class ChartRenderService
 
     }
 
-    private function getChromeBinaryPath(): string
-    {
-        return '/usr/bin/google-chrome-stable';
-    }
-
     private function createBrowser(): ProcessAwareBrowser
     {
         $browserFactory = new BrowserFactory();
         return $browserFactory->createBrowser([
             'debugLogger' => $this->logger,
+            'noSandbox' => true,
         ]);
     }
 

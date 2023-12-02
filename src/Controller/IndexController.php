@@ -26,26 +26,4 @@ class IndexController extends AbstractController
         ]);
     }
 
-    #[Route('/chart', methods: ['GET'])]
-    public function chart(ChartRenderService $service): Response
-    {
-        $base64Image = $service->render([
-            'data' => [1,2,3],
-            'labels' => ['a', 'b', 'c'],
-        ]);
-        $response = new Response();
-        $response->headers->set('Content-Type', 'image/jpeg');
-        $response->setContent(base64_decode($base64Image));
-        return $response;
-    }
-
-    #[Route('/test', methods: ['GET'])]
-    public function test(): Response
-    {
-        return $this->render('chart/chart.html.twig', [
-            'data' => [1,2,3],
-            'labels' => ['a', 'b', 'c'],
-        ]);
-    }
-
 }
