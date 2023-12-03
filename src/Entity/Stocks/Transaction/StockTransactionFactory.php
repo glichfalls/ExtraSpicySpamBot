@@ -7,7 +7,7 @@ use App\Entity\Stocks\Stock\StockPrice;
 class StockTransactionFactory
 {
 
-    public static function create(StockPrice $price, int $amount): StockTransaction
+    public static function create(StockPrice $price, string $amount): StockTransaction
     {
         $transaction = new StockTransaction();
         $transaction->setPrice($price);

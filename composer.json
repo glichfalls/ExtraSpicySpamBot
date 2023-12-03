@@ -10,6 +10,7 @@
         "ext-gd": "*",
         "ext-iconv": "*",
         "ext-intl": "*",
+        "ext-bcmath": "*",
         "api-platform/core": "^3.2",
         "boshurik/telegram-bot-bundle": "^5.0",
         "cron/cron-bundle": "^2.10",

@@ -2,6 +2,7 @@
 
 namespace App\Service\Telegram\Honor\Casino;
 
+use App\Entity\Honor\Honor;
 use App\Entity\Item\Effect\EffectCollection;
 use App\Entity\Item\Effect\EffectType;
 use App\Entity\Message\Message;
@@ -34,7 +35,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!(gamble|g)\s(?<amount>\d+|max)(?<abbr>[km])?$/', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!(gamble|g)\s(?<amount>\d+|max)(?<abbr>[A-Z]{1,2})?$/', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -45,7 +46,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
         } else {
             $amount = NumberFormat::getHonorValue($matches['amount'], $matches['abbr'] ?? null);
         }
-        if ($amount < 0) {
+        if ($amount->lessThan(Honor::currency(0))) {
             $this->telegramService->replyTo($message, 'you cannot gamble negative Ehre');
             return;
         }

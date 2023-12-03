@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity\Stocks\Transaction;
 
@@ -36,9 +36,9 @@ class StockTransaction
     #[Groups(['stock:read', 'portfolio:read'])]
     private StockPrice $price;
 
-    #[Column(type: 'bigint', nullable: false)]
+    #[Column(type: 'string', nullable: false)]
     #[Groups(['stock:read', 'portfolio:read'])]
-    private int $amount;
+    private string $amount;
 
     private ?float $total = null;
 
@@ -69,12 +69,12 @@ class StockTransaction
         $this->price = $price;
     }
 
-    public function getAmount(): int
+    public function getAmount(): string
     {
         return $this->amount;
     }
 
-    public function setAmount(int $amount): void
+    public function setAmount(string $amount): void
     {
         $this->amount = $amount;
     }

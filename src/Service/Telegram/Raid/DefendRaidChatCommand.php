@@ -61,7 +61,7 @@ class DefendRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $raid = $this->getActiveRaid($message->getChat());
+            $raid = $this->raidService->getActiveRaid($message->getChat());
             $this->validate($raid, $message->getUser());
             $raid->getDefenders()->add($message->getUser());
             $this->manager->persist($raid);

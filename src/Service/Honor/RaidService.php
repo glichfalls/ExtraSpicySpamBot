@@ -16,7 +16,7 @@ use App\Utils\Random;
 use Doctrine\ORM\EntityManagerInterface;
 use Money\Money;
 
-final class RaidService
+final readonly class RaidService
 {
 
     public function __construct(
@@ -29,12 +29,20 @@ final class RaidService
 
     }
 
-    public function createRaid(
-        Chat $chat,
-        User $leader,
-        User $target,
-    ): Raid
+    public function getActiveRaid(Chat $chat): Raid
     {
+        $raid = $this->raidRepository->getActiveRaid($chat);
+        if ($raid === null) {
+            throw new \RuntimeException('no active raid');
+        }
+        return $raid;
+    }
+
+    public function createRaid(Chat $chat, User $leader, User $target): Raid
+    {
+        if ($this->raidRepository->hasActiveRaid($chat)) {
+            throw new \RuntimeException('raid already active');
+        }
         $latestRaid = $this->raidRepository->getLatestRaidByLeader($chat, $leader);
         if ($latestRaid !== null) {
             $diff = time() - $latestRaid->getCreatedAt()->getTimestamp();

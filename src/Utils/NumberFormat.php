@@ -9,8 +9,25 @@ class NumberFormat
 {
 
     public const ABBREVIATION = [
-        18 => 'Qi', // quadrillion
-        15 => 'Q',
+        // this is the highest supported number
+        // decimal can only hold 65 digits and 2 are used for the decimal point
+        63 => ' Vigintillion',
+        60 => ' Novemdecillion',
+        57 => ' Octodecillion',
+        54 => ' Septendecillion',
+        51 => ' Sexdecillion',
+        48 => ' Quindecillion',
+        45 => ' Quattuordecillion',
+        42 => ' Tredecillion',
+        39 => ' Duodecillion',
+        36 => ' Undecillion',
+        33 => ' Decillion',
+        30 => ' Nonillion',
+        27 => ' Octillion',
+        24 => ' Septillion',
+        21 => ' Sextillion',
+        18 => ' Quintillion',
+        15 => ' Quadrillion',
         12 => 'T',
         9 => 'B',
         6 => 'M',
@@ -26,8 +43,11 @@ class NumberFormat
         return number_format((float) $money->getAmount(), thousands_separator: '\'');
     }
 
-    public static function format(float|int $number): string
+    public static function format(float|int|string $number): string
     {
+        if (is_string($number)) {
+            $number = (float) $number;
+        }
         if ($number >= 1_000) {
             return self::humanize($number);
         }
@@ -58,9 +78,16 @@ class NumberFormat
     public static function humanizeMoney(Money $money): string
     {
         foreach (self::ABBREVIATION as $exponent => $abbrev) {
-            if ($money->absolute()->greaterThanOrEqual(Honor::currency(10 ** $exponent))) {
-                $display = $money->divide(10 ** $exponent)->getAmount();
-                return str_replace('.0', '', $display) . $abbrev;
+            $n = bcpow('10', (string) $exponent);
+            if ($money->absolute()->greaterThanOrEqual(Honor::currency($n))) {
+                $result = bcdiv($money->getAmount(), $n, 2);
+                if (str_ends_with($result, '.00')) {
+                    return str_replace('.00', '', $result) . $abbrev;
+                }
+                if (str_ends_with($result, '0')) {
+                    return substr($result, 0, -1) . $abbrev;
+                }
+                return $result . $abbrev;
             }
         }
         return $money->getAmount();

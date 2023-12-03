@@ -27,7 +27,7 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!withdraw\s*(?<amount>\d+|max)(?<abbr>[kmbtqi]{1,2})?$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!withdraw\s*(?<amount>\d+|max)(?<abbr>[A-Z]{1,2})?$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
@@ -37,12 +37,12 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
             if ($matches['amount'] === 'max') {
                 $amount = $account->getBalance();
             } else {
-                $amount = NumberFormat::getIntValue($matches['amount'], $matches['abbr'] ?? null);
+                $amount = NumberFormat::getHonorValue($matches['amount'], $matches['abbr'] ?? null);
             }
             $this->bankService->withdraw($message->getChat(), $message->getUser(), $amount);
             $this->telegramService->replyTo($message, sprintf(
                 'withdrew %s Ehre.',
-                NumberFormat::format($amount),
+                NumberFormat::money($amount),
             ));
         } catch (\RuntimeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());

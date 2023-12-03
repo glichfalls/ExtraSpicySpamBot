@@ -85,9 +85,13 @@ enum LootboxLoot: string
         return $this->price()->divide(100)->getAmount();
     }
 
-    public function stockAmount(): int
+    public function stockAmount(): string
     {
-        return Random::number($this->maxStockAmount(), $this->minStockAmount());
+        // min / max should never be higher than PHP_INT_MAX
+        return (string) Random::number(
+            (int) $this->maxStockAmount(),
+            (int) $this->minStockAmount()
+        );
     }
 
     public function junkRate(?EffectCollection $effects): int

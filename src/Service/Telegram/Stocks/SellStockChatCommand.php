@@ -41,20 +41,19 @@ class SellStockChatCommand extends AbstractTelegramChatCommand implements Telegr
     public function handle(Update $update, Message $message, array $matches): void
     {
         $symbol = $matches['symbol'];
-        $amount = $matches['amount'];
         try {
             $portfolio = $this->stockService->getPortfolioByChatAndUser($message->getChat(), $message->getUser());
             if (strtolower($matches['amount']) === 'max') {
                 $amount = $portfolio->getTransactionsBySymbol($symbol)->getTotalAmount();
             } else {
-                $amount = (int) $amount;
+                $amount = NumberFormat::getIntValue($matches['amount']);
             }
             $transaction = $this->stockService->sellStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
                 '%sx %s sold for %s Ehre',
-                NumberFormat::format(abs($transaction->getAmount())),
+                NumberFormat::format($transaction->getAmount()),
                 $transaction->getPrice()->getStock()->getDisplaySymbol(),
-                NumberFormat::format(abs($transaction->getHonorTotal())),
+                NumberFormat::money($transaction->getHonorTotal()),
             ));
         } catch (AmountZeroOrNegativeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());

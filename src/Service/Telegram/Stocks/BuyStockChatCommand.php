@@ -3,11 +3,13 @@
 namespace App\Service\Telegram\Stocks;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Entity\Stocks\Transaction\StockTransaction;
 use App\Entity\User\User;
 use App\Exception\AmountZeroOrNegativeException;
 use App\Exception\NotEnoughHonorException;
+use App\Exception\NumberTooHighException;
 use App\Exception\StockSymbolUpdateException;
 use App\Service\Honor\HonorService;
 use App\Service\Stocks\StockPriceService;
@@ -109,16 +111,18 @@ class BuyStockChatCommand extends AbstractTelegramChatCommand implements Telegra
         $portfolio = $this->stockService->getPortfolioByChatAndUser($chat, $user);
         if ($amount === 'max') {
             $price = $this->stockPriceService->getPriceBySymbol($symbol);
-            if ($price->getHonorPrice() <= 0) {
+            if ($price->getHonorPrice()->lessThanOrEqual(Honor::currency(0))) {
                 throw new AmountZeroOrNegativeException(sprintf('Stock price for %s is zero', $symbol));
             }
             $honor = $this->honorService->getCurrentHonorAmount($chat, $user);
-            $amount = $honor->divide($price->getHonorPrice()->getAmount())->getAmount();
-            if ($amount <= 0) {
+            $amount = $honor->divide($price->getHonorPrice()->getAmount());
+            if ($amount->greaterThan(Honor::currency(PHP_INT_MAX))) {
+                $amount = Honor::currency(PHP_INT_MAX);
+            }
+            if ($amount->lessThanOrEqual(Honor::currency(0))) {
                 throw new NotEnoughHonorException($honor, $price->getHonorPrice());
             }
-        } else {
-            $amount = (int) $amount;
+            $amount = $amount->getAmount();
         }
         return $this->stockService->buyStock($portfolio, $symbol, $amount);
     }
@@ -129,7 +133,7 @@ class BuyStockChatCommand extends AbstractTelegramChatCommand implements Telegra
             '%s x %s bought for %s Ehre',
             NumberFormat::format($transaction->getAmount()),
             $transaction->getPrice()->getStock()->getDisplaySymbol(),
-            NumberFormat::format($transaction->getHonorTotal()),
+            NumberFormat::money($transaction->getHonorTotal()),
         );
     }
 

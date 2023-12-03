@@ -30,9 +30,9 @@ class SymbolTransactionCollection extends ArrayCollection
         return $this->currentPrice;
     }
 
-    public function getTotalAmount(): int
+    public function getTotalAmount(): string
     {
-        return array_reduce($this->toArray(), fn (int $carry, StockTransaction $element) => $carry + $element->getAmount(), 0);
+        return array_reduce($this->toArray(), fn (string $carry, StockTransaction $element) => bcadd($carry, $element->getAmount()), 0);
     }
 
     public function getTotalBuyPrice(): float

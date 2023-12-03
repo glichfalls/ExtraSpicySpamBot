@@ -90,8 +90,8 @@ class LootBoxChatCommand extends AbstractTelegramChatCommand implements Telegram
             $text[] = sprintf(
                 $template,
                 NumberFormat::money($loot->price()),
-                NumberFormat::money($loot->minStockAmount()),
-                NumberFormat::money($loot->maxStockAmount()),
+                NumberFormat::format($loot->minStockAmount()),
+                NumberFormat::format($loot->maxStockAmount()),
             );
         }
         $this->telegramService->sendText(

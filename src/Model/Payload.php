@@ -5,7 +5,7 @@ namespace App\Model;
 use Doctrine\ORM\Mapping\Column;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-trait   Payload
+trait Payload
 {
 
     #[Column(type: 'json')]

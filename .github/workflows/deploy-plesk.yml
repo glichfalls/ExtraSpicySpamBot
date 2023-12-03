@@ -22,7 +22,7 @@ jobs:
         with:
           dev: no
           php_version: 8.2
-          php_extensions: gd intl
+          php_extensions: gd intl bcmath
           version: 2.x
 
       - name: 🌐 rsync changes to server

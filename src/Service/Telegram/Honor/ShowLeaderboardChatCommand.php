@@ -46,7 +46,8 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
         } else {
             foreach ($leaderboard as $key => $entry) {
                 $cash = Honor::currency($entry['amount']);
-                $user = $this->userService->getByName($entry['id']);
+                $leaderboard[$key]['amount'] = $cash;
+                $user = $this->userService->getById((string) $entry['id']);
                 $leaderboard[$key]['user'] = $user;
                 $balance = $this->bankService->getBankAccount($chat, $user)?->getBalance();
                 $leaderboard[$key]['balance'] = $balance;
@@ -62,10 +63,10 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
                     ]);
                 }
                 $leaderboard[$key]['portfolio'] = $portfolioValue;
-                $leaderboard[$key]['total'] = $cash->add($balance)->add($portfolioValue)->getAmount();
+                $leaderboard[$key]['total'] = $cash->add($balance)->add($portfolioValue);
             }
             // sort by total
-            usort($leaderboard, fn ($a, $b) => $b['total'] <=> $a['total']);
+            usort($leaderboard, fn ($a, $b) => $a['total']->compare($b['total']));
             // format text
             $text = array_map(function ($entry) use ($chat) {
                 $honor = $entry['amount'];
@@ -77,9 +78,9 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
                 TEXT;
                 return sprintf(
                     $text,
-                    NumberFormat::format($portfolioValue ?? 0),
-                    NumberFormat::format($balance ?? 0),
-                    NumberFormat::format($honor),
+                    NumberFormat::money($portfolioValue ?? 0),
+                    NumberFormat::money($balance ?? 0),
+                    NumberFormat::money($honor),
                     $user->getName() ?? $user->getFirstName(),
                 );
             }, $leaderboard);

@@ -3,11 +3,10 @@
 namespace App\Service\Telegram\Honor\Casino;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Honor\HonorFactory;
+use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Repository\DrawRepository;
-use App\Repository\HonorRepository;
 use App\Service\Honor\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
@@ -20,7 +19,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements TelegramCallbackQueryListener
+final class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements TelegramCallbackQueryListener
 {
     public const CALLBACK_KEYWORD = 'roulette';
 
@@ -29,8 +28,8 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private HonorService $honorService,
-        private DrawRepository $drawRepository,
+        private readonly HonorService $honorService,
+        private readonly DrawRepository $drawRepository,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -45,12 +44,12 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         $callbackQuery = $update->getCallbackQuery();
         $data = explode(';', $callbackQuery->getData());
         if (count($data) === 3) {
-            $amount = (int) $data[1];
+            $amount = Honor::currency($data[1]);
             $currentHonor = $this->honorService->getCurrentHonorAmount($chat, $user);
-            if ($currentHonor < $amount) {
+            if ($currentHonor->lessThan($amount)) {
                 $this->telegramService->answerCallbackQuery(
                     $callbackQuery,
-                    sprintf('you dont have enough Ehre to bet %d Ehre', NumberFormat::format($amount)),
+                    sprintf('you dont have enough Ehre to bet %d Ehre', NumberFormat::money($amount)),
                     true,
                 );
             } else {
@@ -91,22 +90,23 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $initialAmount = (int) $matches['amount'];
+        $initialAmount = Honor::currency($matches['amount']);
         $bet = $matches['bet'] ?? null;
         if ($bet === null) {
             $this->telegramService->sendText(
                 $message->getChat()->getChatId(),
-                sprintf('chose a bet for %s Ehre', NumberFormat::format($initialAmount)),
+                sprintf('chose a bet for %s Ehre', NumberFormat::money($initialAmount)),
                 threadId: $message->getTelegramThreadId(),
                 replyMarkup: $this->getBoardKeyboard($initialAmount),
             );
             return;
         }
-        $currentHonor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
-        if ($currentHonor < $initialAmount) {
+        $currentHonor = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
+        if ($currentHonor->lessThan($initialAmount)) {
             $this->telegramService->replyTo($message, 'not enough ehre');
         } else {
             $result = $this->roll($message->getChat(), $message->getUser(), $bet, $initialAmount);
+            $amount = $result['amount'];
             $this->telegramService->replyTo(
                 $message,
                 sprintf(
@@ -115,15 +115,22 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
                     $this->getColorEmojiByNumber($result['number']),
                     $message->getUser()->getName(),
                     $result['amount'] > 0 ? 'won' : 'lost',
-                    NumberFormat::format(abs($result['amount'])),
+                    NumberFormat::money($amount->absolute()),
                 ),
             );
         }
     }
 
+    /**
+     * @param Chat $chat
+     * @param User $user
+     * @param string $bet
+     * @param Money $initialAmount
+     * @return array<string, int|Money>
+     */
     private function roll(Chat $chat, User $user, string $bet, Money $initialAmount): array
     {
-        $number = random_int(0, 36);
+        $number = mt_rand(0, 36);
         $colorValue = $this->getColorByNumber($number);
         $amount = match ($bet) {
             'red' => $colorValue === 'red' && $number !== 0 ? $initialAmount : $initialAmount->negative(),
@@ -205,8 +212,9 @@ class HonorRouletteChatCommand extends AbstractTelegramChatCommand implements Te
         return null;
     }
 
-    private function getBoardKeyboard(int $amount): InlineKeyboardMarkup
+    private function getBoardKeyboard(Money $amount): InlineKeyboardMarkup
     {
+        $amount = $amount->getAmount();
         $board = $this->getBoard();
         $keyboard = [];
         foreach ($board as $data) {

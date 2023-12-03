@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Raid;
 
@@ -25,7 +25,7 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
         try {
-            $raid = $this->getActiveRaid($chat);
+            $raid = $this->raidService->getActiveRaid($chat);
             $this->canStartRaid($raid, $user);
             if ($this->isSuccessful($raid)) {
                 $this->success($raid);
@@ -74,7 +74,7 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $raid = $this->getActiveRaid($message->getChat());
+            $raid = $this->raidService->getActiveRaid($message->getChat());
             $this->canStartRaid($raid, $message->getUser());
             if ($this->isSuccessful($raid)) {
                 $this->success($raid);
@@ -82,7 +82,7 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                     $message,
                     $this->translator->trans('telegram.raid.raidSuccessful', [
                         'target' => $raid->getTarget()->getName(),
-                        'honorCount' => NumberFormat::format($raid->getAmount()),
+                        'honorCount' => NumberFormat::money($raid->getAmount()),
                     ]),
                 );
             } else {
@@ -136,24 +136,23 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
         $raid->setIsSuccessful(true);
         $amount = $raid->getAmount();
         for ($i = 0; $i < $raid->getSupporters()->count(); $i++) {
-            $amount *= 1.2; // 20% more for each supporter
+            $amount = $amount->multiply('1.2'); // 20% more for each supporter
         }
-        $additionalAmount = $amount - $raid->getAmount();
+        $additionalAmount = $amount->subtract($raid->getAmount());
         for ($i = 0; $i < $raid->getDefenders()->count(); $i++) {
-            $amount *= 0.75; // 25% less for each defender
+            $amount = $amount->multiply('0.75'); // 25% less for each defender
         }
-        $reducedAmount = $raid->getAmount() - $amount;
-        $amount = (int) round($amount);
+        $reducedAmount = $raid->getAmount()->subtract($amount);
         $this->logger->info(sprintf(
             'raid successful total %s | +%s Ehre (%s sup), -%s Ehre (%s def)',
-            NumberFormat::format($amount),
-            NumberFormat::format($additionalAmount),
+            NumberFormat::money($amount),
+            NumberFormat::money($additionalAmount),
             $raid->getSupporters()->count(),
-            NumberFormat::format($reducedAmount),
+            NumberFormat::money($reducedAmount),
             $raid->getDefenders()->count(),
         ));
         $numberOfSupporters = $raid->getSupporters()->count() + 1;
-        $honorPerSupporter = (int) ceil($amount / $numberOfSupporters);
+        $honorPerSupporter = $amount->divide($numberOfSupporters);
         // add honor to leader
         $this->manager->persist(HonorFactory::create($raid->getChat(), null, $raid->getLeader(), $honorPerSupporter));
         // add honor to supporters

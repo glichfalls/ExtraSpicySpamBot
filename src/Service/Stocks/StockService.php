@@ -19,6 +19,7 @@ use App\Repository\Stocks\StockTransactionRepository;
 use App\Service\Honor\HonorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Money\Money;
+use Money\Number;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -63,10 +64,10 @@ final readonly class StockService
         return $total;
     }
 
-    private function createStockTransaction(Portfolio $portfolio, string $symbol, int $amount): StockTransaction
+    private function createStockTransaction(Portfolio $portfolio, string $symbol, string $amount): StockTransaction
     {
         $price = $this->stockPriceService->getPriceBySymbol($symbol);
-        if ($price->getHonorPrice() <= 0) {
+        if ($price->getHonorPrice()->lessThanOrEqual(Honor::currency(0))) {
             throw new AmountZeroOrNegativeException(sprintf('Stock price for %s is zero', $symbol));
         }
         $transaction = StockTransactionFactory::create($price, $amount);
@@ -74,13 +75,13 @@ final readonly class StockService
         return $transaction;
     }
 
-    public function buyStock(Portfolio $portfolio, string $symbol, int $amount): StockTransaction
+    public function buyStock(Portfolio $portfolio, string $symbol, string $amount): StockTransaction
     {
-        if ($amount <= 0) {
+        if (bccomp($amount, '0') <= 0) {
             throw new AmountZeroOrNegativeException('you cant buy 0 or less stocks');
         }
-        $honor = $this->honorRepository->getHonorCount($portfolio->getUser(), $portfolio->getChat());
-        if ($honor <= 0) {
+        $honor = $this->honorService->getCurrentHonorAmount($portfolio->getChat(), $portfolio->getUser());
+        if ($honor->lessThanOrEqual(Honor::currency(0))) {
             throw new AmountZeroOrNegativeException('you dont have enough honor');
         }
         $transaction = $this->createStockTransaction($portfolio, $symbol, $amount);
@@ -96,16 +97,16 @@ final readonly class StockService
         return $transaction;
     }
 
-    public function sellStock(Portfolio $portfolio, string $symbol, int $amount): StockTransaction
+    public function sellStock(Portfolio $portfolio, string $symbol, string $amount): StockTransaction
     {
-        if ($amount <= 0) {
+        if (bccomp($amount, '0') <= 0) {
             throw new AmountZeroOrNegativeException('you cant sell 0 or less stocks');
         }
         $transactions = $portfolio->getTransactionsBySymbol($symbol);
-        if ($transactions->getTotalAmount() < $amount) {
+        if (bccomp($transactions->getTotalAmount(), $amount) < 0) {
             throw new NotEnoughStocksException($transactions->getTotalAmount(), $amount);
         }
-        $transaction = $this->createStockTransaction($portfolio, $symbol, -$amount);
+        $transaction = $this->createStockTransaction($portfolio, $symbol, bcmul($amount, '-1'));
         $this->honorService->removeHonor($portfolio->getChat(), $portfolio->getUser(), $transaction->getHonorTotal());
         $this->manager->flush();
         return $transaction;

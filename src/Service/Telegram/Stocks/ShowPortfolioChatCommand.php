@@ -2,6 +2,7 @@
 
 namespace App\Service\Telegram\Stocks;
 
+use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Exception\StockSymbolUpdateException;
@@ -50,23 +51,23 @@ final class ShowPortfolioChatCommand extends AbstractTelegramChatCommand
     private function getBalance(Portfolio $portfolio): string
     {
         $data = [];
-        $totalHonor = 0;
+        $totalHonor = Honor::currency(0);
         foreach ($portfolio->getBalance() as $transactions) {
-            if ($transactions->getTotalAmount() === 0) {
+            if (bccomp($transactions->getTotalAmount(), '0') === 0) {
                 continue;
             }
             $currentPrice = $this->stockPriceService->getPriceBySymbol($transactions->getSymbol());
-            $totalHonor += $transactions->getCurrentHonorTotal($currentPrice);
+            $totalHonor = $totalHonor->add($transactions->getCurrentHonorTotal($currentPrice));
             $data[] = sprintf(
                 '%sx <strong>%s</strong>: %s Ehre',
                 NumberFormat::format($transactions->getTotalAmount()),
                 $transactions->getSymbol(),
-                NumberFormat::format($transactions->getCurrentTotal($currentPrice)),
+                NumberFormat::money($transactions->getCurrentHonorTotal($currentPrice)),
             );
         }
         $data[] = sprintf(
             '<strong>Total</strong>: %s Ehre',
-            NumberFormat::format($totalHonor),
+            NumberFormat::money($totalHonor),
         );
         return implode(PHP_EOL, $data);
     }
