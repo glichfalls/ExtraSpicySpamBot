@@ -2,6 +2,7 @@
 
 namespace App\Service\Telegram\Honor;
 
+use App\Dto\NetWorth;
 use App\Entity\Honor\Honor;
 use App\Entity\Message\Message;
 use App\Service\Honor\BankService;
@@ -40,17 +41,14 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
     public function handle(Update $update, Message $message, array $matches): void
     {
         $chat = $message->getChat();
-        $leaderboard = $this->honorService->getHonorLeaderboardByChat($chat);
-        if (count($leaderboard) === 0) {
+        $data = $this->honorService->getHonorLeaderboardByChat($chat);
+        if (count($data) === 0) {
             $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.noLeaderboard'));
         } else {
-            foreach ($leaderboard as $key => $entry) {
-                $cash = Honor::currency($entry['amount']);
-                $leaderboard[$key]['amount'] = $cash;
+            $leaderboard = [];
+            foreach ($data as $entry) {
                 $user = $this->userService->getById((string) $entry['id']);
-                $leaderboard[$key]['user'] = $user;
-                $balance = $this->bankService->getBankAccount($chat, $user)?->getBalance();
-                $leaderboard[$key]['balance'] = $balance;
+                $balance = $this->bankService->getBankAccount($chat, $user)->getBalance();
                 $portfolio = $this->stockService->getPortfolioByChatAndUser($chat, $user);
                 try {
                     $portfolioValue = $this->stockService->getPortfolioBalance($portfolio);
@@ -62,26 +60,21 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
                         'user' => $user->getId(),
                     ]);
                 }
-                $leaderboard[$key]['portfolio'] = $portfolioValue;
-                $leaderboard[$key]['total'] = $cash->add($balance)->add($portfolioValue);
+                $leaderboard[] = new NetWorth($user, Honor::currency($entry['amount']), $balance, $portfolioValue);
             }
             // sort by total
-            usort($leaderboard, fn ($a, $b) => $a['total']->compare($b['total']));
+            usort($leaderboard, fn (NetWorth $a, NetWorth $b) => $b->getTotal()->compare($a->getTotal()));
             // format text
-            $text = array_map(function ($entry) use ($chat) {
-                $honor = $entry['amount'];
-                $balance = $entry['balance'];
-                $portfolioValue = $entry['portfolio'];
-                $user = $entry['user'];
+            $text = array_map(function (NetWorth $netWorth) use ($chat) {
                 $text = <<<TEXT
                 [ <code>%s</code> | <code>%s</code> | <code>%s</code> ] <b>%s</b>
                 TEXT;
                 return sprintf(
                     $text,
-                    NumberFormat::money($portfolioValue ?? 0),
-                    NumberFormat::money($balance ?? 0),
-                    NumberFormat::money($honor),
-                    $user->getName() ?? $user->getFirstName(),
+                    NumberFormat::money($netWorth->portfolio),
+                    NumberFormat::money($netWorth->balance),
+                    NumberFormat::money($netWorth->cash),
+                    $netWorth->user->getName() ?? $netWorth->user->getFirstName(),
                 );
             }, $leaderboard);
             $header = <<<TEXT

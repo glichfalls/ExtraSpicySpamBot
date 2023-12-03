@@ -53,7 +53,7 @@ final readonly class StockService
     {
         $total = Honor::currency(0);
         foreach ($portfolio->getBalance() as $transactions) {
-            if ($transactions->getTotalAmount() === 0) {
+            if ($transactions->getTotalAmount() === '0') {
                 continue;
             }
             $currentPrice = $this->stockPriceService->getPriceBySymbol($transactions->getSymbol());
