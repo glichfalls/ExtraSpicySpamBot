@@ -2,6 +2,7 @@
 
 namespace App\Entity\Honor\HonorMillions\Ticket;
 
+use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorMillions\Draw\Draw;
 use App\Entity\User\User;
 use App\Model\Id;
@@ -65,13 +66,13 @@ class Ticket
     {
         $ticketCount = count($this->numbers);
         if ($ticketCount <= 1) {
-            return HonorType::create(0);
+            return Honor::currency(0);
         }
         $total = 0;
         for ($i = 1; $i < $ticketCount; $i++) {
             $total += pow(10, $i + 1);
         }
-        return HonorType::create($total);
+        return Honor::currency($total);
     }
 
 }

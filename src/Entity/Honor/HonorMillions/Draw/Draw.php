@@ -3,11 +3,11 @@
 namespace App\Entity\Honor\HonorMillions\Draw;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorMillions\Ticket\Ticket;
 use App\Entity\User\User;
 use App\Model\Id;
 use App\Repository\DrawRepository;
-use App\Types\HonorType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Column;
@@ -142,7 +142,7 @@ class Draw
 
     public function getJackpot(): Money
     {
-        $ticketPriceSum = $this->getTickets()->reduce(fn (Money $sum, Ticket $ticket) => $sum->add($ticket->getTotalCost()), HonorType::create(0));
+        $ticketPriceSum = $this->getTickets()->reduce(fn (Money $sum, Ticket $ticket) => $sum->add($ticket->getTotalCost()), Honor::currency(0));
         return $this->getPreviousJackpot()->add($ticketPriceSum)->add($this->getGamblingLosses());
     }
 
@@ -154,7 +154,7 @@ class Draw
         if ($this->getWinningNumber() === null) {
             return new ArrayCollection();
         }
-        return $this->getTickets()->filter(fn ($ticket) => in_array($this->getWinningNumber(), $ticket->getNumbers()));
+        return $this->getTickets()->filter(fn (Ticket $ticket) => in_array($this->getWinningNumber(), $ticket->getNumbers()));
     }
 
 }

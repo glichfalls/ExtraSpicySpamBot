@@ -46,6 +46,7 @@ class NumberFormat
     public static function format(float|int|string $number): string
     {
         if (is_string($number)) {
+            // TODO: refactor this
             $number = (float) $number;
         }
         if ($number >= 1_000) {
@@ -93,26 +94,27 @@ class NumberFormat
         return $money->getAmount();
     }
 
-    public static function dehumanize(string $number): ?int
+    public static function dehumanize(string $number): ?string
     {
         if (!self::isHumanizedNumber($number)) {
             return null;
         }
-        $number = strtoupper(trim($number));
+        $number = strtolower(trim($number));
         foreach (self::ABBREVIATION as $multiplier => $suffix) {
+            $suffix = strtolower(trim($suffix));
             if (str_ends_with($number, $suffix)) {
                 $value = substr($number, 0, -strlen($suffix));
-                return (int) ($value . str_repeat('0', $multiplier));
+                return $value . str_repeat('0', $multiplier);
             }
         }
-        return (int) $number;
+        return $number;
     }
 
     public static function isHumanizedNumber(string $number): bool
     {
         $all = array_values(self::ABBREVIATION);
         array_pop($all);
-        $group = implode('|', $all);
+        $group = implode('|', array_map(fn ($item) => trim($item), $all));
         $regex = sprintf('/^\d+(\.\d+)?(%s)$/i', $group);
         return preg_match($regex, $number) === 1;
     }
@@ -122,7 +124,7 @@ class NumberFormat
      * If the number is abbreviated (e.g. 1.2K), it will be unabbreviated (e.g. 1200).
      * If the number is not abbreviated, it will be cast to an integer.
      */
-    public static function getIntValue(string $number, ?string $abbr = null): int
+    public static function getStringValue(string $number, ?string $abbr = null): string
     {
         $number = trim($number);
         if ($abbr !== null) {
@@ -134,7 +136,7 @@ class NumberFormat
         if (self::isHumanizedNumber($number)) {
             return self::dehumanize($number);
         }
-        return (int) $number;
+        return $number;
     }
 
     public static function getHonorValue(string $numbers, ?string $abbr = null): Money

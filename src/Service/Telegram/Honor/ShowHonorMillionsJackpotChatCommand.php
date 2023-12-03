@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor;
 
@@ -13,7 +13,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatCommand
+final class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatCommand
 {
 
     public function __construct(
@@ -21,7 +21,7 @@ class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private DrawRepository $drawRepository,
+        private readonly DrawRepository $drawRepository,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }

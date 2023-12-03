@@ -46,7 +46,7 @@ class SellStockChatCommand extends AbstractTelegramChatCommand implements Telegr
             if (strtolower($matches['amount']) === 'max') {
                 $amount = $portfolio->getTransactionsBySymbol($symbol)->getTotalAmount();
             } else {
-                $amount = NumberFormat::getIntValue($matches['amount']);
+                $amount = NumberFormat::getStringValue($matches['amount']);
             }
             $transaction = $this->stockService->sellStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
