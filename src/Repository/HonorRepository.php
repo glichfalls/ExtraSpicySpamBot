@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Repository;
 
@@ -8,29 +8,30 @@ use App\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\UnexpectedResultException;
 use Doctrine\Persistence\ManagerRegistry;
+use Money\Money;
 
 class HonorRepository extends ServiceEntityRepository
 {
 
     public function __construct(ManagerRegistry $registry)
     {
-        /** @phpstan-ignore-next-line */
         parent::__construct($registry, Honor::class);
     }
 
-    /**
-     * @throws UnexpectedResultException
-     */
-    public function getHonorCount(User $user, Chat $chat): int
+    public function getHonorCount(User $user, Chat $chat): Money
     {
-        $queryBuilder = $this->createQueryBuilder('h');
-        $queryBuilder
-            ->select('SUM(h.amount)')
-            ->where('h.recipient = :user')
-            ->andWhere('h.chat = :chat')
-            ->setParameter('user', $user)
-            ->setParameter('chat', $chat);
-        return (int) $queryBuilder->getQuery()->getSingleScalarResult();
+        try {
+            $queryBuilder = $this->createQueryBuilder('h');
+            $queryBuilder
+                ->select('SUM(h.amount)')
+                ->where('h.recipient = :user')
+                ->andWhere('h.chat = :chat')
+                ->setParameter('user', $user)
+                ->setParameter('chat', $chat);
+            return Honor::currency($queryBuilder->getQuery()->getSingleScalarResult());
+        } catch (UnexpectedResultException $exception) {
+            return Honor::currency(0);
+        }
     }
 
     public function getLeaderboard(Chat $chat): array

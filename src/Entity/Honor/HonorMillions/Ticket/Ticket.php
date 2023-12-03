@@ -2,13 +2,16 @@
 
 namespace App\Entity\Honor\HonorMillions\Ticket;
 
+use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorMillions\Draw\Draw;
 use App\Entity\User\User;
 use App\Model\Id;
 use App\Repository\TicketRepository;
+use App\Types\HonorType;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
+use Money\Money;
 
 #[Entity(repositoryClass: TicketRepository::class)]
 class Ticket
@@ -59,17 +62,17 @@ class Ticket
         return $this->numbers;
     }
 
-    public function getTotalTicketCost(): int
+    public function getTotalCost(): Money
     {
         $ticketCount = count($this->numbers);
         if ($ticketCount <= 1) {
-            return 0;
+            return Honor::currency(0);
         }
         $total = 0;
         for ($i = 1; $i < $ticketCount; $i++) {
             $total += pow(10, $i + 1);
         }
-        return $total;
+        return Honor::currency($total);
     }
 
 }

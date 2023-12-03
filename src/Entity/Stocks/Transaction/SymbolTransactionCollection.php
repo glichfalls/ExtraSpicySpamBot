@@ -2,16 +2,19 @@
 
 namespace App\Entity\Stocks\Transaction;
 
+use App\Entity\Honor\Honor;
 use App\Entity\Stocks\Stock\StockPrice;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Money\Money;
 
 class SymbolTransactionCollection extends ArrayCollection
 {
 
     public function __construct(private string $symbol, private ?StockPrice $currentPrice, Collection $transactions)
     {
-        parent::__construct($transactions
+        parent::__construct(
+            $transactions
             ->filter(fn (StockTransaction $element) => $element->getPrice()->getStock()->getSymbol() === $this->getSymbol())
             ->toArray()
         );
@@ -27,9 +30,9 @@ class SymbolTransactionCollection extends ArrayCollection
         return $this->currentPrice;
     }
 
-    public function getTotalAmount(): int
+    public function getTotalAmount(): string
     {
-        return array_reduce($this->toArray(), fn (int $carry, StockTransaction $element) => $carry + $element->getAmount(), 0);
+        return array_reduce($this->toArray(), fn (string $carry, StockTransaction $element) => bcadd($carry, $element->getAmount()), 0);
     }
 
     public function getTotalBuyPrice(): float
@@ -46,13 +49,13 @@ class SymbolTransactionCollection extends ArrayCollection
         return $currentPrice->getPrice() * $this->getTotalAmount();
     }
 
-    public function getCurrentHonorTotal(?StockPrice $stockPrice = null): float
+    public function getCurrentHonorTotal(?StockPrice $stockPrice = null): Money
     {
         if ($this->getCurrentPrice() === null && $stockPrice === null) {
-            return 0;
+            return Honor::currency(0);
         }
         $currentPrice = $this->getCurrentPrice() ?? $stockPrice;
-        return $currentPrice->getHonorPrice() * $this->getTotalAmount();
+        return $currentPrice->getHonorPrice()->multiply($this->getTotalAmount());
     }
 
     public function getTotalProfit(?StockPrice $stockPrice = null): float

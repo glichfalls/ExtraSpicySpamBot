@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Items\Trade;
 
@@ -38,10 +38,6 @@ class AcceptItemTradeChatCommand extends AbstractTelegramCallbackQuery
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
         $instance = $this->itemService->getInstance($this->getCallbackDataId($update));
-        if ($instance === null) {
-            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Item not found.', true);
-            return;
-        }
         if ($instance->getOwner() !== $user) {
             $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'You are not the owner of this item.', true);
             return;
@@ -60,7 +56,7 @@ class AcceptItemTradeChatCommand extends AbstractTelegramCallbackQuery
                     '%s sold! %s paid %s Ehre to %s.',
                     $instance->getItem()->getName(),
                     $auction->getHighestBidder()->getName(),
-                    NumberFormat::format($auction->getHighestBid()),
+                    NumberFormat::money($auction->getHighestBid()),
                     $auction->getSeller()->getName(),
                 ),
                 threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),

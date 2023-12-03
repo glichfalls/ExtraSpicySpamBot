@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Command\Honor;
 
@@ -6,6 +6,7 @@ use App\Entity\Honor\HonorFactory;
 use App\Entity\Item\Effect\EffectType;
 use App\Repository\ChatRepository;
 use App\Repository\UserRepository;
+use App\Service\Honor\HonorService;
 use App\Service\Items\ItemEffectService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -22,6 +23,7 @@ class PassiveHonorCommand extends Command
         private readonly ChatRepository $chatRepository,
         private readonly UserRepository $userRepository,
         private readonly ItemEffectService $itemEffectService,
+        private readonly HonorService $honorService,
     ) {
         parent::__construct();
     }
@@ -35,6 +37,7 @@ class PassiveHonorCommand extends Command
                 $effects = $this->itemEffectService->getEffectsByUserAndType($user, $chat, EffectType::PASSIVE_HONOR);
                 $baseAmount = $chat->getConfig()->getPassiveHonorAmount();
                 $finalAmount = $effects->apply($baseAmount);
+                $this->honorService->addHonor($chat, $user, $finalAmount);
                 $this->manager->persist(HonorFactory::create($chat, null, $user, $finalAmount));
             }
         }

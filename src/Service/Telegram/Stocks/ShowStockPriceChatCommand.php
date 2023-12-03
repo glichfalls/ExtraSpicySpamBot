@@ -7,12 +7,28 @@ use App\Entity\Stocks\Stock\Stock;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Transaction\SymbolTransactionCollection;
 use App\Exception\StockSymbolUpdateException;
+use App\Service\Stocks\StockPriceService;
+use App\Service\Telegram\AbstractTelegramChatCommand;
+use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-class ShowStockPriceChatCommand extends AbstractStockChatCommand
+class ShowStockPriceChatCommand extends AbstractTelegramChatCommand
 {
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly StockPriceService $stockPriceService,
+    ) {
+        parent::__construct($manager, $translator, $logger, $telegramService);
+    }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
@@ -24,9 +40,9 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
         $symbol = $matches['symbol'];
         try {
             try {
-                $price = $this->getStockPrice($symbol);
+                $price = $this->stockPriceService->getPriceBySymbol($symbol);
             } catch (StockSymbolUpdateException) {
-                $searchResult = $this->searchStock($symbol);
+                $searchResult = $this->stockPriceService->fetchSymbol($symbol);
                 $this->telegramService->sendText($message->getChat()->getChatId(), sprintf(
                     'Stock symbol %s not found. Did you mean one of:%s %s?',
                     $symbol,
@@ -50,7 +66,7 @@ class ShowStockPriceChatCommand extends AbstractStockChatCommand
                     TEXT,
                     $price->getStock()->getName(),
                     $price->getStock()->getSymbol(),
-                    NumberFormat::format($price->getPrice()),
+                    NumberFormat::money($price->getPrice()),
                 ),
                 threadId: $message->getTelegramThreadId(),
                 replyMarkup: $this->getKeyboard($price->getStock()),

@@ -1,11 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Bank;
 
-use App\Entity\Honor\Bank\TransactionFactory;
-use App\Entity\Honor\HonorFactory;
 use App\Entity\Message\Message;
-use App\Repository\BankAccountRepository;
+use App\Service\Honor\BankService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
@@ -22,40 +20,33 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private readonly BankAccountRepository $bankAccountRepository,
+        private readonly BankService $bankService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!withdraw\s*(?<amount>\d+|max)(?<abbr>[kmbtqi]{1,2})?$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!withdraw\s*(?<amount>\d+|max)(?<abbr>[\^A-Z0-9]*)?$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $account = $this->bankAccountRepository->getByChatAndUser($message->getChat(), $message->getUser());
-        if ($account === null) {
-            $this->telegramService->replyTo($message, 'you do not have an account');
-            return;
+        try {
+            $account = $this->bankService->getBankAccount($message->getChat(), $message->getUser());
+            if ($matches['amount'] === 'max') {
+                $amount = $account->getBalance();
+            } else {
+                $amount = NumberFormat::getHonorValue($matches['amount'], $matches['abbr'] ?? null);
+            }
+            $this->bankService->withdraw($message->getChat(), $message->getUser(), $amount);
+            $this->telegramService->replyTo($message, sprintf(
+                'withdrew %s Ehre.',
+                NumberFormat::money($amount),
+            ));
+        } catch (\RuntimeException $exception) {
+            $this->telegramService->replyTo($message, $exception->getMessage());
         }
-        $balance = $account->getBalance();
-        if ($matches['amount'] === 'max') {
-            $amount = $balance;
-        } else {
-            $amount = NumberFormat::getIntValue($matches['amount'], $matches['abbr'] ?? null);
-        }
-        if ($balance < $amount) {
-            $this->telegramService->replyTo($message, sprintf('there is not enough ehre in your bank account (balance: %s ehre)', NumberFormat::format($balance)));
-            return;
-        }
-        $account->addTransaction(TransactionFactory::create(-$amount));
-        $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), $amount));
-        $this->manager->flush();
-        $this->telegramService->replyTo($message, sprintf(
-            'withdrew %s Ehre.',
-            NumberFormat::format($amount),
-        ));
     }
 
     public function getSyntax(): string

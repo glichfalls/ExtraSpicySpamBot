@@ -21,7 +21,7 @@ class CancelRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
         try {
-            $raid = $this->getActiveRaid($chat);
+            $raid = $this->raidService->getRaidGuards($chat);
             $this->cancelRaid($raid, $user);
             $this->telegramService->sendText(
                 $chat->getChatId(),
@@ -50,7 +50,7 @@ class CancelRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $raid = $this->getActiveRaid($message->getChat());
+            $raid = $this->raidService->getActiveRaid($message->getChat());
             $this->cancelRaid($raid, $message->getUser());
             $this->telegramService->sendText(
                 $message->getChat()->getChatId(),

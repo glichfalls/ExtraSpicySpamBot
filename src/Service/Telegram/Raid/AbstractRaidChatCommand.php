@@ -10,7 +10,8 @@ use App\Entity\User\User;
 use App\Repository\HonorRepository;
 use App\Repository\RaidRepository;
 use App\Repository\UserRepository;
-use App\Service\HonorService;
+use App\Service\Honor\HonorService;
+use App\Service\Honor\RaidService;
 use App\Service\Items\ItemEffectService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
@@ -28,21 +29,12 @@ abstract class AbstractRaidChatCommand extends AbstractTelegramChatCommand
         LoggerInterface $logger,
         TelegramService $telegramService,
         protected HonorRepository $honorRepository,
-        protected RaidRepository  $raidRepository,
+        protected RaidService $raidService,
         protected UserRepository $userRepository,
         protected HonorService $honorService,
         protected ItemEffectService $effectService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
-    }
-
-    protected function getActiveRaid(Chat $chat): Raid
-    {
-        $raid = $this->raidRepository->getActiveRaid($chat);
-        if ($raid === null) {
-            throw new \RuntimeException('no active raid');
-        }
-        return $raid;
     }
 
     protected function getRaidKeyboard(Raid $raid): InlineKeyboardMarkup
@@ -68,18 +60,6 @@ abstract class AbstractRaidChatCommand extends AbstractTelegramChatCommand
                     'callback_data' => CancelRaidChatCommand::CALLBACK_KEYWORD,
                 ],
             ],
-        ]);
-    }
-
-    protected function hasRaidGuard(User $user, Chat $chat): bool
-    {
-        return $this->getRaidGuards($user, $chat)->count() > 0;
-    }
-
-    protected function getRaidGuards(User $user, Chat $chat): EffectCollection
-    {
-        return $this->effectService->getEffectsByUserAndType($user, $chat, [
-            EffectType::RAID_GUARD,
         ]);
     }
 

@@ -5,7 +5,7 @@ namespace App\Service\Telegram;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use TelegramBot\Api\Types\Update;
 
-class TelegramCallbackQueryHandler
+final readonly class TelegramCallbackQueryHandler
 {
 
     /**
@@ -16,8 +16,7 @@ class TelegramCallbackQueryHandler
     public function __construct(
         #[TaggedIterator('telegram.inline_query')] iterable $telegramChatCommands,
         private TelegramService $telegramService,
-    )
-    {
+    ) {
         $this->listeners = $telegramChatCommands;
     }
 
@@ -34,7 +33,8 @@ class TelegramCallbackQueryHandler
         if ($chat === null || $user === null) {
             $this->telegramService->sendText(
                 $update->getCallbackQuery()->getMessage()->getChat()->getId(),
-                'Something went wrong, please try again later.');
+                'Something went wrong, please try again later.'
+            );
             return;
         }
         foreach ($this->listeners as $listener) {

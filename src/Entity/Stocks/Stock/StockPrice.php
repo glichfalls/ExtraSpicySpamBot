@@ -1,16 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity\Stocks\Stock;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Honor\Honor;
 use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Money\Currency;
+use Money\Money;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity]
@@ -31,9 +34,9 @@ class StockPrice
     #[Groups(['stock:read', 'portfolio:read'])]
     private Stock $stock;
 
-    #[Column(type: 'float', nullable: false)]
+    #[Column(type: 'decimal', nullable: false)]
     #[Groups(['stock:read', 'portfolio:read'])]
-    private float $price;
+    private string $price;
 
     #[Column(type: 'float', nullable: true)]
     private ?float $changeAbsolute = null;
@@ -56,12 +59,12 @@ class StockPrice
         $this->stock = $stock;
     }
 
-    public function getPrice(): float
+    public function getPrice(): string
     {
         return $this->price;
     }
 
-    public function setPrice(float $price): void
+    public function setPrice(string $price): void
     {
         $this->price = $price;
     }
@@ -86,9 +89,9 @@ class StockPrice
         $this->changePercent = $changePercent;
     }
 
-    public function getHonorPrice(): int
+    public function getHonorPrice(): Money
     {
-        return (int) round($this->getPrice());
+        return Honor::currency($this->getPrice());
     }
 
     #[Groups(['stock:read', 'portfolio:read'])]

@@ -19,6 +19,11 @@ class UserService
 
     }
 
+    public function getById(string $id): ?User
+    {
+        return $this->userRepository->find($id);
+    }
+
     public function getByName(string $name): ?User
     {
         return $this->userRepository->findOneBy(['name' => $name]);

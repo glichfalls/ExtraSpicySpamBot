@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Items;
 
@@ -22,8 +22,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class ItemService
 {
-
-    private $apply;
 
     public function __construct(
         private EntityManagerInterface $manager,

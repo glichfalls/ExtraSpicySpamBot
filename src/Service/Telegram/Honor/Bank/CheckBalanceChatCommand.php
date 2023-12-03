@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Bank;
 
@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class CheckBalanceChatCommand extends AbstractTelegramChatCommand
+final class CheckBalanceChatCommand extends AbstractTelegramChatCommand
 {
 
     public function __construct(
@@ -39,7 +39,7 @@ class CheckBalanceChatCommand extends AbstractTelegramChatCommand
         }
         $this->telegramService->replyTo(
             $message,
-            sprintf('your bank balance is %s ehre', NumberFormat::format($account->getBalance()))
+            sprintf('your bank balance is %s ehre', NumberFormat::money($account->getBalance()))
         );
     }
 

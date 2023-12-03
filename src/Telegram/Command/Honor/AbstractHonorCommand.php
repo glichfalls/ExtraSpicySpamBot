@@ -2,7 +2,7 @@
 
 namespace App\Telegram\Command\Honor;
 
-use App\Service\HonorService;
+use App\Service\Honor\HonorService;
 use App\Service\Telegram\TelegramService;
 use App\Telegram\Command\AbstractCommandExtension;
 use Psr\Log\LoggerInterface;

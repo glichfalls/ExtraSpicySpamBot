@@ -10,6 +10,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Money\Currency;
+use Money\Money;
 
 #[Entity(repositoryClass: HonorRepository::class)]
 class Honor
@@ -26,8 +28,13 @@ class Honor
     #[ManyToOne(targetEntity: Chat::class)]
     private Chat $chat;
 
-    #[Column(type: 'bigint')]
-    private int $amount = 0;
+    #[Column(type: 'honor', nullable: false)]
+    private Money $amount;
+
+    public static function currency(int|string $amount): Money
+    {
+        return new Money($amount, new Currency('Ehre'));
+    }
 
     public function __construct()
     {
@@ -64,12 +71,12 @@ class Honor
         $this->chat = $chat;
     }
 
-    public function getAmount(): int
+    public function getAmount(): Money
     {
         return $this->amount;
     }
 
-    public function setAmount(int $amount): void
+    public function setAmount(Money $amount): void
     {
         $this->amount = $amount;
     }

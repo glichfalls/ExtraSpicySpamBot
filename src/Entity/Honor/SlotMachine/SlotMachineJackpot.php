@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity\Honor\SlotMachine;
 
@@ -8,6 +8,7 @@ use App\Repository\SlotMachineJackpotRepository;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
+use Money\Money;
 
 #[Entity(repositoryClass: SlotMachineJackpotRepository::class)]
 class SlotMachineJackpot
@@ -17,8 +18,8 @@ class SlotMachineJackpot
     #[ManyToOne(targetEntity: Chat::class)]
     private Chat $chat;
 
-    #[Column(type: 'bigint')]
-    private int $amount;
+    #[Column(type: 'honor')]
+    private Money $amount;
 
     #[Column(type: 'boolean')]
     private bool $active;
@@ -38,12 +39,12 @@ class SlotMachineJackpot
         $this->chat = $chat;
     }
 
-    public function getAmount(): int
+    public function getAmount(): Money
     {
         return $this->amount;
     }
 
-    public function setAmount(int $amount): void
+    public function setAmount(Money $amount): void
     {
         $this->amount = $amount;
     }

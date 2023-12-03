@@ -20,7 +20,7 @@ class CreateHonorMillionsDrawChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private DrawRepository $drawRepository,
+        private readonly DrawRepository $drawRepository,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -37,9 +37,12 @@ class CreateHonorMillionsDrawChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, 'there is already a draw for this chat');
             return;
         }
-        $draw = DrawFactory::create($message->getChat(), new \DateTime());
-        $draw->setPreviousJackpot(0);
-        $this->manager->persist($draw);
+        if ($message->getChat()->getConfig()->getTimezone()) {
+            $timezone = new \DateTimeZone($message->getChat()->getConfig()->getTimezone());
+        } else {
+            $timezone = null;
+        }
+        $this->manager->persist(DrawFactory::create($message->getChat(), new \DateTime(timezone: $timezone)));
         $this->manager->flush();
         $this->telegramService->replyTo($message, 'created draw for this chat');
     }

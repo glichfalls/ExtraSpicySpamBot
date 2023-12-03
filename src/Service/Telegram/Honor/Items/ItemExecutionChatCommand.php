@@ -7,7 +7,7 @@ use App\Entity\Item\Attribute\ItemKeyword;
 use App\Entity\Item\Effect\EffectType;
 use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
-use App\Service\HonorService;
+use App\Service\Honor\HonorService;
 use App\Service\Items\ItemEffectService;
 use App\Service\Items\ItemService;
 use App\Service\Items\ItemTradeService;

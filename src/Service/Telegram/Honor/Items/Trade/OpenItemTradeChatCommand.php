@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Items\Trade;
 
@@ -40,10 +40,6 @@ class OpenItemTradeChatCommand extends AbstractTelegramCallbackQuery
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
         $instance = $this->itemService->getInstance($this->getCallbackDataId($update));
-        if ($instance === null) {
-            $this->telegramService->answerCallbackQuery($update->getCallbackQuery(), 'Item not found.', true);
-            return;
-        }
         $activeAuction = $this->itemTradeService->getActiveAuction($instance);
         if ($activeAuction === null) {
             $this->itemTradeService->createAuction($instance);
@@ -53,7 +49,7 @@ class OpenItemTradeChatCommand extends AbstractTelegramCallbackQuery
                 $instance->getItem()->getName()
             );
         } else {
-            $message = sprintf('current bid: %s Ehre', NumberFormat::format($activeAuction->getHighestBid()));
+            $message = sprintf('current bid: %s Ehre', NumberFormat::money($activeAuction->getHighestBid()));
         }
         $this->telegramService->sendText(
             $chat->getChatId(),

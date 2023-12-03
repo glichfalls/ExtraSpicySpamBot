@@ -6,8 +6,13 @@ use App\Entity\Item\Attribute\ItemRarity;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-class ItemRaritySerializer implements DenormalizerInterface, NormalizerInterface
+final class ItemRaritySerializer implements DenormalizerInterface, NormalizerInterface
 {
+    public function getSupportedTypes(?string $format): array
+    {
+        return [ItemRarity::class];
+    }
+
     public function denormalize($data, $type, $format = null, array $context = []): ItemRarity
     {
         if ($type !== ItemRarity::class) {
@@ -17,7 +22,7 @@ class ItemRaritySerializer implements DenormalizerInterface, NormalizerInterface
         return ItemRarity::from(strtolower($data['name'] ?? ''));
     }
 
-    public function supportsDenormalization($data, $type, $format = null): bool
+    public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
         return $type === ItemRarity::class;
     }
@@ -31,7 +36,7 @@ class ItemRaritySerializer implements DenormalizerInterface, NormalizerInterface
         return $object->jsonSerialize();
     }
 
-    public function supportsNormalization($data, $format = null): bool
+    public function supportsNormalization($data, $format = null, array $context = []): bool
     {
         return $data instanceof ItemRarity;
     }

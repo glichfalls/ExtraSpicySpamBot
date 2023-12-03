@@ -8,14 +8,30 @@ use App\Entity\User\User;
 use App\Exception\AmountZeroOrNegativeException;
 use App\Exception\NotEnoughStocksException;
 use App\Exception\StockSymbolUpdateException;
+use App\Service\Stocks\StockService;
+use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
+use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class SellStockChatCommand extends AbstractStockChatCommand implements TelegramCallbackQueryListener
+class SellStockChatCommand extends AbstractTelegramChatCommand implements TelegramCallbackQueryListener
 {
 
     public const SELL_KEYWORD = 'stock:sell:max';
+
+    public function __construct(
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        TelegramService $telegramService,
+        private readonly StockService $stockService,
+    ) {
+        parent::__construct($manager, $translator, $logger, $telegramService);
+    }
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
@@ -25,20 +41,19 @@ class SellStockChatCommand extends AbstractStockChatCommand implements TelegramC
     public function handle(Update $update, Message $message, array $matches): void
     {
         $symbol = $matches['symbol'];
-        $amount = $matches['amount'];
         try {
-            $portfolio = $this->getPortfolioByMessage($message);
+            $portfolio = $this->stockService->getPortfolioByChatAndUser($message->getChat(), $message->getUser());
             if (strtolower($matches['amount']) === 'max') {
                 $amount = $portfolio->getTransactionsBySymbol($symbol)->getTotalAmount();
             } else {
-                $amount = (int) $amount;
+                $amount = NumberFormat::getStringValue($matches['amount']);
             }
-            $transaction = $this->sellStock($portfolio, $symbol, $amount);
+            $transaction = $this->stockService->sellStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
                 '%sx %s sold for %s Ehre',
-                NumberFormat::format(abs($transaction->getAmount())),
+                NumberFormat::format($transaction->getAmount()),
                 $transaction->getPrice()->getStock()->getDisplaySymbol(),
-                NumberFormat::format(abs($transaction->getHonorTotal())),
+                NumberFormat::money($transaction->getHonorTotal()),
             ));
         } catch (AmountZeroOrNegativeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());

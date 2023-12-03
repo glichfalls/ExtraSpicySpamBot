@@ -1,8 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity\Honor\HonorMillions\Draw;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorMillions\Ticket\Ticket;
 use App\Entity\User\User;
 use App\Model\Id;
@@ -14,17 +15,18 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OneToOne;
+use Money\Money;
 
 #[Entity(repositoryClass: DrawRepository::class)]
 class Draw
 {
     use Id;
 
-    #[Column(type: 'bigint')]
-    private int $previousJackpot;
+    #[Column(type: 'honor', nullable: true)]
+    private ?Money $previousJackpot = null;
 
-    #[Column(type: 'bigint', options: ['default' => 0])]
-    private int $gamblingLosses = 0;
+    #[Column(type: 'honor', nullable: true)]
+    private ?Money $gamblingLosses = null;
 
     #[Column(type: 'date')]
     private \DateTime $date;
@@ -50,22 +52,22 @@ class Draw
         $this->tickets = new ArrayCollection();
     }
 
-    public function getPreviousJackpot(): int
+    public function getPreviousJackpot(): Money
     {
         return $this->previousJackpot;
     }
 
-    public function setPreviousJackpot(int $previousJackpot): void
+    public function setPreviousJackpot(Money $previousJackpot): void
     {
         $this->previousJackpot = $previousJackpot;
     }
 
-    public function getGamblingLosses(): int
+    public function getGamblingLosses(): Money
     {
         return $this->gamblingLosses;
     }
 
-    public function setGamblingLosses(int $gamblingLosses): void
+    public function setGamblingLosses(Money $gamblingLosses): void
     {
         $this->gamblingLosses = $gamblingLosses;
     }
@@ -130,7 +132,7 @@ class Draw
 
     public function getTicketByUser(User $user): ?Ticket
     {
-        return $this->getTickets()->filter(fn(Ticket $ticket) => $ticket->getUser() === $user)->first() ?: null;
+        return $this->getTickets()->filter(fn (Ticket $ticket) => $ticket->getUser() === $user)->first() ?: null;
     }
 
     public function addTicket(Ticket $ticket): void
@@ -138,15 +140,10 @@ class Draw
         $this->tickets->add($ticket);
     }
 
-    public function getJackpot(): int
+    public function getJackpot(): Money
     {
-        return array_reduce(
-            $this->getTickets()->toArray(),
-            function(int $carry, Ticket $ticket) {
-
-            },
-            $this->getPreviousJackpot() + $this->getGamblingLosses(),
-        );
+        $ticketPriceSum = $this->getTickets()->reduce(fn (Money $sum, Ticket $ticket) => $sum->add($ticket->getTotalCost()), Honor::currency(0));
+        return $this->getPreviousJackpot()->add($ticketPriceSum)->add($this->getGamblingLosses());
     }
 
     /**
@@ -157,7 +154,7 @@ class Draw
         if ($this->getWinningNumber() === null) {
             return new ArrayCollection();
         }
-        return $this->getTickets()->filter(fn($ticket) => in_array($this->getWinningNumber(), $ticket->getNumbers()));
+        return $this->getTickets()->filter(fn (Ticket $ticket) => in_array($this->getWinningNumber(), $ticket->getNumbers()));
     }
 
 }

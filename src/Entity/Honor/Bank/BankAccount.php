@@ -3,6 +3,7 @@
 namespace App\Entity\Honor\Bank;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Honor;
 use App\Entity\User\User;
 use App\Model\Id;
 use App\Repository\BankAccountRepository;
@@ -12,6 +13,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\OrderBy;
+use Money\Money;
 
 #[Entity(repositoryClass: BankAccountRepository::class)]
 class BankAccount
@@ -68,15 +70,12 @@ class BankAccount
         $this->transactions->add($transaction);
     }
 
-    public function getBalance(): int
+    public function getBalance(): Money
     {
-        return array_reduce($this->transactions->toArray(), function (int $balance, Transaction $transaction) {
-            $amount = $transaction->getAmount();
-            if ($amount > 0 && $balance > 0 && $balance > PHP_INT_MAX - $amount) {
-                return PHP_INT_MAX;
-            }
-            return $balance + $transaction->getAmount();
-        }, 0);
+        return $this->transactions->reduce(
+            fn (Money $balance, Transaction $transaction) => $balance->add($transaction->getAmount()),
+            Honor::currency(0)
+        );
     }
 
 }

@@ -6,6 +6,7 @@ use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\OneToOne;
+use Money\Money;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity]
@@ -20,9 +21,9 @@ class ChatConfig
     #[Groups(['chat:public:read'])]
     private bool $passiveHonorEnabled = true;
 
-    #[Column(type: "integer")]
+    #[Column(type: "honor")]
     #[Groups(['chat:public:read'])]
-    private int $passiveHonorAmount = 100;
+    private Money $passiveHonorAmount;
 
     #[Column(type: "string")]
     private string $timezone = 'UTC';
@@ -58,12 +59,12 @@ class ChatConfig
         $this->passiveHonorEnabled = $passiveHonorEnabled;
     }
 
-    public function getPassiveHonorAmount(): int
+    public function getPassiveHonorAmount(): Money
     {
         return $this->passiveHonorAmount;
     }
 
-    public function setPassiveHonorAmount(int $passiveHonorAmount): void
+    public function setPassiveHonorAmount(Money $passiveHonorAmount): void
     {
         $this->passiveHonorAmount = $passiveHonorAmount;
     }

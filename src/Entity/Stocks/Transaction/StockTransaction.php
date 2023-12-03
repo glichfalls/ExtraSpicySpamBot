@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity\Stocks\Transaction;
 
@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Money\Money;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity(repositoryClass: StockTransactionRepository::class)]
@@ -35,13 +36,13 @@ class StockTransaction
     #[Groups(['stock:read', 'portfolio:read'])]
     private StockPrice $price;
 
-    #[Column(type: 'bigint', nullable: false)]
+    #[Column(type: 'string', nullable: false)]
     #[Groups(['stock:read', 'portfolio:read'])]
-    private int $amount;
+    private string $amount;
 
     private ?float $total = null;
 
-    private ?int $honorTotal = null;
+    private ?Money $honorTotal = null;
 
     public function __construct()
     {
@@ -68,12 +69,12 @@ class StockTransaction
         $this->price = $price;
     }
 
-    public function getAmount(): int
+    public function getAmount(): string
     {
         return $this->amount;
     }
 
-    public function setAmount(int $amount): void
+    public function setAmount(string $amount): void
     {
         $this->amount = $amount;
     }
@@ -91,10 +92,10 @@ class StockTransaction
         readable: true
     )]
     #[Groups(['stock:read'])]
-    public function getHonorTotal(): int
+    public function getHonorTotal(): Money
     {
         if ($this->honorTotal === null) {
-            $this->honorTotal = $this->getPrice()->getHonorPrice() * $this->getAmount();
+            $this->honorTotal = $this->getPrice()->getHonorPrice()->multiply($this->getAmount());
         }
         return $this->honorTotal;
     }

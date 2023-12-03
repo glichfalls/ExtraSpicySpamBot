@@ -2,7 +2,7 @@
 
 namespace App\Tests\Telegram;
 
-use App\Service\HonorService;
+use App\Service\Honor\HonorService;
 use App\Service\Telegram\TelegramService;
 use App\Tests\BaseKernelTest;
 use PHPUnit\Framework\MockObject\MockObject;

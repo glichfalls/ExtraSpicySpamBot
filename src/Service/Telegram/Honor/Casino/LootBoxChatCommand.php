@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Honor\Casino;
 
@@ -12,13 +12,14 @@ use App\Entity\Message\Message;
 use App\Entity\Stocks\Transaction\StockTransaction;
 use App\Entity\Stocks\Transaction\StockTransactionFactory;
 use App\Entity\User\User;
-use App\Repository\HonorRepository;
+use App\Service\Honor\HonorService;
 use App\Service\Items\ItemEffectService;
 use App\Service\Items\ItemService;
+use App\Service\Stocks\StockPriceService;
 use App\Service\Stocks\StockService;
+use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\Button\TelegramButton;
 use App\Service\Telegram\Button\TelegramKeyboard;
-use App\Service\Telegram\Honor\AbstractTelegramHonorChatCommand;
 use App\Service\Telegram\TelegramCallbackQueryListener;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
@@ -29,7 +30,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
-class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements TelegramCallbackQueryListener
+class LootBoxChatCommand extends AbstractTelegramChatCommand implements TelegramCallbackQueryListener
 {
 
     public const CALLBACK_KEYWORD = 'lootbox';
@@ -56,12 +57,13 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        HonorRepository $honorRepository,
+        private readonly HonorService $honorService,
         private readonly ItemService $itemService,
         private readonly ItemEffectService $itemEffectService,
         private readonly StockService $stockService,
+        private readonly StockPriceService $stockPriceService,
     ) {
-        parent::__construct($manager, $translator, $logger, $telegramService, $honorRepository);
+        parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
     public function matches(Update $update, Message $message, array &$matches): bool
@@ -87,7 +89,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
             TEMPLATE;
             $text[] = sprintf(
                 $template,
-                NumberFormat::format($loot->price()),
+                NumberFormat::money($loot->price()),
                 NumberFormat::format($loot->minStockAmount()),
                 NumberFormat::format($loot->maxStockAmount()),
             );
@@ -111,12 +113,12 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                 $this->telegramService->answerCallbackQuery($callbackQuery, 'Invalid size', true);
                 return;
             }
-            $currentHonor = $this->getCurrentHonorAmount($chat, $user);
+            $currentHonor = $this->honorService->getCurrentHonorAmount($chat, $user);
             if ($currentHonor < $loot->price()) {
                 $this->telegramService->answerCallbackQuery($callbackQuery, 'Not enough honor', true);
                 return;
             }
-            $this->removeHonor($chat, $user, $loot->price());
+            $this->honorService->removeHonor($chat, $user, $loot->price());
             $effects = $this->itemEffectService->getEffectsByUserAndType($user, $chat, [
                 EffectType::LOOTBOX_LUCK,
                 EffectType::LUCK,
@@ -162,7 +164,7 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
                         $user->getName() ?? $user->getFirstName(),
                         NumberFormat::format($result->getAmount()),
                         $result->getPrice()->getStock()->getSymbol(),
-                        NumberFormat::format($result->getHonorTotal()),
+                        NumberFormat::money($result->getHonorTotal()),
                         $loot->value,
                         $loot->stockRate($effects),
                     ),
@@ -223,9 +225,9 @@ class LootBoxChatCommand extends AbstractTelegramHonorChatCommand implements Tel
     private function winStocks(Chat $chat, User $user, LootboxLoot $loot): StockTransaction
     {
         $symbol = $this->getRandomStockSymbol();
-        $price = $this->stockService->getPriceBySymbol($symbol);
+        $price = $this->stockPriceService->getPriceBySymbol($symbol);
         $transaction = StockTransactionFactory::create($price, $loot->stockAmount());
-        $portfolio = $this->stockService->getPortfolioByUserAndChat($chat, $user);
+        $portfolio = $this->stockService->getPortfolioByChatAndUser($chat, $user);
         $portfolio->addTransaction($transaction);
         $this->manager->flush();
         return $transaction;
