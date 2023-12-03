@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Subscription;
 
@@ -7,26 +7,20 @@ use App\Entity\Message\Message;
 use App\Entity\Subscription\ChatSubscription;
 use App\Entity\Subscription\SubscriptionTypes;
 use App\Repository\ChatSubscriptionRepository;
-use App\Service\Telegram\AbstractTelegramChatCommand;
+use App\Service\Telegram\TelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class SubscribeChatCommand extends AbstractTelegramChatCommand
+readonly class SubscribeChatCommand implements TelegramChatCommand
 {
 
     public function __construct(
-        EntityManagerInterface $manager,
-        TranslatorInterface $translator,
-        LoggerInterface $logger,
-        TelegramService $telegramService,
+        private EntityManagerInterface $manager,
+        private TelegramService $telegram,
         private ChatSubscriptionRepository $subscriptionRepository,
-    )
-    {
-        parent::__construct($manager, $translator, $logger, $telegramService);
+    ) {
     }
 
     public function matches(Update $update, Message $message, array &$matches): bool
@@ -44,12 +38,12 @@ class SubscribeChatCommand extends AbstractTelegramChatCommand
             }
             $this->subscribe($message->getChat(), $type, $parameter);
             if ($parameter !== null) {
-                $this->telegramService->replyTo($message, sprintf('Subscribed to %s with %s', $type, $parameter));
+                $this->telegram->replyTo($message, sprintf('Subscribed to %s with %s', $type, $parameter));
             } else {
-                $this->telegramService->replyTo($message, sprintf('Subscribed to %s', $type));
+                $this->telegram->replyTo($message, sprintf('Subscribed to %s', $type));
             }
         } catch (\RuntimeException $exception) {
-            $this->telegramService->replyTo($message, $exception->getMessage());
+            $this->telegram->replyTo($message, $exception->getMessage());
         }
     }
 
@@ -80,9 +74,14 @@ class SubscribeChatCommand extends AbstractTelegramChatCommand
         $this->manager->flush();
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!subscribe <type> <parameter>   subscribes to a type of subscription';
+        return '!subscribe <type> <parameter>';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Subscribe to a subscription';
     }
 
 }

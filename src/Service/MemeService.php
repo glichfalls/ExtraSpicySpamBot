@@ -4,14 +4,13 @@ namespace App\Service;
 
 use App\Service\Telegram\TelegramService;
 
-class MemeService
+readonly class MemeService
 {
 
     public function __construct(
         private TelegramService $telegramService,
-        private string          $extraSpicySpamChatId,
-    )
-    {
+        private string $extraSpicySpamChatId,
+    ) {
 
     }
 

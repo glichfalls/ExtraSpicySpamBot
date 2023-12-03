@@ -1,28 +1,22 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service\Telegram\Subscription;
 
 use App\Entity\Message\Message;
 use App\Repository\ChatSubscriptionRepository;
-use App\Service\Telegram\AbstractTelegramChatCommand;
+use App\Service\Telegram\TelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class UnsubscribeChatCommand extends AbstractTelegramChatCommand
+readonly class UnsubscribeChatCommand implements TelegramChatCommand
 {
 
     public function __construct(
-        EntityManagerInterface $manager,
-        TranslatorInterface $translator,
-        LoggerInterface $logger,
-        TelegramService $telegramService,
+        private EntityManagerInterface $manager,
+        private TelegramService $telegram,
         private ChatSubscriptionRepository $subscriptionRepository,
-    )
-    {
-        parent::__construct($manager, $translator, $logger, $telegramService);
+    ) {
     }
 
     public function matches(Update $update, Message $message, array &$matches): bool
@@ -45,11 +39,17 @@ class UnsubscribeChatCommand extends AbstractTelegramChatCommand
             $this->manager->remove($subscription);
         }
         $this->manager->flush();
+        $this->telegram->replyTo($message, sprintf('Unsubscribed from %s', $type));
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return '!unsubscribe <type>    Unsubscribe from a subscription';
+        return '!unsubscribe <type>';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Unsubscribe from a subscription';
     }
 
 }

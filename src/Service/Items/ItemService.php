@@ -22,7 +22,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class ItemService
+readonly class ItemService
 {
 
     public function __construct(

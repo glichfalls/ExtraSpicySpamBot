@@ -3,16 +3,12 @@
 namespace App\Service\Telegram\General;
 
 use App\Entity\Message\Message;
-use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramChatCommand;
 use App\Service\Telegram\TelegramService;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class HelpChatCommand extends AbstractTelegramChatCommand
+readonly class HelpChatCommand implements TelegramChatCommand
 {
 
     /**
@@ -21,15 +17,9 @@ class HelpChatCommand extends AbstractTelegramChatCommand
     private iterable $commands;
 
     public function __construct(
-        EntityManagerInterface $manager,
-        TranslatorInterface $translator,
-        LoggerInterface $logger,
-        TelegramService $telegramService,
-        #[TaggedIterator('telegram.chat_command')]
-        iterable $commands,
-    )
-    {
-        parent::__construct($manager, $translator, $logger, $telegramService);
+        #[TaggedIterator('telegram.chat_command')] iterable $commands,
+        private TelegramService $telegram,
+    ) {
         $this->commands = $commands;
     }
 
@@ -50,17 +40,21 @@ class HelpChatCommand extends AbstractTelegramChatCommand
                 PHP_EOL,
             );
         }
-        $this->logger->error(implode(PHP_EOL, $help));
-        $this->telegramService->replyTo(
+        $this->telegram->replyTo(
             $message,
             implode(PHP_EOL, $help),
             parseMode: 'HTML',
         );
     }
 
-    public function getHelp(): string
+    public function getSyntax(): string
     {
-        return 'show this help';
+        return '!help';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Show this help message';
     }
 
 }

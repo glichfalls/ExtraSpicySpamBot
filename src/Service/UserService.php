@@ -9,7 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use TelegramBot\Api\Types\MessageEntity;
 use \TelegramBot\Api\Types\User as TelegramUser;
 
-class UserService
+readonly class UserService
 {
 
     public function __construct(
