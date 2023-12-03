@@ -2,6 +2,7 @@
 
 namespace App\Service\Telegram;
 
+use App\Repository\MessageRepository;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use TelegramBot\Api\Types\Update;
 
@@ -17,6 +18,7 @@ class TelegramWebhookHandler
         #[TaggedIterator('telegram.chat_command')]
         iterable $telegramChatCommands,
         private readonly TelegramService $telegramBaseService,
+        private readonly MessageRepository $messageRepository,
     ) {
         $this->handlers = $telegramChatCommands;
     }
@@ -25,6 +27,19 @@ class TelegramWebhookHandler
     {
         if ($update->getMessage()->getChat()) {
             $message = $this->telegramBaseService->createMessageFromUpdate($update);
+            $messageCount = $this->messageRepository->createQueryBuilder('m')
+                ->select('count(m.id)')
+                ->where('m.chat = :chat')
+                ->andWhere('m.createdAt > :createdAt')
+                ->andWhere('m.message LIKE \'!%\'')
+                ->setParameter('chat', $message->getChat())
+                ->setParameter('createdAt', new \DateTime('-1 minute'))
+                ->getQuery()
+                ->getSingleScalarResult();
+            if ($messageCount > 10) {
+                $this->telegramBaseService->replyTo($message, '🤫');
+                return;
+            }
             foreach ($this->handlers as $telegramChatCommand) {
                 $matches = [];
                 if ($telegramChatCommand->matches($update, $message, $matches)) {
