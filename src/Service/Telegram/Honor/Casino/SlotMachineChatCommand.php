@@ -86,7 +86,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
     {
         $callbackQuery = $update->getCallbackQuery();
         $currentHonor = $this->honorService->getCurrentHonorAmount($chat, $user);
-        if ($currentHonor < self::PRICE) {
+        if ($currentHonor->lessThan(Honor::currency(self::PRICE))) {
             $this->telegramService->answerCallbackQuery($callbackQuery, 'not enough Ehre', true);
             return;
         }
@@ -110,7 +110,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
                 sprintf($text, $user->getName(), NumberFormat::money($amount)),
                 threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
             );
-            $jackpot->setAmount(0);
+            $jackpot->setAmount(Honor::currency(0));
             $this->manager->flush();
             $this->telegramService->answerCallbackQuery($callbackQuery);
             $this->updateJackpot($update, $previousJackpot, $jackpot->getAmount());
@@ -195,7 +195,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
 
     public function getSyntax(): string
     {
-        return '!slot [amount]';
+        return '!slot';
     }
 
 }

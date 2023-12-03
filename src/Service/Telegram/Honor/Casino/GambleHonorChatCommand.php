@@ -35,7 +35,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
 
     public function matches(Update $update, Message $message, array &$matches): bool
     {
-        return preg_match('/^!(gamble|g)\s(?<amount>\d+|max)(?<abbr>[A-Z]*)?$/i', $message->getMessage(), $matches) === 1;
+        return preg_match('/^!(gamble|g)\s(?<amount>\d+|max)(?<abbr>[\^A-Z0-9]*)?$/i', $message->getMessage(), $matches) === 1;
     }
 
     public function handle(Update $update, Message $message, array $matches): void

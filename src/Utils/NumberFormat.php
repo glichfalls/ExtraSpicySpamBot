@@ -8,26 +8,26 @@ use Money\Money;
 class NumberFormat
 {
 
-    public const ABBREVIATION = [
+    public const NUMBER_NAMES = [
         // this is the highest supported number
         // decimal can only hold 65 digits and 2 are used for the decimal point
-        63 => ' Vigintillion',
-        60 => ' Novemdecillion',
-        57 => ' Octodecillion',
-        54 => ' Septendecillion',
-        51 => ' Sexdecillion',
-        48 => ' Quindecillion',
-        45 => ' Quattuordecillion',
-        42 => ' Tredecillion',
-        39 => ' Duodecillion',
-        36 => ' Undecillion',
-        33 => ' Decillion',
-        30 => ' Nonillion',
-        27 => ' Octillion',
-        24 => ' Septillion',
-        21 => ' Sextillion',
-        18 => ' Quintillion',
-        15 => ' Quadrillion',
+        63 => 'Vigintillion',
+        60 => 'Novemdecillion',
+        57 => 'Octodecillion',
+        54 => 'Septendecillion',
+        51 => 'Sexdecillion',
+        48 => 'Quindecillion',
+        45 => 'Quattuordecillion',
+        42 => 'Tredecillion',
+        39 => 'Duodecillion',
+        36 => 'Undecillion',
+        33 => 'Decillion',
+        30 => 'Nonillion',
+        27 => 'Octillion',
+        24 => 'Septillion',
+        21 => 'Sextillion',
+        18 => 'Quintillion',
+        15 => 'Quadrillion',
         12 => 'T',
         9 => 'B',
         6 => 'M',
@@ -66,11 +66,12 @@ class NumberFormat
 
     public static function humanize(float|int $number): string
     {
-        foreach (self::ABBREVIATION as $exponent => $abbrev) {
+        foreach (self::NUMBER_NAMES as $exponent => $abbrev) {
             if (abs($number) >= pow(10, $exponent)) {
                 $display = $number / pow(10, $exponent);
                 $formatted = is_int($display) ? number_format($display) : number_format($display, 1);
-                return str_replace('.0', '', $formatted) . $abbrev;
+                $result = str_replace('.0', '', $formatted);
+                return strlen($abbrev) === 1 ? $result . $abbrev : $result . ' ' . $abbrev;
             }
         }
         return (string) $number;
@@ -78,17 +79,17 @@ class NumberFormat
 
     public static function humanizeMoney(Money $money): string
     {
-        foreach (self::ABBREVIATION as $exponent => $abbrev) {
+        foreach (self::NUMBER_NAMES as $exponent => $abbrev) {
             $n = bcpow('10', (string) $exponent);
             if ($money->absolute()->greaterThanOrEqual(Honor::currency($n))) {
                 $result = bcdiv($money->getAmount(), $n, 2);
                 if (str_ends_with($result, '.00')) {
-                    return str_replace('.00', '', $result) . $abbrev;
+                    $result = str_replace('.00', '', $result);
                 }
-                if (str_ends_with($result, '0')) {
-                    return substr($result, 0, -1) . $abbrev;
+                if (preg_match('/\.\d0$/', $result)) {
+                    $result = substr($result, 0, -1);
                 }
-                return $result . $abbrev;
+                return strlen($abbrev) === 1 ? $result . $abbrev : $result . ' ' . $abbrev;
             }
         }
         return $money->getAmount();
@@ -100,11 +101,16 @@ class NumberFormat
             return null;
         }
         $number = strtolower(trim($number));
-        foreach (self::ABBREVIATION as $multiplier => $suffix) {
+        foreach (self::NUMBER_NAMES as $multiplier => $suffix) {
             $suffix = strtolower(trim($suffix));
             if (str_ends_with($number, $suffix)) {
                 $value = substr($number, 0, -strlen($suffix));
                 return $value . str_repeat('0', $multiplier);
+            }
+            if (preg_match('/.*\^(?<exponent>\d+)$/', $number, $matches) === 1) {
+                $exponent = $matches['exponent'];
+                $value = substr($number, 0, -strlen(sprintf('^%s', $exponent)));
+                return bcpow($value, $exponent);
             }
         }
         return $number;
@@ -112,11 +118,11 @@ class NumberFormat
 
     public static function isHumanizedNumber(string $number): bool
     {
-        $all = array_values(self::ABBREVIATION);
+        $all = array_values(self::NUMBER_NAMES);
         array_pop($all);
-        $group = implode('|', array_map(fn ($item) => trim($item), $all));
+        $group = implode('|', $all);
         $regex = sprintf('/^\d+(\.\d+)?(%s)$/i', $group);
-        return preg_match($regex, $number) === 1;
+        return preg_match($regex, $number) === 1 || preg_match('/.*\^\d+$/', $number) === 1;
     }
 
     /**
