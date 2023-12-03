@@ -3,6 +3,7 @@
 namespace App\Service\Stocks;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Entity\Stocks\Portfolio\PortfolioFactory;
@@ -17,6 +18,7 @@ use App\Repository\Stocks\PortfolioRepository;
 use App\Repository\Stocks\StockTransactionRepository;
 use App\Service\Honor\HonorService;
 use Doctrine\ORM\EntityManagerInterface;
+use Money\Money;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -48,15 +50,15 @@ final readonly class StockService
         return $portfolio;
     }
 
-    public function getPortfolioBalance(Portfolio $portfolio): int|float
+    public function getPortfolioBalance(Portfolio $portfolio): Money
     {
-        $total = 0;
+        $total = Honor::currency(0);
         foreach ($portfolio->getBalance() as $transactions) {
             if ($transactions->getTotalAmount() === 0) {
                 continue;
             }
             $currentPrice = $this->stockPriceService->getPriceBySymbol($transactions->getSymbol());
-            $total += $transactions->getCurrentHonorTotal($currentPrice);
+            $total = $total->add($transactions->getCurrentHonorTotal($currentPrice));
         }
         return $total;
     }
@@ -104,11 +106,7 @@ final readonly class StockService
             throw new NotEnoughStocksException($transactions->getTotalAmount(), $amount);
         }
         $transaction = $this->createStockTransaction($portfolio, $symbol, -$amount);
-        $this->manager->persist(HonorFactory::createPositive(
-            $portfolio->getChat(),
-            $portfolio->getUser(),
-            $transaction->getHonorTotal() * -1,
-        ));
+        $this->honorService->removeHonor($portfolio->getChat(), $portfolio->getUser(), $transaction->getHonorTotal());
         $this->manager->flush();
         return $transaction;
     }
