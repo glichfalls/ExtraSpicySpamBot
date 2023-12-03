@@ -1,9 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
-namespace App\Service\Telegram\Raid;
+namespace App\Service\Telegram\Honor\Raid;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Honor\Raid\Raid;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Service\Telegram\TelegramCallbackQueryListener;
@@ -21,11 +20,7 @@ class DefendRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
         try {
-            $raid = $this->raidRepository->getActiveRaid($chat);
-            $this->validate($raid, $user);
-            $raid->getDefenders()->add($user);
-            $this->manager->persist($raid);
-            $this->manager->flush();
+            $raid = $this->raidService->defendRaid($chat, $user);
             $this->telegramService->sendText(
                 $chat->getChatId(),
                 $this->translator->trans('telegram.raid.userDefendingRaid', [
@@ -61,31 +56,11 @@ class DefendRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $raid = $this->raidService->getActiveRaid($message->getChat());
-            $this->validate($raid, $message->getUser());
-            $raid->getDefenders()->add($message->getUser());
-            $this->manager->persist($raid);
-            $this->manager->flush();
+            $this->raidService->defendRaid($message->getChat(), $message->getUser());
             $this->telegramService->replyTo($message, $this->translator->trans('telegram.raid.nowDefendingRaid'));
         } catch (\RuntimeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());
             return;
-        }
-    }
-
-    private function validate(Raid $raid, User $supporter): void
-    {
-        if ($raid->getTarget()->getTelegramUserId() === $supporter->getTelegramUserId()) {
-            throw new \RuntimeException('you cannot defend your own raid');
-        }
-        if ($raid->getLeader()->getTelegramUserId() === $supporter->getTelegramUserId()) {
-            throw new \RuntimeException('the raid leader cannot defend the raid');
-        }
-        if ($raid->getDefenders()->filter(fn(User $user) => $user->getTelegramUserId() === $supporter->getTelegramUserId())->count() > 0) {
-            throw new \RuntimeException('you already defend the raid');
-        }
-        if ($raid->getSupporters()->filter(fn(User $user) => $user->getTelegramUserId() === $supporter->getTelegramUserId())->count() > 0) {
-            throw new \RuntimeException('you cannot support and defend the raid');
         }
     }
 

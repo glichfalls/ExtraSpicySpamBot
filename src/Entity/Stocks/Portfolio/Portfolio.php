@@ -6,6 +6,7 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Season\Season;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Entity\Stocks\Transaction\StockTransaction;
 use App\Entity\Stocks\Transaction\SymbolTransactionCollection;
@@ -42,6 +43,10 @@ class Portfolio
     #[Groups(['user:read'])]
     private User $user;
 
+    #[ManyToOne(targetEntity: Season::class)]
+    #[Groups(['portfolio:read'])]
+    private Season $season;
+
     #[OneToMany(mappedBy: 'portfolio', targetEntity: StockTransaction::class, cascade: ['persist'])]
     #[OrderBy(['createdAt' => 'DESC'])]
     #[Groups(['portfolio:read', 'price:read'])]
@@ -71,6 +76,16 @@ class Portfolio
     public function setUser(User $user): void
     {
         $this->user = $user;
+    }
+
+    public function getSeason(): Season
+    {
+        return $this->season;
+    }
+
+    public function setSeason(Season $season): void
+    {
+        $this->season = $season;
     }
 
     public function getTransactions(): Collection

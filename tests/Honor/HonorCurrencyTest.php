@@ -16,7 +16,7 @@ class HonorCurrencyTest extends BaseKernelTest
     {
         $user = $this->getUser();
         $chat = $this->getChat();
-        $honor = HonorFactory::createPositive($chat, $this->getTestUser(), Honor::currency(100));
+        $honor = HonorFactory::create($chat, $this->getTestUser(), null, Honor::currency(100));
         $honor = $this->getEntityManager()->getRepository(Honor::class)->findOneBy(['id' => $honor->getId()]);
         $this->assertInstanceOf(Honor::class, $honor);
         $this->assertInstanceOf(Money::class, $honor->getAmount());

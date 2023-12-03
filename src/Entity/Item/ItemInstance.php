@@ -6,6 +6,7 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Season\Season;
 use App\Entity\User\User;
 use App\Model\Id;
 use App\Model\Payload;
@@ -53,6 +54,10 @@ class ItemInstance
     #[Groups(['item:read', 'item:instance:write'])]
     private ?User $owner = null;
 
+    #[ManyToOne(targetEntity: Season::class)]
+    #[Groups(['item:read', 'item:instance:write'])]
+    private Season $season;
+
     #[Column(type: 'boolean')]
     #[Groups(['item:read', 'item:instance:write'])]
     private bool $tradeable;
@@ -96,6 +101,16 @@ class ItemInstance
     public function setOwner(?User $owner): void
     {
         $this->owner = $owner;
+    }
+
+    public function getSeason(): Season
+    {
+        return $this->season;
+    }
+
+    public function setSeason(Season $season): void
+    {
+        $this->season = $season;
     }
 
     public function isTradeable(): bool

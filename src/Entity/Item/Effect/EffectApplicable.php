@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity\Item\Effect;
 
@@ -12,9 +12,9 @@ interface EffectApplicable
 
     public function getOperator(): string;
 
-    public function getMagnitude(): float;
+    public function getMagnitude(): string;
 
-    public function apply(int|float $value): int|float;
+    public function apply(string $value): string;
 
-    public function applyNegative(int|float $value): int|float;
+    public function applyNegative(string $value): string;
 }

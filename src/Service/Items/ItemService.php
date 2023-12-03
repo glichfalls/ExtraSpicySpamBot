@@ -9,26 +9,41 @@ use App\Entity\Item\Effect\EffectCollection;
 use App\Entity\Item\Effect\EffectType;
 use App\Entity\Item\Effect\ItemEffect;
 use App\Entity\Item\Item;
+use App\Entity\Item\ItemFactory;
 use App\Entity\Item\ItemInstance;
 use App\Entity\User\User;
 use App\Repository\EffectRepository;
 use App\Repository\ItemInstanceRepository;
 use App\Repository\ItemRepository;
+use App\Service\Honor\SeasonService;
 use App\Utils\Random;
 use App\Utils\RateLimitUtils;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 
-class ItemService
+final readonly class ItemService
 {
 
     public function __construct(
         private EntityManagerInterface $manager,
         private ItemRepository $itemRepository,
         private ItemInstanceRepository $instanceRepository,
-        private EffectRepository $effectRepository,
+        private SeasonService $seasonService,
     ) {
+    }
+
+    public function createInstance(
+        Item $item,
+        Chat $chat,
+        ?User $user = null,
+        bool $tradeable = true,
+        ?\DateTimeInterface $expiresAt = null
+    ): ItemInstance {
+        $season = $this->seasonService->getSeason();
+        $instance = ItemFactory::instance($season, $item, $chat, $user, $tradeable, $expiresAt);
+        $this->manager->persist($instance);
+        return $instance;
     }
 
     public function getInstance(string $id): ItemInstance

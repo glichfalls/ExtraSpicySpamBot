@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
+use App\Entity\Honor\Season\Season;
 use App\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\UnexpectedResultException;
@@ -18,7 +19,7 @@ class HonorRepository extends ServiceEntityRepository
         parent::__construct($registry, Honor::class);
     }
 
-    public function getHonorCount(User $user, Chat $chat): Money
+    public function getHonorCount(Season $season, User $user, Chat $chat): Money
     {
         try {
             $queryBuilder = $this->createQueryBuilder('h');
@@ -26,6 +27,8 @@ class HonorRepository extends ServiceEntityRepository
                 ->select('SUM(h.amount)')
                 ->where('h.recipient = :user')
                 ->andWhere('h.chat = :chat')
+                ->andWhere('h.season = :season')
+                ->setParameter('season', $season)
                 ->setParameter('user', $user)
                 ->setParameter('chat', $chat);
             return Honor::currency($queryBuilder->getQuery()->getSingleScalarResult());
@@ -34,13 +37,15 @@ class HonorRepository extends ServiceEntityRepository
         }
     }
 
-    public function getLeaderboard(Chat $chat): array
+    public function getLeaderboard(Season $season, Chat $chat): array
     {
         return $this->createQueryBuilder('h')
             ->select('r.id, r.name, r.firstName, SUM(h.amount) as amount')
             ->join('h.recipient', 'r')
             ->where('h.chat = :chat')
+            ->andWhere('h.season = :season')
             ->setParameter('chat', $chat)
+            ->setParameter('season', $season)
             ->groupBy('r.id')
             ->orderBy('amount', 'DESC')
             ->getQuery()

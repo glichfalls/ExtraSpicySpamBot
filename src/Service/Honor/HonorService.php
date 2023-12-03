@@ -5,40 +5,38 @@ namespace App\Service\Honor;
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
 use App\Entity\Honor\HonorFactory;
+use App\Entity\Honor\Season\Season;
 use App\Entity\Honor\SlotMachine\SlotMachineJackpot;
 use App\Entity\User\User;
-use App\Repository\BankAccountRepository;
 use App\Repository\HonorRepository;
 use App\Repository\SlotMachineJackpotRepository;
-use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnexpectedResultException;
 use Money\Money;
-use Psr\Log\LoggerInterface;
 
 final readonly class HonorService
 {
 
     public function __construct(
-        private LoggerInterface $logger,
         private EntityManagerInterface $manager,
         private HonorRepository $honorRepository,
-        private BankAccountRepository $bankAccountRepository,
         private SlotMachineJackpotRepository $slotMachineJackpotRepository,
-        private UserRepository $userRepository,
+        private SeasonService $seasonService,
     ) {
 
     }
 
-    public function getHonorLeaderboardByChat(Chat $chat): array
+    public function getHonorLeaderboardByChat(Chat $chat, ?Season $season = null): array
     {
-        return $this->honorRepository->getLeaderboard($chat);
+        $season = $season ?? $this->seasonService->getSeason();
+        return $this->honorRepository->getLeaderboard($season, $chat);
     }
 
     public function getCurrentHonorAmount(Chat $chat, User $user): Money
     {
         try {
-            return $this->honorRepository->getHonorCount($user, $chat);
+            $season = $this->seasonService->getSeason();
+            return $this->honorRepository->getHonorCount($season, $user, $chat);
         } catch (UnexpectedResultException $exception) {
             throw new \RuntimeException('failed to load honor count', previous: $exception);
         }
@@ -46,12 +44,16 @@ final readonly class HonorService
 
     public function addHonor(Chat $chat, User $recipient, Money $amount, ?User $sender = null): void
     {
-        $this->manager->persist(HonorFactory::create($chat, $sender, $recipient, $amount->absolute()));
+        $season = $this->seasonService->getSeason();
+        $honor = HonorFactory::create($season, $chat, $sender, $recipient, $amount->absolute());
+        $this->manager->persist($honor);
     }
 
     public function removeHonor(Chat $chat, User $recipient, Money $amount, ?User $sender = null): void
     {
-        $this->manager->persist(HonorFactory::create($chat, $sender, $recipient, $amount->absolute()->negative()));
+        $season = $this->seasonService->getSeason();
+        $honor = HonorFactory::create($season, $chat, $sender, $recipient, $amount->absolute()->negative());
+        $this->manager->persist($honor);
     }
 
     public function getSlotMachineJackpot(Chat $chat): SlotMachineJackpot

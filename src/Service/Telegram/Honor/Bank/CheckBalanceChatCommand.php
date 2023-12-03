@@ -4,6 +4,7 @@ namespace App\Service\Telegram\Honor\Bank;
 
 use App\Entity\Message\Message;
 use App\Repository\BankAccountRepository;
+use App\Service\Honor\BankService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
@@ -20,7 +21,7 @@ final class CheckBalanceChatCommand extends AbstractTelegramChatCommand
         TranslatorInterface $translator,
         LoggerInterface $logger,
         TelegramService $telegramService,
-        private readonly BankAccountRepository $bankAccountRepository,
+        private readonly BankService $bankService,
     ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
@@ -32,11 +33,7 @@ final class CheckBalanceChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $account = $this->bankAccountRepository->getByChatAndUser($message->getChat(), $message->getUser());
-        if ($account === null) {
-            $this->telegramService->replyTo($message, 'you dont have an account');
-            return;
-        }
+        $account = $this->bankService->getAccount($message->getChat(), $message->getUser());
         $this->telegramService->replyTo(
             $message,
             sprintf('your bank balance is %s ehre', NumberFormat::money($account->getBalance()))

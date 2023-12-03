@@ -4,6 +4,7 @@ namespace App\Entity\Stocks\Transaction;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Honor\Season\Season;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Entity\Stocks\Stock\StockPrice;
 use App\Model\Id;
@@ -31,6 +32,10 @@ class StockTransaction
     #[JoinColumn(nullable: false)]
     private Portfolio $portfolio;
 
+    #[ManyToOne(targetEntity: Season::class)]
+    #[Groups(['stock:read', 'portfolio:read'])]
+    private Season $season;
+
     #[ManyToOne(targetEntity: StockPrice::class)]
     #[JoinColumn(nullable: false)]
     #[Groups(['stock:read', 'portfolio:read'])]
@@ -57,6 +62,16 @@ class StockTransaction
     public function setPortfolio(Portfolio $portfolio): void
     {
         $this->portfolio = $portfolio;
+    }
+
+    public function getSeason(): Season
+    {
+        return $this->season;
+    }
+
+    public function setSeason(Season $season): void
+    {
+        $this->season = $season;
     }
 
     public function getPrice(): StockPrice

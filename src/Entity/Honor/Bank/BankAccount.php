@@ -4,6 +4,7 @@ namespace App\Entity\Honor\Bank;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
+use App\Entity\Honor\Season\Season;
 use App\Entity\User\User;
 use App\Model\Id;
 use App\Repository\BankAccountRepository;
@@ -25,6 +26,9 @@ class BankAccount
 
     #[ManyToOne(targetEntity: User::class)]
     private User $user;
+
+    #[ManyToOne(targetEntity: Season::class)]
+    private Season $season;
 
     #[OneToMany(mappedBy: 'bankAccount', targetEntity: Transaction::class, cascade: ['persist'])]
     #[OrderBy(['createdAt' => 'DESC'])]
@@ -54,6 +58,16 @@ class BankAccount
     public function setUser(User $user): void
     {
         $this->user = $user;
+    }
+
+    public function getSeason(): Season
+    {
+        return $this->season;
+    }
+
+    public function setSeason(Season $season): void
+    {
+        $this->season = $season;
     }
 
     /**

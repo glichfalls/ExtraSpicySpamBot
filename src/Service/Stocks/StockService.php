@@ -4,6 +4,7 @@ namespace App\Service\Stocks;
 
 use App\Entity\Chat\Chat;
 use App\Entity\Honor\Honor;
+use App\Entity\Honor\Season\Season;
 use App\Entity\Stocks\Portfolio\Portfolio;
 use App\Entity\Stocks\Portfolio\PortfolioFactory;
 use App\Entity\Stocks\Transaction\StockTransaction;
@@ -12,14 +13,12 @@ use App\Entity\User\User;
 use App\Exception\AmountZeroOrNegativeException;
 use App\Exception\NotEnoughHonorException;
 use App\Exception\NotEnoughStocksException;
-use App\Repository\HonorRepository;
 use App\Repository\Stocks\PortfolioRepository;
-use App\Repository\Stocks\StockTransactionRepository;
 use App\Service\Honor\HonorService;
+use App\Service\Honor\SeasonService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Money\Money;
-use Psr\Log\LoggerInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 final readonly class StockService
 {
@@ -27,26 +26,29 @@ final readonly class StockService
     public function __construct(
         private StockPriceService $stockPriceService,
         private EntityManagerInterface $manager,
-        TranslatorInterface $translator,
-        LoggerInterface $logger,
-        protected HonorService $honorService,
-        protected HonorRepository $honorRepository,
-        protected StockPriceService $stockService,
-        protected StockTransactionRepository $stockTransactionRepository,
-        protected PortfolioRepository $portfolioRepository,
+        private HonorService $honorService,
+        private PortfolioRepository $portfolioRepository,
+        private SeasonService $seasonService,
     ) {
 
     }
 
-    public function getPortfolioByChatAndUser(Chat $chat, User $user): Portfolio
+    public function getPortfolioByChatAndUser(Chat $chat, User $user, ?Season $season = null): Portfolio
     {
-        $portfolio = $this->portfolioRepository->getByChatAndUser($chat, $user);
-        if ($portfolio === null) {
-            $portfolio = PortfolioFactory::create($chat, $user);
-            $this->manager->persist($portfolio);
-            $this->manager->flush();
+        if ($season === null) {
+            $season = $this->seasonService->getSeason();
         }
-        return $portfolio;
+        try {
+            $portfolio = $this->portfolioRepository->getByChatAndUser($season, $chat, $user);
+            if ($portfolio === null) {
+                $portfolio = PortfolioFactory::create($season, $chat, $user);
+                $this->manager->persist($portfolio);
+                $this->manager->flush();
+            }
+            return $portfolio;
+        } catch (NonUniqueResultException $exception) {
+            throw new \RuntimeException('Non unique portfolio', previous: $exception);
+        }
     }
 
     public function getPortfolioBalance(Portfolio $portfolio): Money
@@ -62,13 +64,14 @@ final readonly class StockService
         return $total;
     }
 
-    private function createStockTransaction(Portfolio $portfolio, string $symbol, string $amount): StockTransaction
+    public function createStockTransaction(Portfolio $portfolio, string $symbol, string $amount): StockTransaction
     {
         $price = $this->stockPriceService->getPriceBySymbol($symbol);
         if ($price->getHonorPrice()->lessThanOrEqual(Honor::currency(0))) {
             throw new AmountZeroOrNegativeException(sprintf('Stock price for %s is zero', $symbol));
         }
-        $transaction = StockTransactionFactory::create($price, $amount);
+        $season = $this->seasonService->getSeason();
+        $transaction = StockTransactionFactory::create($season, $price, $amount);
         $portfolio->addTransaction($transaction);
         return $transaction;
     }

@@ -20,7 +20,7 @@ use Finnhub\Model\SymbolLookupInfo;
 use GuzzleHttp\Client;
 use Psr\Log\LoggerInterface;
 
-class StockPriceService
+final readonly class StockPriceService
 {
 
     public const STOCK_UPDATE_INTERVAL_HOURS = 12;

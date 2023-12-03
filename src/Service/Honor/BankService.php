@@ -6,9 +6,11 @@ use App\Entity\Chat\Chat;
 use App\Entity\Honor\Bank\BankAccount;
 use App\Entity\Honor\Bank\Transaction;
 use App\Entity\Honor\Bank\TransactionFactory;
+use App\Entity\Honor\Season\Season;
 use App\Entity\User\User;
 use App\Repository\BankAccountRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Money\Money;
 
 readonly class BankService
@@ -18,14 +20,16 @@ readonly class BankService
         private EntityManagerInterface $manager,
         private BankAccountRepository $bankAccountRepository,
         private HonorService $honorService,
-    )
-    {
+        private SeasonService $seasonService,
+    ) {
 
     }
 
     public function createBankAccount(Chat $chat, User $user): BankAccount
     {
+        $season = $this->seasonService->getSeason();
         $account = new BankAccount();
+        $account->setSeason($season);
         $account->setChat($chat);
         $account->setUser($user);
         $this->manager->persist($account);
@@ -33,20 +37,26 @@ readonly class BankService
         return $account;
     }
 
-    public function getBankAccount(Chat $chat, User $user): BankAccount
+    public function getAccount(Chat $chat, User $user, ?Season $season = null): BankAccount
     {
-        return $this->bankAccountRepository->getByChatAndUser($chat, $user) ?? $this->createBankAccount($chat, $user);
-    }
-
-    public function getBalance(Chat $chat, User $user): Money
-    {
-        return $this->getBankAccount($chat, $user)->getBalance();
+        if ($season === null) {
+            $season = $this->seasonService->getSeason();
+        }
+        try {
+            return $this->bankAccountRepository->getByChatAndUser($season, $chat, $user)
+                ?? $this->createBankAccount($chat, $user);
+        } catch (NonUniqueResultException $exception) {
+            throw new \RuntimeException('multiple bank accounts found', previous: $exception);
+        }
     }
 
     public function deposit(Chat $chat, User $user, Money $amount): Transaction
     {
-        $account = $this->getBankAccount($chat, $user);
-        $this->validateDeposit($account, $amount);
+        $account = $this->getAccount($chat, $user);
+        $honor = $this->honorService->getCurrentHonorAmount($account->getChat(), $account->getUser());
+        if ($honor->lessThan($amount)) {
+            throw new \RuntimeException('not enough honor');
+        }
         $transaction = $this->createTransaction($account, $amount);
         $this->manager->flush();
         return $transaction;
@@ -54,26 +64,13 @@ readonly class BankService
 
     public function withdraw(Chat $chat, User $user, Money $amount): Transaction
     {
-        $account = $this->getBankAccount($chat, $user);
-        $this->validateWithdraw($account, $amount);
-        $transaction = $this->createTransaction($account, $amount->negative());
-        $this->manager->flush();
-        return $transaction;
-    }
-
-    private function validateDeposit(BankAccount $account, Money $amount): void
-    {
-        $honor = $this->honorService->getCurrentHonorAmount($account->getChat(), $account->getUser());
-        if ($honor->lessThan($amount)) {
-            throw new \RuntimeException('not enough honor');
-        }
-    }
-
-    private function validateWithdraw(BankAccount $account, Money $amount): void
-    {
+        $account = $this->getAccount($chat, $user);
         if ($account->getBalance()->lessThan($amount)) {
             throw new \RuntimeException('not enough ehre in bank account');
         }
+        $transaction = $this->createTransaction($account, $amount->negative());
+        $this->manager->flush();
+        return $transaction;
     }
 
     private function createTransaction(BankAccount $account, Money $amount): Transaction

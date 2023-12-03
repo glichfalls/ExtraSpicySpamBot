@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity\Item\Effect;
 
@@ -31,9 +31,9 @@ class Effect implements EffectApplicable
     #[Groups(['effect:read', 'collectable:read'])]
     private EffectType $type;
 
-    #[Column(type: 'float')]
+    #[Column(type: 'string')]
     #[Groups(['effect:read', 'collectable:read'])]
-    private float $magnitude;
+    private string $magnitude;
 
     #[Column(type: 'string')]
     #[Groups(['effect:read', 'collectable:read'])]
@@ -70,12 +70,12 @@ class Effect implements EffectApplicable
         $this->type = $type;
     }
 
-    public function getMagnitude(): float
+    public function getMagnitude(): string
     {
         return $this->magnitude;
     }
 
-    public function setMagnitude(float $magnitude): void
+    public function setMagnitude(string $magnitude): void
     {
         $this->magnitude = $magnitude;
     }
@@ -142,25 +142,25 @@ class Effect implements EffectApplicable
         }
     }
 
-    public function apply(int|float $value): int|float
+    public function apply(string $value): string
     {
         return match ($this->operator) {
-            '+' => $value + $this->magnitude,
-            '-' => $value - $this->magnitude,
-            '*' => $value * $this->magnitude,
-            '/' => $value / $this->magnitude,
+            '+' => bcadd($value, $this->magnitude),
+            '-' => bcsub($value, $this->magnitude),
+            '*' => bcmul($value, $this->magnitude),
+            '/' => bcdiv($value, $this->magnitude),
             '=' => $this->magnitude,
             default => throw new \RuntimeException(sprintf('Unknown operator "%s"', $this->operator)),
         };
     }
 
-    public function applyNegative(int|float $value): int|float
+    public function applyNegative(string $value): string
     {
         return match ($this->operator) {
-            '+' => $value - $this->magnitude,
-            '-' => $value + $this->magnitude,
-            '*' => $value / $this->magnitude,
-            '/' => $value * $this->magnitude,
+            '+' => bcsub($value, $this->magnitude),
+            '-' => bcadd($value, $this->magnitude),
+            '*' => bcdiv($value, $this->magnitude),
+            '/' => bcmul($value, $this->magnitude),
             '=' => $this->magnitude,
             default => throw new \RuntimeException(sprintf('Unknown operator "%s"', $this->operator)),
         };

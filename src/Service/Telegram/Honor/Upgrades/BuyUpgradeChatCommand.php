@@ -9,6 +9,7 @@ use App\Entity\Message\Message;
 use App\Repository\HonorRepository;
 use App\Repository\HonorUpgradeRepository;
 use App\Repository\HonorUpgradeTypeRepository;
+use App\Service\Honor\HonorService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,8 +28,8 @@ class BuyUpgradeChatCommand extends AbstractTelegramChatCommand
         private HonorUpgradeTypeRepository $upgradeTypeRepository,
         private HonorUpgradeRepository $upgradeRepository,
         private HonorRepository $honorRepository,
-    )
-    {
+        private HonorService $honorService,
+    ) {
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
@@ -50,12 +51,12 @@ class BuyUpgradeChatCommand extends AbstractTelegramChatCommand
             $this->telegramService->replyTo($message, sprintf('You already have %s', $upgradeType->getName()));
             return;
         }
-        $honor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
+        $honor = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
         if ($honor < $upgradeType->getPrice()) {
             $this->telegramService->replyTo($message, sprintf('You dont have enough honor to buy %s', $upgradeType->getName()));
             return;
         }
-        $this->manager->persist(HonorFactory::create($message->getChat(), null, $message->getUser(), -$upgradeType->getPrice()));
+        $this->honorService->removeHonor($message->getChat(), $message->getUser(), $upgradeType->getPrice());
         $upgrade = UpgradeFactory::create($message->getChat(), $message->getUser(), $upgradeType);
         $this->manager->persist($upgrade);
         $this->manager->flush();

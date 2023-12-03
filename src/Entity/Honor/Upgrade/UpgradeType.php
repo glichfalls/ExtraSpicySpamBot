@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity\Honor\Upgrade;
 
@@ -6,6 +6,7 @@ use App\Model\Id;
 use App\Repository\HonorUpgradeRepository;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Money\Money;
 
 #[Entity(repositoryClass: HonorUpgradeRepository::class)]
 class UpgradeType
@@ -18,8 +19,8 @@ class UpgradeType
     #[Column(type: 'string', unique: true, nullable: false)]
     private string $code;
 
-    #[Column(type: 'integer', nullable: false)]
-    private int $price;
+    #[Column(type: 'honor', nullable: false)]
+    private Money $price;
 
     public function __construct()
     {
@@ -46,12 +47,12 @@ class UpgradeType
         $this->code = $code;
     }
 
-    public function getPrice(): int
+    public function getPrice(): Money
     {
         return $this->price;
     }
 
-    public function setPrice(int $price): void
+    public function setPrice(Money $price): void
     {
         $this->price = $price;
     }

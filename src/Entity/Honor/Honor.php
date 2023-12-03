@@ -3,6 +3,7 @@
 namespace App\Entity\Honor;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Season\Season;
 use App\Entity\User\User;
 use App\Model\Id;
 use App\Repository\HonorRepository;
@@ -27,6 +28,9 @@ class Honor
 
     #[ManyToOne(targetEntity: Chat::class)]
     private Chat $chat;
+
+    #[ManyToOne(targetEntity: Season::class)]
+    private Season $season;
 
     #[Column(type: 'honor', nullable: false)]
     private Money $amount;
@@ -69,6 +73,16 @@ class Honor
     public function setChat(Chat $chat): void
     {
         $this->chat = $chat;
+    }
+
+    public function getSeason(): Season
+    {
+        return $this->season;
+    }
+
+    public function setSeason(Season $season): void
+    {
+        $this->season = $season;
     }
 
     public function getAmount(): Money

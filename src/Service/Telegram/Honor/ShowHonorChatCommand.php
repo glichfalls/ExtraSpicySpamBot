@@ -4,25 +4,20 @@ namespace App\Service\Telegram\Honor;
 
 use App\Entity\Message\Message;
 use App\Service\Honor\HonorService;
-use App\Service\Telegram\AbstractTelegramChatCommand;
+use App\Service\Telegram\TelegramChatCommand;
 use App\Service\Telegram\TelegramService;
 use App\Utils\NumberFormat;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use TelegramBot\Api\Types\Update;
 
-class ShowHonorChatCommand extends AbstractTelegramChatCommand
+final readonly class ShowHonorChatCommand implements TelegramChatCommand
 {
 
     public function __construct(
-        EntityManagerInterface $manager,
-        TranslatorInterface $translator,
-        LoggerInterface $logger,
-        TelegramService $telegramService,
-        private readonly HonorService $honorService,
+        private TranslatorInterface $translator,
+        private TelegramService $telegram,
+        private HonorService $honorService,
     ) {
-        parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
     public function matches(Update $update, Message $message, array &$matches): bool
@@ -33,7 +28,7 @@ class ShowHonorChatCommand extends AbstractTelegramChatCommand
     public function handle(Update $update, Message $message, array $matches): void
     {
         $total = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
-        $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.show', [
+        $this->telegram->replyTo($message, $this->translator->trans('telegram.honor.show', [
             'amount' => NumberFormat::money($total),
         ]));
     }

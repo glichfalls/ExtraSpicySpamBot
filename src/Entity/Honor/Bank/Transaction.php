@@ -2,6 +2,7 @@
 
 namespace App\Entity\Honor\Bank;
 
+use App\Entity\Honor\Season\Season;
 use App\Model\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -17,6 +18,9 @@ class Transaction
 
     #[ManyToOne(targetEntity: BankAccount::class)]
     private BankAccount $bankAccount;
+
+    #[ManyToOne(targetEntity: Season::class)]
+    private Season $season;
 
     #[Column(type: 'honor', nullable: false)]
     private Money $amount;
@@ -34,6 +38,16 @@ class Transaction
     public function setBankAccount(BankAccount $bankAccount): void
     {
         $this->bankAccount = $bankAccount;
+    }
+
+    public function getSeason(): Season
+    {
+        return $this->season;
+    }
+
+    public function setSeason(Season $season): void
+    {
+        $this->season = $season;
     }
 
     public function getAmount(): Money

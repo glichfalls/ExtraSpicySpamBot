@@ -6,7 +6,7 @@ use App\Entity\User\User;
 
 readonly class UserEffect implements EffectApplicable
 {
-    public function __construct(public Effect $effect, public User $user, public int $amount)
+    public function __construct(public Effect $effect, public User $user, public string $amount)
     {
     }
 
@@ -30,15 +30,15 @@ readonly class UserEffect implements EffectApplicable
         return $this->effect->getOperator();
     }
 
-    public function getMagnitude(): float
+    public function getMagnitude(): string
     {
         return match ($this->effect->getOperator()) {
-            '+', '-' => $this->effect->getMagnitude() * $this->amount,
-            '*', '/' => pow($this->effect->getMagnitude(), $this->amount),
+            '+', '-' => bcmul($this->effect->getMagnitude(), $this->amount),
+            '*', '/' => bcpow($this->effect->getMagnitude(), $this->amount),
         };
     }
 
-    public function apply(int|float $value): int|float
+    public function apply(string $value): string
     {
         for ($i = 0; $i < $this->amount; $i++) {
             $value = $this->effect->apply($value);
@@ -46,8 +46,11 @@ readonly class UserEffect implements EffectApplicable
         return $value;
     }
 
-    public function applyNegative(int|float $value): int|float
+    public function applyNegative(string $value): string
     {
-        return $this->effect->applyNegative($value);
+        for ($i = 0; $i < $this->amount; $i++) {
+            $value = $this->effect->applyNegative($value);
+        }
+        return $value;
     }
 }

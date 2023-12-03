@@ -3,6 +3,7 @@
 namespace App\Entity\Item;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Honor\Season\Season;
 use App\Entity\Item\Attribute\ItemRarity;
 use App\Entity\Item\Effect\EffectCollection;
 use App\Entity\User\User;
@@ -30,6 +31,7 @@ class ItemFactory
     }
 
     public static function instance(
+        Season $season,
         Item $item,
         Chat $chat,
         ?User $owner,
@@ -37,6 +39,7 @@ class ItemFactory
         ?DateTimeInterface $expiresAt = null,
     ): ItemInstance {
         $instance = new ItemInstance();
+        $instance->setSeason($season);
         $instance->setItem($item);
         $instance->setChat($chat);
         $instance->setOwner($owner);

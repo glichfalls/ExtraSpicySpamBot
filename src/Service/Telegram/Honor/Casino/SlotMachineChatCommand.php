@@ -165,6 +165,7 @@ class SlotMachineChatCommand extends AbstractTelegramChatCommand implements Tele
 
     public function updateJackpot(Update $update, Money $oldJackpot, Money $newJackpot): void
     {
+        // do not update if the jackpot did not change
         if (NumberFormat::money($oldJackpot) === NumberFormat::money($newJackpot)) {
             return;
         }

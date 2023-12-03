@@ -1,8 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
-namespace App\Service\Telegram\Raid;
+namespace App\Service\Telegram\Honor\Raid;
 
 use App\Entity\Message\Message;
+use App\Exception\RaidGuardException;
 use App\Utils\NumberFormat;
 use TelegramBot\Api\Types\Update;
 
@@ -43,21 +44,31 @@ class CreateRaidCommand extends AbstractRaidChatCommand
             return;
         }
         $chat = $message->getChat();
-        $raid = $this->raidService->createRaid($chat, $message->getUser(), $target);
-        $this->manager->persist($raid);
-        $this->manager->flush();
-        $this->telegramService->videoReplyTo($message, 'https://extra-spicy-spam.portner.dev/assets/video/raid.mp4');
-        $this->telegramService->sendText(
-            $chat->getChatId(),
-            sprintf(
-                '%s started a raid against %s! %s Ehre will be raided.',
-                $message->getUser()->getName(),
-                $target->getName(),
-                NumberFormat::money($raid->getAmount()),
-            ),
-            threadId: $message->getTelegramThreadId(),
-            replyMarkup: $this->getRaidKeyboard($raid),
-        );
+        try {
+            $raid = $this->raidService->createRaid($chat, $message->getUser(), $target);
+            $this->manager->persist($raid);
+            $this->manager->flush();
+            $this->telegramService->videoReplyTo($message, 'https://extra-spicy-spam.portner.dev/assets/video/raid.mp4');
+            $this->telegramService->sendText(
+                $chat->getChatId(),
+                sprintf(
+                    '%s started a raid against %s! %s Ehre will be raided.',
+                    $message->getUser()->getName(),
+                    $target->getName(),
+                    NumberFormat::money($raid->getAmount()),
+                ),
+                threadId: $message->getTelegramThreadId(),
+                replyMarkup: $this->getRaidKeyboard($raid),
+            );
+        } catch (RaidGuardException $exception) {
+            $this->telegramService->replyTo($message, sprintf(
+                'Raid Guard protected %s from %s!',
+                $exception->target->getName(),
+                $exception->leader->getName(),
+            ));
+        } catch (\RuntimeException $exception) {
+            $this->telegramService->replyTo($message, $exception->getMessage());
+        }
     }
 
     public function getSyntax(): string

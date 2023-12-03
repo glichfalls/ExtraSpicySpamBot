@@ -210,9 +210,7 @@ class LootBoxChatCommand extends AbstractTelegramChatCommand implements Telegram
         $instances = $this->itemService->getAvailableInstances($chat, $rarity);
         if ($instances->count() === 0) {
             $item = $this->itemService->getRandomLoanedItemByMaxRarity($rarity);
-            $expire = new \DateTime('+2 weeks');
-            $win = ItemFactory::instance($item, $chat, $user, true, $expire);
-            $this->manager->persist($win);
+            $win = $this->itemService->createInstance($item, $chat, $user, expiresAt: new \DateTime('+2 weeks'));
         } else {
             $win = Random::arrayElement($instances->toArray());
         }
@@ -224,11 +222,11 @@ class LootBoxChatCommand extends AbstractTelegramChatCommand implements Telegram
 
     private function winStocks(Chat $chat, User $user, LootboxLoot $loot): StockTransaction
     {
-        $symbol = $this->getRandomStockSymbol();
-        $price = $this->stockPriceService->getPriceBySymbol($symbol);
-        $transaction = StockTransactionFactory::create($price, $loot->stockAmount());
-        $portfolio = $this->stockService->getPortfolioByChatAndUser($chat, $user);
-        $portfolio->addTransaction($transaction);
+        $transaction = $this->stockService->createStockTransaction(
+            $this->stockService->getPortfolioByChatAndUser($chat, $user),
+            $this->getRandomStockSymbol(),
+            $loot->stockAmount()
+        );
         $this->manager->flush();
         return $transaction;
     }

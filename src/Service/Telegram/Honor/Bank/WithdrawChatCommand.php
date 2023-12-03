@@ -33,7 +33,7 @@ class WithdrawChatCommand extends AbstractTelegramChatCommand
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $account = $this->bankService->getBankAccount($message->getChat(), $message->getUser());
+            $account = $this->bankService->getAccount($message->getChat(), $message->getUser());
             if ($matches['amount'] === 'max') {
                 $amount = $account->getBalance();
             } else {

@@ -1,14 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
-namespace App\Service\Telegram\Raid;
+namespace App\Service\Telegram\Honor\Raid;
 
-use App\Entity\Chat\Chat;
 use App\Entity\Honor\Raid\Raid;
-use App\Entity\Item\Effect\EffectCollection;
-use App\Entity\Item\Effect\EffectType;
-use App\Entity\User\User;
 use App\Repository\HonorRepository;
-use App\Repository\RaidRepository;
 use App\Repository\UserRepository;
 use App\Service\Honor\HonorService;
 use App\Service\Honor\RaidService;

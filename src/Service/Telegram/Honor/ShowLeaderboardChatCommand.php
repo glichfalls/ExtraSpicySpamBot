@@ -48,7 +48,7 @@ class ShowLeaderboardChatCommand extends AbstractTelegramChatCommand
             $leaderboard = [];
             foreach ($data as $entry) {
                 $user = $this->userService->getById((string) $entry['id']);
-                $balance = $this->bankService->getBankAccount($chat, $user)->getBalance();
+                $balance = $this->bankService->getAccount($chat, $user)->getBalance();
                 $portfolio = $this->stockService->getPortfolioByChatAndUser($chat, $user);
                 try {
                     $portfolioValue = $this->stockService->getPortfolioBalance($portfolio);

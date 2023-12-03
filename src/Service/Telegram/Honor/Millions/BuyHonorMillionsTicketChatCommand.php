@@ -81,7 +81,7 @@ class BuyHonorMillionsTicketChatCommand extends AbstractTelegramChatCommand
 
         try {
             $total = Honor::currency(0);
-            $honor = $this->honorRepository->getHonorCount($message->getUser(), $message->getChat());
+            $honor = $this->honorService->getCurrentHonorAmount($message->getChat(), $message->getUser());
             foreach ($numbers as $number) {
                 $price = $this->buyTicket($message->getChat(), $message->getUser(), $ticket, $honor, $number);
                 $total = $total->add($price);

@@ -77,7 +77,6 @@ class HonorMillionsDrawCommand extends Command
                         parseMode: 'HTML',
                     );
                     $this->honorService->addHonor($draw->getChat(), $winner->getUser(), $amountPerWinner);
-                    $this->manager->persist(HonorFactory::create($draw->getChat(), null, $winner->getUser(), $amountPerWinner));
                 }
                 $nextDraw = DrawFactory::create($draw->getChat(), new \DateTime('+1 day'), $draw->getTelegramThreadId());
                 $nextDraw->setChat($draw->getChat());

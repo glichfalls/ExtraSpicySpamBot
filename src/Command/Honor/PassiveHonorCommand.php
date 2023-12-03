@@ -36,9 +36,8 @@ class PassiveHonorCommand extends Command
             foreach ($users as $user) {
                 $effects = $this->itemEffectService->getEffectsByUserAndType($user, $chat, EffectType::PASSIVE_HONOR);
                 $baseAmount = $chat->getConfig()->getPassiveHonorAmount();
-                $finalAmount = $effects->apply($baseAmount);
+                $finalAmount = $effects->applyMoney($baseAmount);
                 $this->honorService->addHonor($chat, $user, $finalAmount);
-                $this->manager->persist(HonorFactory::create($chat, null, $user, $finalAmount));
             }
         }
         $this->manager->flush();

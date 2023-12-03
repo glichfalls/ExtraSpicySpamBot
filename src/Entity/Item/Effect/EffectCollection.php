@@ -1,9 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity\Item\Effect;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Money\Money;
 
+/**
+ * @method EffectApplicable first()
+ */
 class EffectCollection extends ArrayCollection
 {
 
@@ -18,7 +22,7 @@ class EffectCollection extends ArrayCollection
     /**
      * returns the input number with all applied effects
      */
-    public function apply(int|float $number, int|float|null $min = null, int|float|null $max = null): int|float
+    public function apply(string $number, ?string $min = null, ?string $max = null): string
     {
         foreach ($this->getValues() as $effect) {
             $number = $effect->apply($number);
@@ -30,6 +34,12 @@ class EffectCollection extends ArrayCollection
             return $max;
         }
         return $number;
+    }
+
+    public function applyMoney(Money $money): Money
+    {
+        $amount = $this->apply($money->getAmount());
+        return new Money($amount, $money->getCurrency());
     }
 
     public function applyNegative(int|float $number): int|float

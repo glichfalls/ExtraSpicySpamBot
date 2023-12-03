@@ -80,17 +80,17 @@ class ItemEffect implements EffectApplicable
         return $this->effect->getOperator();
     }
 
-    public function getMagnitude(): float
+    public function getMagnitude(): string
     {
         return $this->effect->getMagnitude();
     }
 
-    public function apply(int|float $value): int|float
+    public function apply(string $value): string
     {
         return $this->effect->apply($value);
     }
 
-    public function applyNegative(int|float $value): int|float
+    public function applyNegative(string $value): string
     {
         return $this->effect->applyNegative($value);
     }

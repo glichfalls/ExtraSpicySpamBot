@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Service\Telegram\Raid;
+namespace App\Service\Telegram\Honor\Raid;
 
 use App\Entity\Chat\Chat;
-use App\Entity\Honor\Raid\Raid;
 use App\Entity\Message\Message;
 use App\Entity\User\User;
 use App\Service\Telegram\TelegramCallbackQueryListener;
@@ -21,8 +20,7 @@ class CancelRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
         try {
-            $raid = $this->raidService->getRaidGuards($chat);
-            $this->cancelRaid($raid, $user);
+            $this->raidService->cancelRaid($chat, $user);
             $this->telegramService->sendText(
                 $chat->getChatId(),
                 $this->translator->trans('telegram.raid.raidCanceled'),
@@ -50,8 +48,7 @@ class CancelRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
-            $raid = $this->raidService->getActiveRaid($message->getChat());
-            $this->cancelRaid($raid, $message->getUser());
+            $this->raidService->cancelRaid($message->getChat(), $message->getUser());
             $this->telegramService->sendText(
                 $message->getChat()->getChatId(),
                 $this->translator->trans('telegram.raid.raidCanceled'),
@@ -63,15 +60,6 @@ class CancelRaidChatCommand extends AbstractRaidChatCommand implements TelegramC
                 $exception->getMessage(),
             );
         }
-    }
-
-    private function cancelRaid(Raid $raid, User $user): void
-    {
-        if ($raid->getLeader()->getTelegramUserId() !== $user->getTelegramUserId()) {
-            throw new \RuntimeException($this->translator->trans('telegram.raid.notLeaderError'));
-        }
-        $this->manager->remove($raid);
-        $this->manager->flush();
     }
 
     public function getSyntax(): string

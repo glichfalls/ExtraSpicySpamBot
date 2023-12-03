@@ -413,7 +413,7 @@ class TelegramService
 
     public function changeInlineKeyboard(
         string $chatId,
-        string $messageId,
+        float|int $messageId,
         mixed $replyMarkup,
     ): void {
         $this->bot->editMessageReplyMarkup(
