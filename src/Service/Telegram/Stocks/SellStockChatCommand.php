@@ -51,9 +51,9 @@ class SellStockChatCommand extends AbstractTelegramChatCommand implements Telegr
             $transaction = $this->stockService->sellStock($portfolio, $symbol, $amount);
             $this->telegramService->replyTo($message, sprintf(
                 '%sx %s sold for %s Ehre',
-                NumberFormat::format($transaction->getAmount()),
+                NumberFormat::format(bcmul($transaction->getAmount(), '-1')),
                 $transaction->getPrice()->getStock()->getDisplaySymbol(),
-                NumberFormat::money($transaction->getHonorTotal()),
+                NumberFormat::money($transaction->getHonorTotal()->absolute()),
             ));
         } catch (AmountZeroOrNegativeException $exception) {
             $this->telegramService->replyTo($message, $exception->getMessage());

@@ -48,7 +48,6 @@ readonly class BankService
         $account = $this->getBankAccount($chat, $user);
         $this->validateDeposit($account, $amount);
         $transaction = $this->createTransaction($account, $amount);
-        $this->honorService->removeHonor($chat, $user, $amount);
         $this->manager->flush();
         return $transaction;
     }
@@ -58,7 +57,6 @@ readonly class BankService
         $account = $this->getBankAccount($chat, $user);
         $this->validateWithdraw($account, $amount);
         $transaction = $this->createTransaction($account, $amount->negative());
-        $this->honorService->addHonor($chat, $user, $amount);
         $this->manager->flush();
         return $transaction;
     }
@@ -83,7 +81,11 @@ readonly class BankService
         $transaction = TransactionFactory::create($amount);
         $account->addTransaction($transaction);
         $this->manager->persist($transaction);
-        $this->honorService->removeHonor($account->getChat(), $account->getUser(), $amount);
+        if ($amount->isNegative()) {
+            $this->honorService->addHonor($account->getChat(), $account->getUser(), $amount);
+        } else {
+            $this->honorService->removeHonor($account->getChat(), $account->getUser(), $amount);
+        }
         return $transaction;
     }
 
