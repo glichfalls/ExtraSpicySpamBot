@@ -54,7 +54,7 @@ readonly class ItemEffectService
         $collection = new EffectCollection();
         foreach ($result as $row) {
             $effect = $this->effectRepository->find($row['id']);
-            $collection->add(new UserEffect($effect, $user, $row['amount']));
+            $collection->add(new UserEffect($effect, $user, (string) $row['amount']));
         }
         return $collection;
     }
