@@ -4,6 +4,7 @@ namespace App\Entity\Item\Effect;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Money\Money;
+use Money\Number;
 
 /**
  * @method EffectApplicable first()
@@ -39,7 +40,7 @@ class EffectCollection extends ArrayCollection
     public function applyMoney(Money $money): Money
     {
         $amount = $this->apply($money->getAmount());
-        return new Money($amount, $money->getCurrency());
+        return new Money((new Number($amount))->getIntegerPart(), $money->getCurrency());
     }
 
     public function applyNegative(int|float $number): int|float

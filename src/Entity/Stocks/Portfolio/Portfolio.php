@@ -113,7 +113,7 @@ class Portfolio
         $symbols = $this->getTransactions()->map(fn (StockTransaction $transaction) => $transaction->getPrice()->getStock()->getSymbol());
         $symbols = array_unique($symbols->toArray());
         $data = array_map(fn (string $symbol) => $this->getTransactionsBySymbol($symbol), $symbols);
-        usort($data, fn (SymbolTransactionCollection $a, SymbolTransactionCollection $b) => $a->getCurrentTotal() <=> $b->getCurrentTotal());
+        usort($data, fn (SymbolTransactionCollection $a, SymbolTransactionCollection $b) => bccomp($a->getCurrentTotal(), $b->getCurrentTotal()));
         return $data;
     }
 

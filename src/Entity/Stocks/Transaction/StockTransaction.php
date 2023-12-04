@@ -45,7 +45,7 @@ class StockTransaction
     #[Groups(['stock:read', 'portfolio:read'])]
     private string $amount;
 
-    private ?float $total = null;
+    private ?string $total = null;
 
     private ?Money $honorTotal = null;
 
@@ -94,10 +94,10 @@ class StockTransaction
         $this->amount = $amount;
     }
 
-    public function getTotal(): float
+    public function getTotal(): string
     {
         if ($this->total === null) {
-            $this->total = $this->getPrice()->getPrice() * $this->getAmount();
+            $this->total = bcmul($this->getPrice()->getPrice(), $this->getAmount());
         }
         return $this->total;
     }
