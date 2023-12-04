@@ -84,13 +84,12 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
                 $effectList = [];
                 $value = 50;
                 foreach ($effects->getValues() as $effect) {
-                    $magnitude = round($effect->getMagnitude(), 2);
+                    $magnitude = $effect->getMagnitude();
                     $previousValue = round($value, 2);
                     $value = $effect->apply($value);
-                    $displayValue = round($value, 2);
                     $effectList[] = <<<TEXT
                     <strong>{$effect->getType()->value}</strong>
-                    {$previousValue} {$effect->getOperator()} {$magnitude} = {$displayValue}
+                    {$previousValue} {$effect->getOperator()} {$magnitude} = {$value}
                     TEXT;
                 }
                 $effectList[] = sprintf('<strong>Total:</strong> %s (%s%%)', round($value, 2), $chance);
@@ -102,7 +101,7 @@ class GambleHonorChatCommand extends AbstractTelegramChatCommand
     private function getChance(EffectCollection $effects): int
     {
         try {
-            $chance = $effects->apply(50);
+            $chance = (int) $effects->apply('50');
             $this->logger->info(sprintf('gamble luck effects: %s', $effects->count()));
             if ($chance < 30) {
                 return 30;
