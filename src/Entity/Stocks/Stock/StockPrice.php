@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping\ManyToOne;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Money\Currency;
 use Money\Money;
+use Money\Number;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Entity]
@@ -91,11 +92,12 @@ class StockPrice
 
     public function getHonorPrice(): Money
     {
-        return Honor::currency($this->getPrice());
+        $number = new Number($this->getPrice());
+        return Honor::currency($number->getIntegerPart());
     }
 
     #[Groups(['stock:read', 'portfolio:read'])]
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }

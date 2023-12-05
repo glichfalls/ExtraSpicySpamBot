@@ -98,7 +98,7 @@ class TelegramService
         string $chatId,
         string $imageUrl,
         ?string $caption = null,
-        ?string $threadId = null,
+        ?int $threadId = null,
         mixed $replyMarkup = null,
     ): TelegramMessage {
         return $this->bot->sendPhoto(

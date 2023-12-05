@@ -8,9 +8,17 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Money\Money;
 
+/**
+ * @extends ArrayCollection<int, StockTransaction>
+ */
 class SymbolTransactionCollection extends ArrayCollection
 {
 
+    /**
+     * @param string $symbol
+     * @param StockPrice|null $currentPrice
+     * @param Collection<int, StockTransaction> $transactions
+     */
     public function __construct(private readonly string $symbol, private readonly ?StockPrice $currentPrice, Collection $transactions)
     {
         parent::__construct(
@@ -30,14 +38,12 @@ class SymbolTransactionCollection extends ArrayCollection
         return $this->currentPrice;
     }
 
+    /**
+     * @return numeric-string
+     */
     public function getTotalAmount(): string
     {
         return array_reduce($this->toArray(), fn (string $carry, StockTransaction $element) => bcadd($carry, $element->getAmount()), '0');
-    }
-
-    public function getTotalBuyPrice(): string
-    {
-        return array_reduce($this->toArray(), fn (string $carry, StockTransaction $element) => bcadd($carry, $element->getTotal()), '0');
     }
 
     public function getCurrentTotal(?StockPrice $stockPrice = null): string
@@ -45,6 +51,7 @@ class SymbolTransactionCollection extends ArrayCollection
         if ($this->getCurrentPrice() === null && $stockPrice === null) {
             return '0';
         }
+        /** @var StockPrice $currentPrice */
         $currentPrice = $this->getCurrentPrice() ?? $stockPrice;
         return bcmul($currentPrice->getPrice(), $this->getTotalAmount());
     }
@@ -54,34 +61,9 @@ class SymbolTransactionCollection extends ArrayCollection
         if ($this->getCurrentPrice() === null && $stockPrice === null) {
             return Honor::currency(0);
         }
+        /** @var StockPrice $currentPrice */
         $currentPrice = $this->getCurrentPrice() ?? $stockPrice;
         return $currentPrice->getHonorPrice()->multiply($this->getTotalAmount());
-    }
-
-    public function getTotalProfit(?StockPrice $stockPrice = null): string
-    {
-        return bcsub($this->getCurrentTotal($stockPrice), $this->getTotalBuyPrice());
-    }
-
-    public function getAverageBuyPrice(): string
-    {
-        return bcdiv($this->getTotalBuyPrice(), $this->getTotalAmount());
-    }
-
-    public function getDailyProfit(?StockPrice $stockPrice = null): string
-    {
-        if ($this->getCurrentPrice() === null && $stockPrice === null) {
-            return '0';
-        }
-        return bcmul($this->getTotalAmount(), (string) $stockPrice->getChangeAbsolute());
-    }
-
-    public function getDailyProfitPercent(?StockPrice $stockPrice = null): float
-    {
-        if ($this->getCurrentPrice() === null && $stockPrice === null) {
-            return 0;
-        }
-        return $stockPrice->getChangePercent();
     }
 
 }

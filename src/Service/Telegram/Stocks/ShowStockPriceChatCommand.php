@@ -4,8 +4,6 @@ namespace App\Service\Telegram\Stocks;
 
 use App\Entity\Message\Message;
 use App\Entity\Stocks\Stock\Stock;
-use App\Entity\Stocks\Stock\StockPrice;
-use App\Entity\Stocks\Transaction\SymbolTransactionCollection;
 use App\Exception\StockSymbolUpdateException;
 use App\Service\Stocks\StockPriceService;
 use App\Service\Telegram\AbstractTelegramChatCommand;
@@ -66,7 +64,7 @@ class ShowStockPriceChatCommand extends AbstractTelegramChatCommand
                     TEXT,
                     $price->getStock()->getName(),
                     $price->getStock()->getSymbol(),
-                    NumberFormat::money($price->getPrice()),
+                    NumberFormat::format($price->getPrice()),
                 ),
                 threadId: $message->getTelegramThreadId(),
                 replyMarkup: $this->getKeyboard($price->getStock()),
@@ -78,20 +76,6 @@ class ShowStockPriceChatCommand extends AbstractTelegramChatCommand
                 $exception->getMessage()
             ));
         }
-    }
-
-    private function sendHtmlReply(Message $message, SymbolTransactionCollection $balance, StockPrice $price): void
-    {
-        $this->telegramService->senderRenderedMessage(
-            'stock',
-            $message->getChat()->getChatId(),
-            threadId: $message->getTelegramThreadId(),
-            replyMarkup: $this->getKeyboard($price->getStock()),
-            context: [
-                'price' => $price,
-                'balance' => $balance,
-            ]
-        );
     }
 
     private function getKeyboard(Stock $stock): InlineKeyboardMarkup

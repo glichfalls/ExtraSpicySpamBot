@@ -3,6 +3,7 @@
 namespace App\Service\Items;
 
 use App\Entity\Chat\Chat;
+use App\Entity\Item\Effect\Effect;
 use App\Entity\Item\Effect\EffectCollection;
 use App\Entity\Item\Effect\EffectType;
 use App\Entity\Item\Effect\ItemEffect;
@@ -53,7 +54,11 @@ readonly class ItemEffectService
             ->getResult();
         $collection = new EffectCollection();
         foreach ($result as $row) {
+            /** @var Effect|null $effect */
             $effect = $this->effectRepository->find($row['id']);
+            if ($effect === null) {
+                continue;
+            }
             $collection->add(new UserEffect($effect, $user, (string) $row['amount']));
         }
         return $collection;

@@ -35,6 +35,7 @@ readonly class UserEffect implements EffectApplicable
         return match ($this->effect->getOperator()) {
             '+', '-' => bcmul($this->effect->getMagnitude(), $this->amount),
             '*', '/' => bcpow($this->effect->getMagnitude(), $this->amount),
+            default => $this->effect->getMagnitude(),
         };
     }
 

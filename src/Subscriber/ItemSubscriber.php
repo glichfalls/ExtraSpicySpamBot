@@ -41,7 +41,7 @@ readonly class ItemSubscriber implements EventSubscriberInterface
                 new drop
                 {$entity->getItem()->getRarity()->name()} {$entity->getItem()->getName()}
                 CAPTION,
-            threadId: $entity->getChat()->getConfig()->getDefaultThreadId(),
+            threadId: (int) $entity->getChat()->getConfig()->getDefaultThreadId(),
         );
     }
 
