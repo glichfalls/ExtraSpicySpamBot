@@ -27,8 +27,10 @@ class ItemInstanceRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('i')
             ->andWhere('i.chat = :chat')
             ->andWhere('i.owner = :user')
+            ->andWhere('i.expiresAt IS NULL OR i.expiresAt > :now')
             ->setParameter('chat', $chat)
             ->setParameter('user', $user)
+            ->setParameter('now', new \DateTime())
             ->getQuery()
             ->getResult();
     }
