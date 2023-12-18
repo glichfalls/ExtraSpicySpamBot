@@ -32,11 +32,13 @@ class TelegramWebhookHandler
                 ->where('m.chat = :chat')
                 ->andWhere('m.createdAt > :createdAt')
                 ->andWhere('m.message LIKE \'!%\'')
+                ->andWhere('m.user = :user')
                 ->setParameter('chat', $message->getChat())
+                ->setParameter('user', $message->getUser())
                 ->setParameter('createdAt', new \DateTime('-1 minute'))
                 ->getQuery()
                 ->getSingleScalarResult();
-            if ($messageCount > 10) {
+            if ($messageCount > 20 && str_starts_with($message->getMessage(), '!')) {
                 $this->telegramBaseService->replyTo($message, '🤫');
                 return;
             }
