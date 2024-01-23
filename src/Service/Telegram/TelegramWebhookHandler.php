@@ -33,9 +33,9 @@ class TelegramWebhookHandler
                 ->where('m.chat = :chat')
                 ->andWhere('m.createdAt > :createdAt')
                 ->andWhere($qb->expr()->orX(
-                    $qb->expr()->like('m.message', '!%'),
-                    $qb->expr()->like('m.message', '+%'),
-                    $qb->expr()->like('m.message', '-%'),
+                    $qb->expr()->like('m.message', '\'!%\''),
+                    $qb->expr()->like('m.message', '\'+%\''),
+                    $qb->expr()->like('m.message', '\'-%\''),
                 ))
                 ->andWhere('m.user = :user')
                 ->setParameter('chat', $message->getChat())
