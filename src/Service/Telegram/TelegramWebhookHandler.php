@@ -2,6 +2,7 @@
 
 namespace App\Service\Telegram;
 
+use App\Entity\Message\Message;
 use App\Repository\MessageRepository;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use TelegramBot\Api\Types\Update;
@@ -13,6 +14,8 @@ class TelegramWebhookHandler
      * @var iterable<TelegramChatCommand>
      */
     private iterable $handlers;
+
+    private const ALLOW_LIST = ['!ehre', '!jackpot', '!items', '!collection', '!gift'];
 
     public function __construct(
         #[TaggedIterator('telegram.chat_command')]
@@ -47,7 +50,7 @@ class TelegramWebhookHandler
                 str_starts_with($message->getMessage(), '+') ||
                 str_starts_with($message->getMessage(), '-') ||
                 str_starts_with($message->getMessage(), '!')
-            )) {
+            ) && !$this->isCommandAlwaysAllowed($message)) {
                 $this->telegramBaseService->replyTo($message, '🤫');
                 return;
             }
@@ -58,6 +61,16 @@ class TelegramWebhookHandler
                 }
             }
         }
+    }
+
+    private function isCommandAlwaysAllowed(Message $message): bool
+    {
+        foreach (self::ALLOW_LIST as $command) {
+            if (str_starts_with($message->getMessage(), $command)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
