@@ -27,18 +27,26 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
         parent::__construct($manager, $translator, $logger, $telegramService);
     }
 
+    /**
+     * @param Update $update
+     * @param Message $message
+     * @param array{} $matches
+     * @return bool
+     */
     public function matches(Update $update, Message $message, array &$matches): bool
     {
         return preg_match('/^(?<op>[+\-])\s*(?<count>\d+)\s*ehre\s*@(?<name>.+)$/i', $message->getMessage(), $matches) === 1;
     }
 
+    /**
+     * @param Update $update
+     * @param Message $message
+     * @param array{ count: int, op: string, name: string } $matches
+     * @return void
+     */
     public function handle(Update $update, Message $message, array $matches): void
     {
         $count = (int) $matches['count'];
-
-        if ($matches['op'] === '-') {
-            $count *= -1;
-        }
 
         $recipients = $this->telegramService->getUsersFromMentions($update);
 
@@ -52,12 +60,12 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
                 continue;
             }
 
-            $this->applyHonor($message, $recipient, $count);
+            $this->applyHonor($message, $recipient, $matches['op'], $count);
 
         }
     }
 
-    private function applyHonor(Message $message, User $recipient, int $amount): void
+    private function applyHonor(Message $message, User $recipient, string $operation, int $amount): void
     {
         if ($amount < -self::MAX_HONOR_AMOUNT || $amount > self::MAX_HONOR_AMOUNT) {
             $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.amountNotInRange', [
@@ -66,8 +74,11 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
             ]));
             return;
         }
-
-        $this->honorService->addHonor($message->getChat(), $recipient, Honor::currency($amount), sender: $message->getUser());
+        if ($operation === '+') {
+            $this->honorService->addHonor($message->getChat(), $recipient, Honor::currency($amount), sender: $message->getUser());
+        } else {
+            $this->honorService->removeHonor($message->getChat(), $recipient, Honor::currency($amount), sender: $message->getUser());
+        }
         $this->manager->flush();
         $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.receivedHonor', [
             'amount' => $amount,
