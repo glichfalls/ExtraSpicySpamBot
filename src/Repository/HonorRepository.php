@@ -31,7 +31,8 @@ class HonorRepository extends ServiceEntityRepository
                 ->setParameter('season', $season)
                 ->setParameter('user', $user)
                 ->setParameter('chat', $chat);
-            return Honor::currency($queryBuilder->getQuery()->getSingleScalarResult());
+            $amount = $queryBuilder->getQuery()->getSingleScalarResult() ?? 0;
+            return Honor::currency((int) $amount);
         } catch (UnexpectedResultException $exception) {
             return Honor::currency(0);
         }
