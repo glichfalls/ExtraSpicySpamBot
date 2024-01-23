@@ -59,7 +59,12 @@ class TelegramWebhookHandler
                 str_starts_with($message->getMessage(), '-') ||
                 str_starts_with($message->getMessage(), '!')
             ) && !$this->isCommandAlwaysAllowed($message)) {
-                $this->telegramBaseService->imageReplyTo($message, $this->getRandomMeme());
+                $memeUrl = $this->getRandomMeme();
+                if ($memeUrl !== null) {
+                    $this->telegramBaseService->imageReplyTo($message, $memeUrl);
+                } else {
+                    $this->telegramBaseService->replyTo($message, 'stop spamming');
+                }
                 return;
             }
             foreach ($this->handlers as $telegramChatCommand) {
@@ -81,11 +86,11 @@ class TelegramWebhookHandler
         return false;
     }
 
-    private function getRandomMeme(): string
+    private function getRandomMeme(): ?string
     {
         $response = $this->httpClient->request('GET', 'https://meme-api.com/gimme');
         $data = $response->toArray();
-        return $data['url'];
+        return $data['url'] ?? null;
     }
 
 }
