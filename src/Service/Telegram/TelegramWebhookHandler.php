@@ -5,6 +5,8 @@ namespace App\Service\Telegram;
 use App\Entity\Message\Message;
 use App\Repository\MessageRepository;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use TelegramBot\Api\Types\Update;
 
 class TelegramWebhookHandler
@@ -17,18 +19,24 @@ class TelegramWebhookHandler
 
     private const ALLOW_LIST = ['!ehre', '!jackpot', '!items', '!collection', '!gift'];
 
+    /**
+     * @param iterable<TelegramChatCommand> $telegramChatCommands
+     * @param TelegramService $telegramBaseService
+     * @param MessageRepository $messageRepository
+     */
     public function __construct(
         #[TaggedIterator('telegram.chat_command')]
         iterable $telegramChatCommands,
         private readonly TelegramService $telegramBaseService,
         private readonly MessageRepository $messageRepository,
+        private readonly HttpClientInterface $httpClient,
     ) {
         $this->handlers = $telegramChatCommands;
     }
 
     public function handle(Update $update): void
     {
-        if ($update->getMessage()->getChat()) {
+        if ($update->getMessage()?->getChat() !== null) {
             $message = $this->telegramBaseService->createMessageFromUpdate($update);
             $qb = $this->messageRepository->createQueryBuilder('m');
             $messageCount = $qb
@@ -51,7 +59,7 @@ class TelegramWebhookHandler
                 str_starts_with($message->getMessage(), '-') ||
                 str_starts_with($message->getMessage(), '!')
             ) && !$this->isCommandAlwaysAllowed($message)) {
-                $this->telegramBaseService->replyTo($message, '🤫');
+                $this->telegramBaseService->imageReplyTo($message, $this->getRandomMeme());
                 return;
             }
             foreach ($this->handlers as $telegramChatCommand) {
@@ -71,6 +79,13 @@ class TelegramWebhookHandler
             }
         }
         return false;
+    }
+
+    private function getRandomMeme(): string
+    {
+        $response = $this->httpClient->request('GET', 'https://meme-api.com/gimme');
+        $data = $response->toArray();
+        return $data['url'];
     }
 
 }
