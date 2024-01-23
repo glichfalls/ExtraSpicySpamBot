@@ -76,14 +76,19 @@ class ApplyHonorChatCommand extends AbstractTelegramChatCommand
         }
         if ($operation === '+') {
             $this->honorService->addHonor($message->getChat(), $recipient, Honor::currency($amount), sender: $message->getUser());
+            $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.receivedHonor', [
+                'amount' => $amount,
+                'name' => $recipient->getFirstName(),
+            ]));
         } else {
             $this->honorService->removeHonor($message->getChat(), $recipient, Honor::currency($amount), sender: $message->getUser());
+            $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.lostHonor', [
+                'amount' => $amount,
+                'name' => $recipient->getFirstName(),
+            ]));
         }
         $this->manager->flush();
-        $this->telegramService->replyTo($message, $this->translator->trans('telegram.honor.receivedHonor', [
-            'amount' => $amount,
-            'name' => $recipient->getFirstName(),
-        ]));
+
     }
 
     public function getHelp(): string

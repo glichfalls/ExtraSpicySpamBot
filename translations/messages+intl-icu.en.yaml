@@ -4,6 +4,7 @@ telegram:
     amountNotInRange: 'amount must be between {min} and {max}'
     rateLimitExceeded: 'you have to wait {minutes} more minutes'
     receivedHonor: '{name} received {amount} Ehre'
+    lostHonor: '{name} lost {amount} Ehre'
     show: 'you have {amount} Ehre'
     noLeaderboard: 'no leaderboard yet'
   raid:

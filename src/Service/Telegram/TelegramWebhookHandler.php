@@ -27,11 +27,16 @@ class TelegramWebhookHandler
     {
         if ($update->getMessage()->getChat()) {
             $message = $this->telegramBaseService->createMessageFromUpdate($update);
-            $messageCount = $this->messageRepository->createQueryBuilder('m')
+            $qb = $this->messageRepository->createQueryBuilder('m');
+            $messageCount = $qb
                 ->select('count(m.id)')
                 ->where('m.chat = :chat')
                 ->andWhere('m.createdAt > :createdAt')
-                ->andWhere('m.message LIKE \'!%\'')
+                ->andWhere($qb->expr()->orX(
+                    $qb->expr()->like('m.message', '!%'),
+                    $qb->expr()->like('m.message', '+%'),
+                    $qb->expr()->like('m.message', '-%'),
+                ))
                 ->andWhere('m.user = :user')
                 ->setParameter('chat', $message->getChat())
                 ->setParameter('user', $message->getUser())
