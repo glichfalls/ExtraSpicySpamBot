@@ -38,7 +38,7 @@ class TelegramWebhookHandler
                 ->setParameter('createdAt', new \DateTime('-1 minute'))
                 ->getQuery()
                 ->getSingleScalarResult();
-            if ($messageCount > 20 && str_starts_with($message->getMessage(), '!')) {
+            if ($messageCount > 10 && str_starts_with($message->getMessage(), '!')) {
                 $this->telegramBaseService->replyTo($message, '🤫');
                 return;
             }
