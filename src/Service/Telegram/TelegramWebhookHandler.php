@@ -88,7 +88,7 @@ class TelegramWebhookHandler
 
     private function getRandomMeme(): ?string
     {
-        $response = $this->httpClient->request('GET', 'https://meme-api.com/gimme');
+        $response = $this->httpClient->request('GET', 'https://meme-api.com/gimme/dankmemes');
         $data = $response->toArray();
         return $data['url'] ?? null;
     }
