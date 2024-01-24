@@ -20,6 +20,11 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
 
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
+        $callbackQuery = $update->getCallbackQuery();
+        if (null === $callbackQuery) {
+            throw new \RuntimeException('Callback query is missing');
+        }
+        $threadId = $callbackQuery->getMessage()?->getMessageThreadId();
         try {
             $result = $this->raidService->executeRaid($chat, $user);
             $raid = $result->raid;
@@ -30,7 +35,7 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                         'target' => $raid->getTarget()->getName(),
                         'honorCount' => $raid->getAmount(),
                     ]),
-                    threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+                    threadId: $threadId,
                 );
             } else {
                 $this->telegramService->sendText(
@@ -38,22 +43,18 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                     $this->translator->trans('telegram.raid.raidFailed', [
                         'target' => $raid->getTarget()->getName(),
                     ]),
-                    threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+                    threadId: $threadId,
                 );
             }
-            $this->telegramService->answerCallbackQuery(
-                $update->getCallbackQuery(),
-                'Raid finished',
-                false,
-            );
+            $this->telegramService->answerCallbackQuery($callbackQuery, 'Raid finished');
             $this->telegramService->deleteMessage(
-                $update->getCallbackQuery()->getMessage()->getChat()->getId(),
-                $update->getCallbackQuery()->getMessage()->getMessageId(),
+                $chat->getChatId(),
+                (int) $callbackQuery->getMessage()?->getMessageId(),
             );
         } catch (\RuntimeException $exception) {
             $this->logger->info($exception->getMessage());
             $this->telegramService->answerCallbackQuery(
-                $update->getCallbackQuery(),
+                $callbackQuery,
                 $exception->getMessage(),
                 true,
             );

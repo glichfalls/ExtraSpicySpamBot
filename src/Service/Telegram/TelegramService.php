@@ -423,10 +423,10 @@ class TelegramService
         );
     }
 
-    public function deleteMessage(string $chatId, int $messageId): void
+    public function deleteMessage(string|int $chatId, int $messageId): void
     {
         $this->bot->deleteMessage(
-            $chatId,
+            (int) $chatId,
             $messageId,
         );
     }

@@ -42,7 +42,10 @@ final class HonorRouletteChatCommand extends AbstractTelegramChatCommand impleme
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
         $callbackQuery = $update->getCallbackQuery();
-        $data = explode(';', $callbackQuery->getData());
+        if (null === $callbackQuery) {
+            throw new \RuntimeException('Callback query is missing');
+        }
+        $data = explode(';', $callbackQuery->getData() ?? '');
         if (count($data) === 3) {
             $amount = Honor::currency($data[1]);
             $currentHonor = $this->honorService->getCurrentHonorAmount($chat, $user);
@@ -60,20 +63,20 @@ final class HonorRouletteChatCommand extends AbstractTelegramChatCommand impleme
                     sprintf(
                         '%s %s %s Ehre (%s -> %s %s)',
                         $user->getName(),
-                        $result['amount'] > 0 ? 'won' : 'lost',
-                        NumberFormat::format(abs($result['amount'])),
+                        $result['amount']->greaterThan(Honor::currency(0)) ? 'won' : 'lost',
+                        NumberFormat::money($result['amount']->absolute()),
                         $bet,
                         $result['number'],
                         $this->getColorEmojiByNumber($result['number']),
                     ),
-                    threadId: $callbackQuery->getMessage()->getMessageThreadId(),
+                    threadId: $callbackQuery->getMessage()?->getMessageThreadId(),
                 );
                 $this->telegramService->answerCallbackQuery(
                     $callbackQuery,
                     sprintf(
                         'You %s %s Ehre (%s %s)',
-                        $result['amount'] > 0 ? 'won' : 'lost',
-                        NumberFormat::format(abs($result['amount'])),
+                        $result['amount']->greaterThan(Honor::currency(0)) ? 'won' : 'lost',
+                        NumberFormat::money($result['amount']->absolute()),
                         $result['number'],
                         $this->getColorEmojiByNumber($result['number']),
                     ),
@@ -114,7 +117,7 @@ final class HonorRouletteChatCommand extends AbstractTelegramChatCommand impleme
                     $result['number'],
                     $this->getColorEmojiByNumber($result['number']),
                     $message->getUser()->getName(),
-                    $result['amount'] > 0 ? 'won' : 'lost',
+                    $result['amount']->greaterThan(Honor::currency(0)) ? 'won' : 'lost',
                     NumberFormat::money($amount->absolute()),
                 ),
             );
@@ -126,7 +129,7 @@ final class HonorRouletteChatCommand extends AbstractTelegramChatCommand impleme
      * @param User $user
      * @param string $bet
      * @param Money $initialAmount
-     * @return array<string, int|Money>
+     * @return array{number: int, color: string|null, amount: Money}
      */
     private function roll(Chat $chat, User $user, string $bet, Money $initialAmount): array
     {
