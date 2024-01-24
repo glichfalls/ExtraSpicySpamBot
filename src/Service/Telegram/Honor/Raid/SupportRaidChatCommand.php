@@ -19,6 +19,14 @@ class SupportRaidChatCommand extends AbstractRaidChatCommand implements Telegram
 
     public function handleCallback(Update $update, Chat $chat, User $user): void
     {
+        $callbackQuery = $update->getCallbackQuery();
+        if (null === $callbackQuery) {
+            return;
+        }
+        $message = $callbackQuery->getMessage();
+        if (null === $message) {
+            return;
+        }
         try {
             $raid = $this->raidService->supportRaid($chat, $user);
             $this->telegramService->sendText(
@@ -26,33 +34,41 @@ class SupportRaidChatCommand extends AbstractRaidChatCommand implements Telegram
                 $this->translator->trans('telegram.raid.userSupportingRaid', [
                     'name' => $user->getName(),
                 ]),
-                threadId: $update->getCallbackQuery()->getMessage()->getMessageThreadId(),
+                threadId: $callbackQuery->getMessage()?->getMessageThreadId(),
             );
-            $this->telegramService->answerCallbackQuery(
-                $update->getCallbackQuery(),
-                'You are now supporting the raid',
-                false,
-            );
+            $this->telegramService->answerCallbackQuery($callbackQuery, 'You are now supporting the raid');
             $this->telegramService->changeInlineKeyboard(
-                $update->getCallbackQuery()->getMessage()->getChat()->getId(),
-                $update->getCallbackQuery()->getMessage()->getMessageId(),
+                $message->getChat()->getId(),
+                $message->getMessageId(),
                 $this->getRaidKeyboard($raid),
             );
         } catch (\RuntimeException $exception) {
             $this->logger->info($exception->getMessage());
             $this->telegramService->answerCallbackQuery(
-                $update->getCallbackQuery(),
+                $callbackQuery,
                 $exception->getMessage(),
                 true,
             );
         }
     }
 
+    /**
+     * @param Update $update
+     * @param Message $message
+     * @param array{} $matches
+     * @return bool
+     */
     public function matches(Update $update, Message $message, array &$matches): bool
     {
         return preg_match('/^!(support|s)$/i', $message->getMessage()) === 1;
     }
 
+    /**
+     * @param Update $update
+     * @param Message $message
+     * @param array{} $matches
+     * @return void
+     */
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
