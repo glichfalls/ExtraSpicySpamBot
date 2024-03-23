@@ -147,23 +147,21 @@ final readonly class RaidService
         }
     }
 
-    private function isSuccessful(Raid $raid): bool
+    public function getSuccessChance(Raid $raid): int
     {
         $leaderEffects = $this->effectService->getEffectsByUserAndType($raid->getLeader(), $raid->getChat(), [
             EffectType::OFFENSIVE_RAID_SUCCESS,
         ]);
-        $successChance = $leaderEffects->apply('50');
+        $successChance = $leaderEffects->apply('50', min: '20', max: '80');
         $targetEffects = $this->effectService->getEffectsByUserAndType($raid->getTarget(), $raid->getChat(), [
             EffectType::DEFENSIVE_RAID_SUCCESS,
         ]);
-        $successChance = $targetEffects->apply($successChance);
-        if (bccomp($successChance, '0') <= 0) {
-            return false;
-        }
-        if (bccomp($successChance, '100') >= 0) {
-            return true;
-        }
-        return Random::getPercentChance((int) $successChance);
+        return (int) $targetEffects->apply($successChance, min: '20', max: '80');
+    }
+
+    private function isSuccessful(Raid $raid): bool
+    {
+        return Random::getPercentChance($this->getSuccessChance($raid));
     }
 
     private function success(Raid $raid): RaidResult

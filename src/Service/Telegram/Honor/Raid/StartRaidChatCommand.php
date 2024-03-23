@@ -27,13 +27,12 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
         $threadId = $callbackQuery->getMessage()?->getMessageThreadId();
         try {
             $result = $this->raidService->executeRaid($chat, $user);
-            $raid = $result->raid;
             if ($result->success) {
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     $this->translator->trans('telegram.raid.raidSuccessful', [
-                        'target' => $raid->getTarget()->getName(),
-                        'honorCount' => $raid->getAmount(),
+                        'target' => $result->raid->getTarget()->getName(),
+                        'successRate' => $this->raidService->getSuccessChance($result->raid),
                     ]),
                     threadId: $threadId,
                 );
@@ -41,7 +40,8 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                 $this->telegramService->sendText(
                     $chat->getChatId(),
                     $this->translator->trans('telegram.raid.raidFailed', [
-                        'target' => $raid->getTarget()->getName(),
+                        'target' => $result->raid->getTarget()->getName(),
+                        'successRate' => $this->raidService->getSuccessChance($result->raid),
                     ]),
                     threadId: $threadId,
                 );
@@ -75,14 +75,15 @@ class StartRaidChatCommand extends AbstractRaidChatCommand implements TelegramCa
                     $message,
                     $this->translator->trans('telegram.raid.raidSuccessful', [
                         'target' => $result->raid->getTarget()->getName(),
-                        'honorCount' => NumberFormat::money($result->raid->getAmount()),
+                        'successRate' => $this->raidService->getSuccessChance($result->raid),
                     ]),
                 );
             } else {
                 $this->telegramService->replyTo(
                     $message,
                     $this->translator->trans('telegram.raid.raidFailed', [
-                        'target' => $result->raid->getTarget()->getName() ?? $result->raid->getTarget()->getFirstName(),
+                        'target' => $result->raid->getTarget()->getName(),
+                        'successRate' => $this->raidService->getSuccessChance($result->raid),
                     ]),
                 );
             }

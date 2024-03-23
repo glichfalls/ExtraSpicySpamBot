@@ -24,8 +24,8 @@ telegram:
     supporterAndDefenderCount: '{supporters} are now supporting the raid against {target}, {defenders} are defending'
     raidStarted: 'raid against {target} started with {supporters} supporters and {defenders} defenders, {honor} honor will be stolen and equally distributed among the supporters if the raid is successful.'
     chanceToWin: '{chance}% chance to succeed'
-    raidSuccessful: 'raid against {target} was successful! {honorCount} honor was stolen and equally distributed among the supporters and leader.'
-    raidFailed: 'raid against {target} failed!'
+    raidSuccessful: 'raid against {target} was successful! ({successRate}%)'
+    raidFailed: 'raid against {target} failed! ({successRate}%)'
     raidEnded: 'Thank you for participating in RAID: Shadow Legends! (Beta)'
     raidCanceled: 'raid cancelled'
   openai:
