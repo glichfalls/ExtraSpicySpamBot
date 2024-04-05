@@ -88,7 +88,14 @@ class TelegramWebhookHandler
 
     private function getRandomMeme(): ?string
     {
-        $response = $this->httpClient->request('GET', 'https://meme-api.com/gimme/wallstreetbets');
+        $subreddits = [
+            'wallstreetbets',
+            'retardedcornfieldcum',
+            'pansexmothwhorehouse',
+            'ichbin40undSchwurbler',
+        ];
+        $subreddit = $subreddits[array_rand($subreddits)];
+        $response = $this->httpClient->request('GET', sprintf('https://meme-api.com/gimme/%s', $subreddit));
         $data = $response->toArray();
         return $data['url'] ?? null;
     }
