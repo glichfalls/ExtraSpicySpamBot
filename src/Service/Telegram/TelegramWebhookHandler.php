@@ -89,7 +89,6 @@ class TelegramWebhookHandler
     private function getRandomMeme(): ?string
     {
         $subreddits = [
-            'wallstreetbets',
             'retardedcornfieldcum',
             'pansexmothwhorehouse',
             'ichbin40undSchwurbler',
