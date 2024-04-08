@@ -33,12 +33,7 @@ final class ShowHonorMillionsJackpotChatCommand extends AbstractTelegramChatComm
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $date = new \DateTime();
-        if ($date->format('H') >= 22) {
-            // after 22:00 the jackpot is for the next day
-            $date->modify('+2 hours');
-        }
-        $draw = $this->drawRepository->getByChatAndDate($message->getChat(), $date);
+        $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
         if ($draw === null) {
             $this->telegramService->replyTo($message, 'there is no draw for this chat');
             return;

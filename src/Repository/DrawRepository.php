@@ -53,10 +53,16 @@ class DrawRepository extends ServiceEntityRepository
 
     public function getActiveDrawByChat(Chat $chat): ?Draw
     {
+        $date = new \DateTime();
+        if ($date->format('H') >= 22) {
+            // after 22:00 the jackpot is for the next day
+            $date->modify('+2 hours');
+        }
         return $this->createQueryBuilder('d')
             ->where('d.chat = :chat')
-            ->andWhere('d.winningNumber IS NULL')
+            ->andWhere('d.date = :date')
             ->setParameter('chat', $chat)
+            ->setParameter('date', $date->format('Y-m-d'))
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();

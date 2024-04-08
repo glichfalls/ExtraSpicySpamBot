@@ -32,7 +32,7 @@ class CreateHonorMillionsDrawChatCommand extends AbstractTelegramChatCommand
 
     public function handle(Update $update, Message $message, array $matches): void
     {
-        $draw = $this->drawRepository->getByChatAndDate($message->getChat(), new \DateTime());
+        $draw = $this->drawRepository->getActiveDrawByChat($message->getChat());
         if ($draw !== null) {
             $this->telegramService->replyTo($message, 'there is already a draw for this chat');
             return;
