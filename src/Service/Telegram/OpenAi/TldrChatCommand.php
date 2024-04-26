@@ -33,6 +33,8 @@ class TldrChatCommand extends AbstractTelegramChatCommand
     public function handle(Update $update, Message $message, array $matches): void
     {
         try {
+            $this->telegramService->replyTo($message, 'nei');
+            return;
             $replyMessage = $update->getMessage()->getReplyToMessage();
             if ($replyMessage !== null) {
                 $prompt = $replyMessage->getText();
